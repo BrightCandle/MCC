@@ -1,2 +1,2 @@
 // Initialize spectating script when player dies:
-[] execVM MCC_path + "spectator\specta.sqf";
+["Terminate"] call BIS_fnc_EGSpectator;

@@ -22,5 +22,14 @@ while { true } do {
 	[player] join MCC_deadGroup;
 	player attachto [MCC_respawnAnchor,[2,2,2]];
 	sleep 2;
-	[] execVM MCC_path + "spectator\specta.sqf";
+	
+	[] spawn {
+	waitUntil {inputAction "revealTarget" > 0};  
+	["Terminate"] call BIS_fnc_EGSpectator;
+	};
+
+	["Initialize", [player, [], true, true, true, true, true, true, true, true]] call BIS_fnc_EGSpectator;
+	_ret = [true] call acre_api_fnc_setSpectator;
+	
+	cutText ["","BLACK IN",2];
 };

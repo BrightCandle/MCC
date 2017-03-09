@@ -33,7 +33,7 @@ if (_type==4) exitWith
 {													//Spectator script
 	//[] call BIS_fnc_camera;
 	while {dialog} do {closeDialog 0; sleep 0.2};
-	[] execVM MCC_path + "spectator\specta.sqf";
+	["Initialize", [player, [], true, true, true, true, true, true, true, true]] call BIS_fnc_EGSpectator;
 };
 
 if (MCC_GUI1initDone) then
