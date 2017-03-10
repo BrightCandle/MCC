@@ -72,6 +72,7 @@ class GAIA
         #endif
 
         class addAttackWaypoint {};
+		class addAttackWaypointCar {};
         class addWaypoint {};
         class analyzeForces {};
         class analyzeTargets {};
@@ -110,6 +111,7 @@ class GAIA
 
         class doArtillery {};
         class doAttack {};
+		class doAttackSearch {};
         class doAttackCar {};
         class doAttackHelicopter {};
         class doAttackInfantry {};
