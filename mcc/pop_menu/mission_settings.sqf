@@ -58,7 +58,7 @@ switch (_type) do
 	{
 		//[] call BIS_fnc_camera;
 		while {dialog} do {closeDialog 0; sleep 0.2};
-		[] execVM MCC_path + "spectator\specta.sqf";
+		["Initialize", [player, [], true, true, true, true, true, true, true, true]] call BIS_fnc_EGSpectator;
 	};
 
 	//Sunset Sunrise times
