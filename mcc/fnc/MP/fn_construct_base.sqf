@@ -1,8 +1,9 @@
-//==================================================================MCC_fnc_construct_base======================================================================================
+//==================================================================MCC_fnc_construct_base=============================================================================
 // Example:[_pos, _anchorDir , _anchorType, _BuildTime, _side]  call  MCC_fnc_construct_base;
-//==============================================================================================================================================================================
-private ["_cfgClass","_anchorType","_anchorDir","_pos","_objs","_constType","_anchor","_object","_BuildTime","_buildingObjs","_builtArray",
-         "_side","_level","_instant","_endTime","_boxName","_boxArray","_box","_text","_res"];
+//======================================================================================================================================================================
+private ["_cfgClass","_anchorType","_anchorDir","_pos","_objs","_constType","_anchor","_object","_BuildTime","_buildingObjs","_builtArray","_side","_level","_instant","_endTime","_boxName","_boxArray","_box","_text","_res","_displayName","_markerName","_root"];
+#define BASE_ANCHOR "UserTexture10m_F"
+
 _pos			= _this select 0;
 _anchorDir 		= _this select 1;
 _cfgClass		= _this select 2;
@@ -14,20 +15,25 @@ _instant = if (_BuildTime <=0) then {true} else {false};
 //Wait for mission start
 waituntil {time > 0};
 
-
-if (isClass (missionconfigFile >> "cfgRtsBuildings")) then {
-	_anchorType = getText (missionconfigFile >> "cfgRtsBuildings" >> _cfgClass >> "anchorType");
-	_constType = getText (missionconfigFile >> "cfgRtsBuildings" >> _cfgClass >> "constType");
-	_level = getNumber (missionconfigFile >> "cfgRtsBuildings" >> _cfgClass >> "level");
-	_res = getArray (missionconfigFile >> "cfgRtsBuildings" >> _cfgClass >> "resources");
-	_objs = getArray (missionconfigFile >> "cfgRtsBuildings" >> _cfgClass >> "objectsArray");
-} else {
-	_anchorType = getText (configFile >> "cfgRtsBuildings" >> _cfgClass >> "anchorType");
-	_constType = getText (configFile >> "cfgRtsBuildings" >> _cfgClass >> "constType");
-	_level = getNumber (configFile >> "cfgRtsBuildings" >> _cfgClass >> "level");
-	_res = getArray (configFile >> "cfgRtsBuildings" >> _cfgClass >> "resources");
-	_objs = getArray (configFile >> "cfgRtsBuildings" >> _cfgClass >> "objectsArray");
+if (typeName _side == "STRING") then {
+	_side = switch (toupper _side) do
+			{
+				case "WEST":		{west};
+				case "EAST":		{east};
+				case "GUER":	{resistance};
+				default     	{civilian};
+			};
 };
+
+_root = if (isClass (missionconfigFile >> "cfgRtsBuildings")) then {missionconfigFile >> "cfgRtsBuildings" >> _cfgClass} else {configFile >> "cfgRtsBuildings" >> _cfgClass};
+
+_anchorType = getText (_root >> "anchorType");
+_constType = getText (_root >> "constType");
+_level = getNumber (_root >> "level");
+_res = getArray (_root >> "resources");
+_objs = getArray (_root >> "objectsArray");
+_displayName = getText (_root >> "displayName");
+
 
 {
 	if ((_x select 0)=="time") exitWith {_BuildTime = (_x select 1)};
@@ -47,17 +53,24 @@ if (isnil "_constType") exitWith {};
 if (isNil "MCC_dummyLogicGroup") then {MCC_dummyLogicGroup = createGroup sideLogic};
 _module = MCC_dummyLogicGroup createunit ["Logic", _pos,[],0.5,"NONE"];
 */
-_module = "UserTexture10m_F" createVehicle _pos;
+_module = BASE_ANCHOR createVehicle _pos;
 
 _module setVariable ["mcc_constructionItemType",_constType,true];
 _module setVariable ["mcc_constructionItemTypeLevel",_level,true];
+_module setVariable ["mcc_side",_side,true];
+_module setVariable ["cfgClass",_cfgClass,true];
+
+//Create marker
+_markerName = format ["ConstCounter_%1",["MCC_ConstCounter_",1] call bis_fnc_counter];
+_module setVariable ["mcc_markerName",_markerName,true];
+
+[[[_markerName], _pos, "colorGreen", "loc_Bunker",_displayName,false],"BIS_fnc_markerCreate", _side,false] call BIS_fnc_MP;
 
 //Building anim
-if !(_instant) then
-{
-	_anchor = "Land_Rampart_F" createVehicle _pos;
+if !(_instant) then {
+	_anchor = "Land_Bricks_V3_F" createVehicle _pos;
 	waituntil {!isnil "_anchor"};
-
+	_anchor enableSimulation false;
 	_builtArray = [_anchor];
 	_anchor setdir _anchorDir;
 
@@ -133,6 +146,6 @@ if (_constType == "hq") then {
 	[_side, _object] call MCC_fnc_makeObjectVirtualBox
 };
 
-if (_constType == "workshop") then {
-	 [[_side, _module], "MCC_fnc_initWorkshop", false, false] spawn BIS_fnc_MP;
+if (_constType in ["workshop","barracks"]) then {
+	 [[_side, _module,_constType], "MCC_fnc_initWorkshop", false, false] spawn BIS_fnc_MP;
 };

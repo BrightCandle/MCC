@@ -1,4 +1,4 @@
-#define CP_SQUADPANEL_IDD (uiNamespace getVariable "CP_SQUADPANEL_IDD")
+#define CP_RESPAWNPANEL_IDD (uiNamespace getVariable "CP_RESPAWNPANEL_IDD")
 
 private ["_ok","_key","_index","_commander","_screen"];
 disableSerialization;
@@ -60,8 +60,8 @@ if (_index == 0) exitWith {
 };
 
 //Console
-_commander = MCC_server getVariable [format ["CP_commander%1",side player],""];
-if ((_index == 1) && (_commander == getPlayerUID player) && (missionNamespace getVariable ["MCC_allowConsole",true])) exitWith {
+_commander = ((MCC_server getVariable [format ["CP_commander%1",side player],""]) == getPlayerUID player) or ("MCC_itemConsole" in (assignedItems player));
+if ((_index == 1) && _commander && (missionNamespace getVariable ["MCC_allowConsole",true])) exitWith {
 	if (dialog) then {
 		while {dialog} do {closeDialog 0};
 	} else {
@@ -71,30 +71,12 @@ if ((_index == 1) && (_commander == getPlayerUID player) && (missionNamespace ge
 
 //Squad Dialog
 if (_index == 2 && (missionNamespace getVariable ["MCC_allowSquadDialog",true])) exitWith {
-	if (dialog) then {
-
-		if (str (CP_SQUADPANEL_IDD displayCtrl 0) != "No control") then {MCC_squadDialogOpen = false};
-		while {dialog} do {closeDialog 0};
-
-		if !(isnil "CP_gearCam") then {
-			detach CP_gearCam;
-			CP_gearCam cameraeffect ["Terminate","back"];
-			camDestroy CP_gearCam;
-			deleteVehicle CP_gearCam;
-			CP_gearCam = nil;
-		};
-	} else {
-		while {dialog} do {closeDialog 0; sleep 0.01};
-		MCC_squadDialogOpen = true;
-		createDialog "CP_SQUADPANEL";
-	};
+	while {dialog} do {closeDialog 0; sleep 0.01};
+	createDialog "CP_RESPAWNPANEL";
 };
 
 //SQL PDA
-if (_index == 3 && ((count units player > 1) && (leader player == player)) && (missionNamespace getVariable ["MCC_allowsqlPDA",true]) && "ItemGPS" in (assignedItems player)) exitWith {
-		if (dialog) then {
-			while {dialog} do {closeDialog 0};
-		} else {
-			createDialog "MCC_SQLPDA";
-		};
+if (_index == 3 && ((count units player > 1) && (leader player == player)) && (missionNamespace getVariable ["MCC_allowsqlPDA",true])) exitWith {
+	while {dialog} do {closeDialog 0};
+	createDialog "MCC_SQLPDA";
 };

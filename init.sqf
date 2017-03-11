@@ -18,7 +18,6 @@ if (MCC_isMode) then {
 
 waituntil {!isnil "MCC_path"};
 
-
 //******************************************************************************************
 //==========================================================================================
 //=		 					Edit variables as you see fit.
@@ -39,12 +38,8 @@ if (isnil "MCC_AI_Aim") then {MCC_AI_Aim = 0.1};
 if (isnil "MCC_AI_Spot") then {MCC_AI_Spot	= 0.3};
 if (isnil "MCC_AI_Command") then {MCC_AI_Command = 0.5};
 
-//---------------------Name Tags---------------------------------------------------
-// Show friendly name tags and vhicles' crew info - default - off
-//MCC_nameTags = false;
-
 //-------------------- Save Gear --------------------------------------------------
-//MCC_saveGear = false;
+if (isnil "MCC_saveGear") then {MCC_saveGear = true};
 
 //--------------------Gain XP (in role selection)--------------------------------
 //CP_gainXP = true;						//Gain XP from killing, leading, healing, driving, flying or completing objectives?
@@ -60,12 +55,10 @@ if (isnil "CP_flagEast") then {CP_flagEast = "\a3\Data_f\Flags\flag_CSAT_co.paa"
 if (isnil "CP_flagGUER") then {CP_flagGUER = "\a3\Data_f\Flags\flag_AAF_co.paa"};
 
 //--------------------PvP stuff--------------------------------------------------------------------------------------
-if (isnil "CP_weaponAttachments") then {CP_weaponAttachments = ["","",""]};	//Default weapons attachments for current primary weapon
 if (isnil "CP_defaultLevel") then {CP_defaultLevel = [1,0]};				//Default starting level and exp [level, exp]
 if (isnil "CP_activated") then {CP_activated = false};						//Is PvP acticated
 if (isnil "CP_defaultGroups") then {CP_defaultGroups = ["Alpha","Bravo","Charlie","Delta"]}; 	//Default squads names
-if (isnil "CP_maxPlayers") then {CP_maxPlayers = 30}; 									//Max players per side
-if (isnil "CP_maxSquads") then {CP_maxSquads = 10}; 									//Max squads per side
+
 
 //--------------------Default Tickets (Role selection)-------------------------------------------------------
 if (isnil "MCC_ticketsWest") then {MCC_ticketsWest = 200};
@@ -83,19 +76,21 @@ if (isnil "MCC_resGUER") then {MCC_resGUER = [1500,500,200,200,200]};
 //Teleport 2 Team
 if (isnil"MCC_t2tIndex") then {MCC_t2tIndex	= 1}; 			//0 - Disabled. 1- JIP, 2- AfterRespawn, 3-Always
 
-//non-lethal ammo
-//Define non-lethal ammunition player using this ammunition on units closer then 30 meters will not kill them but stun them. Leave "" to none
-if (isnil "MCC_nonLeathal") then {MCC_nonLeathal = "prpl_6Rnd_12Gauge_Slug"};
+//non-lethal ammo & breaching ammo
+//Define non-lethal ammunition player using this ammunition on units closer then 30 meters will not kill them but stun them.
+if (isnil"MCC_nonLeathalAmmo") then {MCC_nonLeathalAmmo = ["prpl_8Rnd_12Gauge_Slug","prpl_6Rnd_12Gauge_Slug","rhsusf_8Rnd_Slug","rhsusf_5Rnd_Slug"]};
+if (isnil"MCC_breacingAmmo") then {MCC_breacingAmmo = ["prpl_8Rnd_12Gauge_Slug","prpl_6Rnd_12Gauge_Slug","rhsusf_8Rnd_Slug","rhsusf_5Rnd_Slug"]};
 
 //MCC Survive mod
 // Set to true to activate survival mode - scavange for loot to survive
+0 spawn MCC_fnc_surviveInit;
 if (isnil "MCC_surviveMod") then {missionNamespace setVariable ["MCC_surviveMod",false]};
-"MCC_surviveMod" addPublicVariableEventHandler {
-	[] spawn MCC_fnc_surviveInit;
-};
 
 //How long in days(24H-game time) will it take for spawn position to refresh
 if (isnil "MCC_surviveModRefresh") then {MCC_surviveModRefresh = 1};
+
+//RTS
+if (isnil "MCC_allowRTS") then {MCC_allowRTS = true};
 
 //============== Medic System ====================================
 if (!MCC_isMode && !MCC_isACE)  then {
@@ -141,7 +136,7 @@ MCC_convoyHVTcar = [["Default",""],["Hunter","B_Hunter_F"],["MRAP","I_MRAP_03_F"
 
 //------------------------MCC Console--------------------------------------------
 //AC-130 amo count by array [20mm,40mm,105mm]
-if (isnil "MCC_ConsoleACAmmo") then {MCC_ConsoleACAmmo = [500,80,20]};
+if (isnil "MCC_ConsoleACAmmo") then {MCC_ConsoleACAmmo = [4000,400,100]};
 
 //How much time can an AC-130 stay in the air before he is RTB
 if (isnil "MCC_ConsoleACTime") then {MCC_ConsoleACTime = 180};
@@ -179,12 +174,15 @@ mccPresetsVehicle = [
 					,['Add Crew (UAV)','if (isServer) then {createVehicleCrew _this;group _this setvariable ["MCC_canbecontrolled",true,true];}']
 					,['Add Cargo Units', 'if (isServer) then {[_this] call MCC_fnc_populateVehicle};']
 					,['ECM - can jamm IED','if (isServer) then {_this setvariable ["MCC_ECM",true,true]};']
-					,['Logistic Vehicle - create FOB','_this addAction ["<t color=""#99FF00"">Create FOB </t>", "'+MCC_path+'scripts\player\createFOB.sqf",[],6,false, false,"teamSwitch","(driver vehicle _target == _this) && (speed (vehicle _target) == 0)"];']
+					,['Logistic Vehicle - create FOB','_this addAction ["<t color=""#99FF00"">Create FOB </t>", "'+MCC_path+'mcc\roleSelection\scripts\createFOB.sqf",[],6,false, false,"teamSwitch","(driver vehicle _target == _this) && (speed (vehicle _target) == 0)"];']
 					,['Disable Simulation','_this enableSimulation false;']
 					,['Can be controled using MCC Console', '(group _this) setvariable ["MCC_canbecontrolled",true,true];']
 					,['Recruitable', '_this addAction [format ["Recruit %1", name _this], "'+MCC_path+'mcc\general_scripts\hostages\hostage.sqf",[2],6,false,true];']
 					,['Join player', '[_this] join (group player);']
 					,['Set Renegade', '_this addrating -2001;']
+					,['Set Mobile Respawn(West)','[west,_this] call BIS_fnc_addRespawnPosition;']
+					,['Set Mobile Respawn(East)','[east,_this] call BIS_fnc_addRespawnPosition;']
+					,['Set Mobile Respawn(Guer)','[resistance,_this] call BIS_fnc_addRespawnPosition;']
 					,['', '']
 					,['======= Artillery =======','']
 					,['Ambient Artillery - Cannon', '[0,_this] spawn MCC_fnc_amb_Art;']
@@ -269,7 +267,7 @@ mccPresetsObjects = [
 //---------------------------General objects---------------------------------
 //Dummy object for OO saving "UserTexture_1x2_F"
 MCC_dummy = if (MCC_isACE) then {"ACE_DefuseObject"} else {"bomb"};
-MCC_supplyTracks = ["B_Truck_01_transport_F","O_Truck_03_transport_F","I_Truck_02_transport_F"]; //[west,east,guer];
+MCC_supplyTracks = ["B_Truck_01_transport_F","O_Truck_03_transport_F","I_Truck_02_transport_F","B_Truck_01_covered_F","B_T_Truck_01_transport_F","B_T_Truck_01_covered_F","O_Truck_03_covered_F","O_Truck_02_transport_F","O_Truck_02_covered_F","O_T_Truck_03_transport_ghex_F","O_T_Truck_03_covered_ghex_F","I_Truck_02_covered_F"];
 MCC_supplyAttachPoints = [
 							[[0,0,0],[0,-2,0],[0,-4,0]],
 							[[0,-1,0],[0,-2.5,0],[0,-4,0]],
@@ -337,7 +335,6 @@ MCC_unitInit = "";
 MCC_unitName = "";
 MCC_capture_state = false;
 MCC_capture_var = "";
-MCC_zones_numbers = [];
 MCC_zone_drawing = false;
 
 MCC_ZoneType = [["regular",0],["respawn",1],["patrol",2],["reinforcement",3]];
@@ -364,10 +361,6 @@ MCC_triggers = [];
 MCC_drawTriggers = false;
 MCC_markerarray = [];
 MCC_brushesarray = [];
-MCC_activeMarkers = [];
-MCC_musicTracks_array = [];
-MCC_soundTracks_array = [];
-MCC_musicTracks_index = 0;
 MCC_brush_drawing = false;
 if (isnil "MCC_jukeboxMusic") then {MCC_jukeboxMusic = true};
 MCC_musicActivateby_array = ["NONE","EAST","WEST","GUER","CIV","LOGIC","ANY","ALPHA","BRAVO","CHARLIE","DELTA","ECHO","FOXTROT","GOLF","HOTEL","INDIA","JULIET","STATIC","VEHICLE","GROUP","LEADER","MEMBER","WEST SEIZED","EAST  SEIZED","GUER  SEIZED"];
@@ -455,7 +448,6 @@ MCC_ConsoleGroups8 = [];
 MCC_ConsoleGroups9 = [];
 MCC_ConsoleGroups10 = [];
 
-MCC_ACConsoleUp = false;
 MCC_ConsoleACvision = "VIDEO";
 MCC_ConsoleACCameraMod = 0;
 MCC_uavConsoleACFirstTime = true;
@@ -467,7 +459,7 @@ MCC_consoleACgunReady3 = true;
 MCC_consoleACmousebuttonUp = true;
 
 MCC_airDropArray = [];
-MCC_CASBombs = ["Gun-run short","Gun-run long","Gun-run (Zeus)","Rockets-run (Zeus)","CAS-run (Zeus)","S&D","Rockets-run","AT run","AA run","JDAM","LGB","Bombing-run"];
+MCC_CASBombs = ["Gun-run short","Gun-run long","Gun-run (Zeus)","Rockets-run (Zeus)","CAS-run (Zeus)","S&D","Rockets-run","AT run","AA run","JDAM","LGB","Bombing-run","Cruise Missile","AC-130","UAV","Controllable"];
 MCC_GunRunBusy = [0,0,0,0,0,0,0];
 MCC_CASrequestMarker = false;
 
@@ -517,10 +509,8 @@ MCC_aiAimIndex						= (MCC_AI_Aim*10)-1;    //0;
 MCC_aiSpotIndex						= (MCC_AI_Spot*10)-1;    //3;
 MCC_aiCommandIndex					= (MCC_AI_Command*10)-1;    //5;
 
-MCC_nameTagsIndex						= 0;
 MCC_artilleryComputerIndex				= 1;
 MCC_saveGearIndex						= 0;
-MCC_groupMarkersIndex					= 1;
 MCC_MessagesIndex						= 1;
 
 
@@ -577,14 +567,13 @@ MCC_MWMissions			= []; 	//Store all the mission objectives = (MCC_MWMissions sel
 
 //====================================================================================MCC Engine Init============================================================================================================================
 
-if (!isDedicated && !MCC_isLocalHC) then
-{
+if (!isDedicated && !MCC_isLocalHC) then {
 	// Disable Respawn & Organise start on death location
 	_null=[] execVM MCC_path + "mcc\general_scripts\mcc_player_disableRespawn.sqf";
-
-	// Initialize and load the pop up menu
-	_null=[] execVM MCC_path + "mcc\pop_menu\mcc_init_menu.sqf";
 };
+
+// Initialize and load the pop up menu
+_null=[] execVM MCC_path + "mcc\pop_menu\mcc_init_menu.sqf";
 
 mcc_delayed_spawn		= false;
 mcc_caching				= false;
@@ -606,11 +595,10 @@ mcc_zone_marker_X   	= 200;
 mcc_zone_marker_Y		= 200;
 mcc_spawnbehavior       = "MOVE";
 mcc_awareness			= "DEFAULT";
-mcc_zone_pos  		= 	[];
-mcc_zone_size 		= 	[];
-mcc_zone_dir 		= 	[];
-mcc_zone_types		= 	[];
-mcc_zone_locations	= 	[];
+if (isnil "mcc_zone_pos") then {mcc_zone_pos =[]};
+if (isnil "mcc_zone_size") then {mcc_zone_size =[]};
+if (isnil "mcc_zone_dir") then {mcc_zone_dir =[]};
+if (isnil "mcc_zone_locations") then {mcc_zone_locations =[]};
 mcc_grouptype			= "";
 mcc_track_units			= false;
 mcc_safe				= "";
@@ -619,7 +607,6 @@ mcc_isloading			= false;
 mcc_resetmissionmaker	= false;
 if (isnil "mcc_missionmaker") then {mcc_missionmaker = ""};
 mcc_firstTime			= true; //First time runing?
-mcc_pickitem 			= false;
 
 // Objects
 U_AMMO					= [];
@@ -694,6 +681,7 @@ MCC_3DobjectsCounter	= -1;
 //Lets create our MCC subject in the diary
 _index = player createDiarySubject ["MCCZones","MCC Zones"];
 
+//Server Side
 if ( isServer ) then {
 	//Create Custom radio channels
 	missionNamespace setVariable ["MCC_radioChannel_1",radioChannelCreate [[0, 0.96, 0.96, 0.8], localize "str_channel_side", "%UNIT_GRP_NAME", [], false]];
@@ -731,13 +719,7 @@ if ( isServer ) then {
 	call compile (_name + " = _dummy");
 	publicVariable _name;
 
-	//Add curator presets
-	[MCC_curator, "player",["%ALL"]] call BIS_fnc_setCuratorAttributes;
-	[MCC_curator, "object",["%ALL"]] call BIS_fnc_setCuratorAttributes;
-	[MCC_curator, "group",["%ALL"]] call BIS_fnc_setCuratorAttributes;
-	[MCC_curator, "waypoint",["%ALL"]] call BIS_fnc_setCuratorAttributes;
-	[MCC_curator, "marker",["%ALL"]] call BIS_fnc_setCuratorAttributes;
-
+	/*
 	//Add addons to curator
 	private ["_cfg","_name","_newAddons"];
 	_cfg = (configFile >> "CfgPatches");
@@ -748,6 +730,16 @@ if ( isServer ) then {
 		if (! (["a3_", _name] call BIS_fnc_inString)) then {_newAddons pushBack _name};
 	};
 	if (count _newAddons > 0) then {_dummy addCuratorAddons _newAddons};
+	*/
+
+	_null = [_dummy,[],true] call BIS_fnc_moduleCurator;
+
+	//Add curator presets
+	[MCC_curator, "player",["%ALL"]] call BIS_fnc_setCuratorAttributes;
+	[MCC_curator, "object",["%ALL"]] call BIS_fnc_setCuratorAttributes;
+	[MCC_curator, "group",["%ALL"]] call BIS_fnc_setCuratorAttributes;
+	[MCC_curator, "waypoint",["%ALL"]] call BIS_fnc_setCuratorAttributes;
+	[MCC_curator, "marker",["%ALL"]] call BIS_fnc_setCuratorAttributes;
 
 	//west
 	MCC_dummyLogicGroup = createGroup west;
@@ -816,157 +808,30 @@ if ( isServer ) then {
 	call compile (_name + " = _dummy");
 	publicVariable _name;
 
+	//Save functions
+	_id = addMissionEventHandler ["Ended",{
+											if (missionNamespace getVariable ["MCC_surviveModinitialized",false]) then {["MCC_SERVER_SURVIVAL",0,false,false,true,false,false,false,false,false,false] spawn MCC_fnc_saveServer;};
+
+											if (missionNamespace getVariable ["MCC_isCampaignRuning",false]) then {["MCC_campaign",0,true] spawn MCC_fnc_saveServer;};
+										  }];
 
 	//----------------------iniDB------------------------------------------------------
-	if (isclass(configFile >> "CfgPatches" >> "iniDBI")) then {
+	if (isclass(configFile >> "CfgPatches" >> "inidbi2")) then {
 		private "_names";
 		MCC_iniDBenabled = true;
-		call compile preProcessFile "\inidbi\init.sqf";
+		//call compile preProcessFile "\inidbi\init.sqf";
 
-		_names = ["SERVER_misc", "allowedPlayers", "MCC_allowedPlayers", "ARRAY"] call iniDB_read;
 		//get allowed players from iniDB
-		if (count _names == 0) then
-		{
-			["SERVER_misc", "allowedPlayers", "MCC_allowedPlayers", missionNameSpace getVariable ["MCC_allowedPlayers",[]], "ARRAY"] call iniDB_write;
-		}
-		else
-		{
+		_names = [format ["%1_SERVER",missionName], "allowedPlayers", "MCC_allowedPlayers", "read",[],"DEFAULT_SERVER"] call MCC_fnc_handleDB;
+		if (count _names == 0) then 	{
+			_null = [format ["%1_SERVER",missionName], "allowedPlayers", "MCC_allowedPlayers", "write",missionNameSpace getVariable ["MCC_allowedPlayers",[]],"DEFAULT_SERVER"] call MCC_fnc_handleDB;
+			MCC_allowedPlayers = [];
+		} else {
 			MCC_allowedPlayers = _names;
 		};
 
-		//---------------------------------------------
-		//		numbers of roles
-		//---------------------------------------------
-		CP_availablePilot = ["SERVER_misc", "RoleSelectionDefinse", "CP_availablePilot", "SCALAR"] call iniDB_read;
-		if (CP_availablePilot == 0) then
-		{
-			CP_availablePilot = 100;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_availablePilot",CP_availablePilot, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_availablePilot";
-
-		CP_availableCrew = ["SERVER_misc", "RoleSelectionDefinse", "CP_availableCrew", "SCALAR"] call iniDB_read;
-		if (CP_availableCrew == 0) then
-		{
-			CP_availableCrew = 100;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_availableCrew",CP_availableCrew, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_availableCrew";
-
-		CP_officerPerGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_officerPerGroup", "SCALAR"] call iniDB_read;
-		if (CP_officerPerGroup == 0) then
-		{
-			CP_officerPerGroup = 1;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_officerPerGroup",CP_officerPerGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_officerPerGroup";
-
-		CP_officerMinPlayersInGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_officerMinPlayersInGroup", "SCALAR"] call iniDB_read;
-		if (CP_officerMinPlayersInGroup == 0) then
-		{
-			CP_officerMinPlayersInGroup = 1;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_officerMinPlayersInGroup",CP_officerMinPlayersInGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_officerMinPlayersInGroup";
-
-		CP_ARPerGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_ARPerGroup", "SCALAR"] call iniDB_read;
-		if (CP_ARPerGroup == 0) then
-		{
-			CP_ARPerGroup = 2;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_ARPerGroup",CP_ARPerGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_ARPerGroup";
-
-		CP_ARMinPlayersInGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_ARMinPlayersInGroup", "SCALAR"] call iniDB_read;
-		if (CP_ARMinPlayersInGroup == 0) then
-		{
-			CP_ARMinPlayersInGroup = 3;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_ARMinPlayersInGroup",CP_ARMinPlayersInGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_ARMinPlayersInGroup";
-
-		CP_riflemanPerGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_riflemanPerGroup", "SCALAR"] call iniDB_read;
-		if (CP_riflemanPerGroup == 0) then
-		{
-			CP_riflemanPerGroup = 20;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_riflemanPerGroup",CP_riflemanPerGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_riflemanPerGroup";
-
-		CP_riflemanMinPlayersInGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_riflemanMinPlayersInGroup", "SCALAR"] call iniDB_read;
-		if (CP_riflemanMinPlayersInGroup == 0) then
-		{
-			CP_riflemanMinPlayersInGroup = 0;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_riflemanMinPlayersInGroup",CP_riflemanMinPlayersInGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_riflemanMinPlayersInGroup";
-
-		CP_ATPerGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_ATPerGroup", "SCALAR"] call iniDB_read;
-		if (CP_ATPerGroup == 0) then
-		{
-			CP_ATPerGroup = 2;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_ATPerGroup",CP_ATPerGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_ATPerGroup";
-
-		CP_ATMinPlayersInGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_ATMinPlayersInGroup", "SCALAR"] call iniDB_read;
-		if (CP_ATMinPlayersInGroup == 0) then
-		{
-			CP_ATMinPlayersInGroup = 4;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_ATMinPlayersInGroup",CP_ATMinPlayersInGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_ATMinPlayersInGroup";
-
-		CP_CorpsmanPerGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_CorpsmanPerGroup", "SCALAR"] call iniDB_read;
-		if (CP_CorpsmanPerGroup == 0) then
-		{
-			CP_CorpsmanPerGroup = 2;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_CorpsmanPerGroup",CP_CorpsmanPerGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_CorpsmanPerGroup";
-
-		CP_CorpsmanMinPlayersInGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_CorpsmanMinPlayersInGroup", "SCALAR"] call iniDB_read;
-		if (CP_CorpsmanMinPlayersInGroup == 0) then
-		{
-			CP_CorpsmanMinPlayersInGroup = 3;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_CorpsmanMinPlayersInGroup",CP_CorpsmanMinPlayersInGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_CorpsmanMinPlayersInGroup";
-
-		CP_MarksmanPerGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_MarksmanPerGroup", "SCALAR"] call iniDB_read;
-		if (CP_MarksmanPerGroup == 0) then
-		{
-			CP_MarksmanPerGroup = 2;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_MarksmanPerGroup",CP_MarksmanPerGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_MarksmanPerGroup";
-
-		CP_MarksmanMinPlayersInGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_MarksmanMinPlayersInGroup", "SCALAR"] call iniDB_read;
-		if (CP_MarksmanMinPlayersInGroup == 0) then
-		{
-			CP_MarksmanMinPlayersInGroup = 5;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_MarksmanMinPlayersInGroup",CP_MarksmanMinPlayersInGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_MarksmanMinPlayersInGroup";
-
-		CP_SpecialistPerGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_SpecialistPerGroup", "SCALAR"] call iniDB_read;
-		if (CP_SpecialistPerGroup == 0) then
-		{
-			CP_SpecialistPerGroup = 2;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_SpecialistPerGroup",CP_SpecialistPerGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_SpecialistPerGroup";
-
-		CP_SpecialistMinPlayersInGroup = ["SERVER_misc", "RoleSelectionDefinse", "CP_SpecialistMinPlayersInGroup", "SCALAR"] call iniDB_read;
-		if (CP_SpecialistMinPlayersInGroup == 0) then
-		{
-			CP_SpecialistMinPlayersInGroup = 3;
-			["SERVER_misc", "RoleSelectionDefinse", "CP_SpecialistMinPlayersInGroup",CP_SpecialistMinPlayersInGroup, "SCALAR"] call iniDB_write;
-		};
-		publicVariable "CP_SpecialistMinPlayersInGroup";
-	}
-	else
-	{
+		publicVariable "MCC_allowedPlayers";;
+	} else {
 		MCC_iniDBenabled = false;
 	};
 	publicVariable "MCC_iniDBenabled"
@@ -977,12 +842,6 @@ if ( isServer ) then {
 		MCC_iniDBenabled = false;
 	};
 };
-
-//----------------- CURATOR---------------------------------------------
-//Curator custom menus
-//Add eventHandler when editing object
-MCC_curator addEventHandler ["CuratorObjectDoubleClicked", {_this spawn MCC_fnc_curatorInitLine}];
-MCC_curator addEventHandler ["CuratorObjectPlaced", {if (local (_this select 1)) then {missionNamespace setVariable ["MCC_curatorMouseOver",curatorMouseOver]}}];
 
 // Handler code for the server for MP purpose
 _null=[] execVM MCC_path + "mcc\pv_handling\mcc_pv_handler.sqf";
@@ -1001,32 +860,11 @@ diag_log format ["%1 - MCC Local Headless Client: %2", time, MCC_isLocalHC];
 //---------------------------------------------
 CP_dialogInitDone = true; 				//define if dialog is been initialize
 
-"CP_activated" addPublicVariableEventHandler
-{
+"CP_activated" addPublicVariableEventHandler {
 	if(CP_activated && !isDedicated) then {
-		_null=[] execVM MCC_path + "scripts\player\player_init.sqf"
+		_null=[] execVM MCC_path + "mcc\roleSelection\scripts\player_init.sqf"
 	};
 };
-
-//---------------------------------------------
-//		Index
-//---------------------------------------------
-CP_respawnPointsIndex 	= 0;
-CP_squadListIndex		= 0;
-CP_classesIndex 		= 2;
-CP_NVIndex 				= 0;
-CP_headgearIndex 		= 0;
-CP_gogglesIndex 		= 0;
-CP_vestIndex 			= 0;
-CP_backpackIndex 		= 0;
-CP_uniformsIndex 		= 0;
-CP_currentItems1Index 	= 0;
-CP_currentItems2Index 	= 0;
-CP_currentItems3Index 	= 0;
-CP_opticsIndex			= 0;
-CP_barrelIndex			= 0;
-CP_attachsIndex			= 0;
-CP_currentGeneralItems	= 0;
 
 //---------------------------------------------
 //		Server Init
@@ -1035,7 +873,7 @@ MCC_isDedicated = false;
 if (isServer || isdedicated) then
 {
 	if (isDedicated) then {MCC_isDedicated = true; publicVariable "MCC_isDedicated"};
-	_null=[] execVM MCC_path + "scripts\server\server_init.sqf";
+	_null=[] execVM MCC_path + "mcc\roleSelection\scripts\server\server_init.sqf";
 };
 
 //---------------------------------------------
@@ -1059,25 +897,8 @@ if (isServer || isdedicated) then
 		} foreach CP_guarGroups;
 	};
 
-//---------------------------------------------
-//		Global CP Defines
-//---------------------------------------------
-
-CP_classes = ["Officer","AR","Rifleman","AT","Corpsman","Marksman","Specialist","Crew","Pilot"];
-CP_classesPic = [	MCC_path +"configs\data\Officer.paa",
-					MCC_path +"configs\data\AR.paa",
-					MCC_path +"configs\data\Rifleman.paa",
-					MCC_path +"configs\data\AT.paa",
-					MCC_path +"configs\data\Corpsman.paa",
-					MCC_path +"configs\data\Marksman.paa",
-					MCC_path +"configs\data\Specialist.paa",
-					MCC_path +"configs\data\Crew.paa",
-					MCC_path +"configs\data\Pilot.paa"
-				];
-
-
 //******************************************************************************************************************************
-//											CP Stuff Ended
+//											Client side init
 //******************************************************************************************************************************
 
 //=============================Sync with server when JIP======================
@@ -1088,14 +909,13 @@ MCC_groupGenGroupStatus = [west,east,resistance,civilian];
 if (isPlayer player && !isServer && !(MCC_isLocalHC) && (missionNameSpace getVariable ["MCC_syncOn",true])) then {
 	private ["_html","_loop"];
 	waituntil {!(IsNull (findDisplay 46))};
-	sleep 2;
 	waituntil {! isnil "MCC_fnc_countDownLine"};
 	mcc_sync_status = false;
 	[] spawn MCC_fnc_sync;
 	_loop = 20;
 
-	for [{_x=1},{_x<=_loop},{_x=_x+1}]  do //Create progress bar
-	{
+	//Create progress bar
+	for [{_x=1},{_x<=_loop},{_x=_x+1}]  do {
 		_footer = [_x,_loop] call MCC_fnc_countDownLine;
 		//add header
 		_html = "<t color='#818960' size='1.2' shadow='0' align='left' underline='true'>" + "Synchronizing with server" + "</t><br/><br/>";
@@ -1107,13 +927,20 @@ if (isPlayer player && !isServer && !(MCC_isLocalHC) && (missionNameSpace getVar
 		_html = _html + "<br/><br/><t color='#818960' size='0.85' shadow='0' align='right'>" + _footer + "</t>";
 		hintsilent parseText(_html);
 		sleep 0.1;
-		if (!mcc_sync_status) then {sleep 3};
+		if (!mcc_sync_status) then {sleep 1};
 	};
+
 	Hint "Synchronizing Done";
 };
 
+//Client init
 if ( !( isDedicated) && !(MCC_isLocalHC) ) then {
 	waituntil {!(IsNull (findDisplay 46))};
+
+	{
+		_x addEventHandler ["CuratorObjectDoubleClicked", {_this spawn MCC_fnc_curatorInitLine}];
+		_x addEventHandler ["CuratorObjectPlaced", {if (local (_this select 1)) then {missionNamespace setVariable ["MCC_curatorMouseOver",curatorMouseOver]}}];
+	} forEach allCurators;
 
 	//If player is using CBA add CBA keybinds
 	if (MCC_isCBA) then {
@@ -1134,24 +961,24 @@ if ( !( isDedicated) && !(MCC_isLocalHC) ) then {
 	_keyDown = (findDisplay 46) displayAddEventHandler  ["KeyDown", "_null = ['keydown',_this] call MCC_fnc_keyDown"];
 	_keyDown = (findDisplay 46) displayAddEventHandler  ["KeyUp", "_null = ['keyup',_this] call MCC_fnc_keyDown"];
 
+	//Vehicles EH
+	_eh = player addEventHandler ["GetInMan",{_this spawn MCC_fnc_allowedDrivers}];
+	player setVariable ["MCC_rsEnableDriversPilotsEH",_eh];
+
 	// Teleport to team on Alt + T
 	if (isnil "MCC_teleportToTeam") then {MCC_teleportToTeam = true};
-
-	//Squad Dialog
-	MCC_squadDialogOpen = false;
 
 	//Save gear EH
 	if(local player) then {player addEventHandler ["killed",{[player] execVM MCC_path + "mcc\general_scripts\save_gear.sqf";}];};
 
 	//Handle Heal
-	if(local player) then {player addEventHandler ["HandleHeal",{if ((_this select 1 != _this select 0) && (tolower ((_this select 1) getvariable ["CP_role","n/a"]) == "corpsman") ) then {[[getPlayerUID (_this select 1),200,"For Healing"], "MCC_fnc_addRating", _this select 1, false] spawn BIS_fnc_MP};(_this select 0) setVariable ["MCC_medicBleeding",0,true]; false}]};
+	if(local player) then {player addEventHandler ["HandleHeal",{if ((_this select 1 != _this select 0) && (tolower ((_this select 1) getvariable ["CP_role","n/a"]) == "corpsman") ) then {[[getPlayerUID (_this select 1),200,"For Healing"], "MCC_fnc_addRating", _this select 1, false] spawn BIS_fnc_MP};(_this select 0) setVariable ["MCC_medicBleeding",0,true]; if (!isplayer (_this select 1)) then {(_this select 0) setVariable ["MCC_medicUnconscious",false,true]};false}]};
 
 	//Handle rating for role selection
 	if (local player) then {player addEventHandler ["HandleRating",{_this spawn MCC_fnc_handleRating}]};
 
 	//Curator
-	if(local player && (isMultiplayer)) then
-	{
+	if(local player && (isMultiplayer)) then {
 		[compile format ["MCC_curator addCuratorEditableObjects [[objectFromNetID '%1'],true]", netID player], "BIS_fnc_spawn", false, false] call BIS_fnc_MP;
 	};
 
@@ -1163,18 +990,35 @@ if ( !( isDedicated) && !(MCC_isLocalHC) ) then {
 		[] spawn MCC_fnc_vonRadio;
 	};
 
+	//Handle CP stuff
+	MCC_CPplayerLoop = compile preprocessFile format ["%1mcc\general_scripts\loops\mcc_CPplayerLoop.sqf",MCC_path];
+	[] spawn MCC_CPplayerLoop;
+
 	//Add start locations script
 	[]  spawn MCC_fnc_startLocations;
 
 	//Add beanbag ammo for shouguns
-	if (MCC_nonLeathal != "") then
-	{
-		player addEventHandler ["fired", {
-											if ((_this select 5) == MCC_nonLeathal) then
-											{
+	if (count (missionNamespace getvariable ["MCC_nonLeathalAmmo",[]]) > 0 || count (missionNamespace getvariable ["MCC_breacingAmmo",[]]) > 0) then {
+		player addEventHandler ["firedMan", {
+											//Breach door
+											if (_this select 5 in (missionNamespace getvariable ["MCC_breacingAmmo",[]])) then {
+												private ["_door","_animation","_phase","_closed","_tempArray","_object"];
+												_object = cursorTarget;
+												_tempArray = [_object]  call MCC_fnc_isDoor;
+												_door = _tempArray select 0;
+												_animation = _tempArray select 1;
+												_phase = _tempArray select 2;
+												_closed = _tempArray select 3;
+
+												if (_closed) then {
+													_object animate [_animation, _phase];
+												};
+											};
+
+											//Natrulize AI
+											if ((_this select 5) in (missionNamespace getvariable ["MCC_nonLeathalAmmo",[]])) then {
 												_unit 	= cursorTarget;
-												if (_unit isKindof "CAManBase" && ((_this select 0) distance _unit < 30)) then
-												{
+												if (_unit isKindof "CAManBase" && ((_this select 0) distance _unit < 30)) then {
 													deleteVehicle (_this select 6);
 													[_unit, 5] spawn MCC_fnc_stunBehav;
 												};
@@ -1183,51 +1027,14 @@ if ( !( isDedicated) && !(MCC_isLocalHC) ) then {
 	};
 };
 
-//========= player Loops (for saving gear/name tag exc)=================================
-MCC_CPplayerLoop = compile preprocessFile format ["%1mcc\general_scripts\loops\mcc_CPplayerLoop.sqf",MCC_path];
-MCC_NameTagsPlayerLoop = compile preprocessFile format ["%1mcc\general_scripts\loops\MCC_NameTagsPlayerLoop.sqf",MCC_path];
-
-if ( !( isDedicated) && !(MCC_isLocalHC) ) then {
-	//Handle CP stuff
-	[] spawn MCC_CPplayerLoop;
-
-	//Handle Name Tags
-	[] spawn MCC_NameTagsPlayerLoop;
-
-	//============ engineer data ========================
-	0 spawn
-	{
-		private ["_answer"];
-		if ((getNumber(configFile >> "CfgVehicles" >> typeOf player >> "canDeactivateMines") == 1)&& (profileNamespace getVariable ["MCC_tutorialEOD",true])) then	//Check if is engineer
-		{
-			_answer = ["<t font='TahomaB'>You have just been assigned as Engineer/EOD</t>
-				<br/><img size='8' img image='\a3\missions_f\data\img\mp_coop_m01_overview_ca.paa' />
-				<br/>You can disarm mines and improvised explosive devices (IED).
-				<br/>To make sure the IED isn't Radio Controlled IED (RCIED), scan for enemy's spotters that can trigger the IED and neutralize them first.
-				<br/>Approach the IED carefully (no faster then a slow crawl), once you get close to it you either have the option to disarm it. Or you can place a demo charge to set off a controlled explosion.
-				<br/>You can use Electronic Countermeasure Vehicles (ECM) to block RCIEDs.
-				<br/><br/>Do you want to show this message in the future?","MCC Engineer/EOD","No","Yes"] call BIS_fnc_guiMessage;
-
-				waituntil {!isnil "_answer"};
-
-				if (_answer) exitWith
-				{
-					profileNamespace setVariable ["MCC_tutorialEOD",false];
-				};
-		};
-	};
-};
-
 //===============Delete Groups (server and HC client only)====================
 if (isServer || MCC_isLocalHC) then {
-	[] spawn
-	{
+	[] spawn {
 		//Let the mission load first
 		while {time <120} do {sleep 1};
 
 		_gaia_respawn = [];
-		while {true} do
-		{
+		while {true} do {
 			{
 				_gaia_respawn = (missionNamespace getVariable [ "GAIA_RESPAWN_" + str(_x),[] ]);
 
@@ -1295,7 +1102,7 @@ if (isnil "MCC_terrainPref") then
 
 //============= Start public EH locally ===========================
 if(CP_activated && !isDedicated && !MCC_isLocalHC) then {
-	_null=[] execVM MCC_path + "scripts\player\player_init.sqf"
+	_null=[] execVM MCC_path + "mcc\roleSelection\scripts\player_init.sqf"
 };
 
 //============= Init MCC done===========================

@@ -1,4 +1,4 @@
-//===================================================================MCC_fnc_createIED======================================================================================
+//===================================================================MCC_fnc_createIED=================================================================================
 // Create an IED mechnic (should run on server only).
 //Example:[_this,_trapvolume,_IEDExplosionType,_IEDDisarmTime,_IEDJammable,_IEDTriggerType,_trapdistance,_iedside] spawn MCC_fnc_createIED
 // Params:
@@ -9,7 +9,7 @@
 //	IEDTriggerType: number, 0- Proximity, will explode if unit from the targer side will move faster then a slow crouch, 1- radio will explode if unit from the targer side will get close to it, if assigned to spotter the spotter must be alive, 2- manual detontion, only mission maker
 //	IEDdistance: number, minimum distance which target unit have to get close to the IED to set it off
 //	IEDside: side, [west, east, resistance, civilian]
-//==============================================================================================================================================================================
+//=================================================================================================================================================================
 
 //Made by Shay_Gman (c) 06.14
 private ["_pos", "_trapvolume", "_IEDExplosionType", "_IEDDisarmTime", "_IEDJammable", "_IEDTriggerType", "_IEDAmbushGroup",
@@ -30,13 +30,15 @@ _iedside 			= [_this, 7, west] call BIS_fnc_param;
 if (typeName _iedside == "STRING") then {
 	_iedside = switch (tolower _iedside) do
 				{
-				   case "west":	{west};
-				   case "east":	{east};
-				   case "guer":	{resistance};
-				   case "civ":	{civilian};
-				   default {west};
+				   case "west":	{[west]};
+				   case "east":	{[east]};
+				   case "guer":	{[resistance]};
+				   case "civ":	{[civilian]};
+				   default {[west]};
 				};
 };
+
+if (typeName _iedside == typeName sideLogic) then {_iedside = [_iedside]};
 
 _pos 	= getposatl _fakeIed;
 _iedDir =  getdir _fakeIed;

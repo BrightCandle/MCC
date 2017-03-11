@@ -16,230 +16,118 @@ class mcc_test
 
 	class controls
 	{
-		class frame: MCC_RscText
+
+		class MCC_timeDialogframe: MCC_RscText
 		{
+			idc = -1;
+
+			w = 0.189063 * safezoneW;
+			h = 0.197923 * safezoneH;
 			colorBackground[] = {0,0,0,0.9};
-			idc = -1;
-			x = 0.29375 * safezoneW + safezoneX;
-			y = 0.225 * safezoneH + safezoneY;
-			w = 0.417656 * safezoneW;
-			h = 0.385 * safezoneH;
 		};
-
-		class vehicleClass: MCC_RscCombo
-		{
-			idc = 101;
-			onLBSelChanged = "[0] spawn MCC_fnc_vehicleSpawner";
-			x = 0.304062 * safezoneW + safezoneX;
-			y = 0.346 * safezoneH + safezoneY;
-			w = 0.216563 * safezoneW;
-			h = 0.055 * safezoneH;
-		};
-
-		class SpawnButton: MCC_RscButton
-		{
-			idc = 102;
-			text = "Purchase";
-			x = 0.319531 * safezoneW + safezoneX;
-			y = 0.544 * safezoneH + safezoneY;
-			w = 0.139219 * safezoneW;
-			h = 0.055 * safezoneH;
-			onButtonClick = "[1] spawn MCC_fnc_vehicleSpawner";
-		};
-
-		class close: MCC_RscButton
+		class MCC_timeDialogTittle: MCC_RscText
 		{
 			idc = -1;
-			text = "Close"; //--- ToDo: Localize;
-			x = 0.639219 * safezoneW + safezoneX;
-			y = 0.544 * safezoneH + safezoneY;
-			w = 0.061875 * safezoneW;
-			h = 0.055 * safezoneH;
-			onButtonClick = "closeDialog 0;";
-		};
-
-		class ammoPic: MCC_RscPicture
-		{
-			idc = -1;
-			text =  __EVAL(MCCPATH +"data\IconAmmo.paa");
-			x = 0.304062 * safezoneW + safezoneX;
-			y = 0.423 * safezoneH + safezoneY;
-			w = 0.0257812 * safezoneW;
-			h = 0.044 * safezoneH;
-		};
-		class repairPic: MCC_RscPicture
-		{
-			idc = -1;
-			text = __EVAL(MCCPATH +"data\IconRepair.paa");
-			x = 0.381406 * safezoneW + safezoneX;
-			y = 0.423 * safezoneH + safezoneY;
-			w = 0.0257812 * safezoneW;
-			h = 0.044 * safezoneH;
-		};
-		class fuelPic: MCC_RscPicture
-		{
-			idc = -1;
-			text = __EVAL(MCCPATH +"data\IconFuel.paa");
-			x = 0.45875 * safezoneW + safezoneX;
-			y = 0.423 * safezoneH + safezoneY;
-			w = 0.0257812 * safezoneW;
-			h = 0.044 * safezoneH;
-		};
-		class ammoText: MCC_RscText
-		{
-			idc = 1000;
-			x = 0.329844 * safezoneW + safezoneX;
-			y = 0.423 * safezoneH + safezoneY;
-			w = 0.04125 * safezoneW;
-			h = 0.044 * safezoneH;
-		};
-		class repairText: MCC_RscText
-		{
-			idc = 1001;
-			x = 0.407187 * safezoneW + safezoneX;
-			y = 0.423 * safezoneH + safezoneY;
-			w = 0.04125 * safezoneW;
-			h = 0.044 * safezoneH;
-		};
-		class fuelText: MCC_RscText
-		{
-			idc = 1002;
-			x = 0.484531 * safezoneW + safezoneX;
-			y = 0.423 * safezoneH + safezoneY;
-			w = 0.04125 * safezoneW;
-			h = 0.044 * safezoneH;
-		};
-		class tittle: MCC_RscText
-		{
-			idc = -1;
-			text = "Vehicle Spawn";
-			x = 0.319531 * safezoneW + safezoneX;
-			y = 0.258 * safezoneH + safezoneY;
-			w = 0.170156 * safezoneW;
-			h = 0.055 * safezoneH;
+			text = "Time:"; //--- ToDo: Localize;
 			colorText[] = {0,1,1,1};
+
+			x = 0.0630206 * safezoneW;
+			y = 0.0109958 * safezoneH;
+			w = 0.06875 * safezoneW;
+			h = 0.0329871 * safezoneH;
 			sizeEx = "(((((safezoneW / safezoneH) min 1.2) / 1.2) / 25) * 1.5)";
 		};
-
-		class availableResourcesTittle: MCC_RscText
+		class MCC_timeS1Tittle: MCC_RscText
 		{
 			idc = -1;
 
-			text = "Available Resources";
-			x = 0.592812 * safezoneW + safezoneX;
-			y = 0.247 * safezoneH + safezoneY;
-			w = 0.108281 * safezoneW;
-			h = 0.055 * safezoneH;
-			colorText[] = {0,1,1,1};
-			sizeEx = "(((((safezoneW / safezoneH) min 1.2) / 1.2) / 25) * 1)";
+			text = "/"; //--- ToDo: Localize;
+			x = 0.0572916 * safezoneW;
+			y = 0.0549788 * safezoneH;
+			w = 0.0114583 * safezoneW;
+			h = 0.0329871 * safezoneH;
 		};
-		class MCC_ResourcesControlsGroup: MCC_RscControlsGroupNoScrollbars
+		class MCC_timeDialogConfirm: MCC_RscButton
 		{
-			idc = 80;
-			x = 0.592813 * safezoneW + safezoneX;
-			y = 0.313 * safezoneH + safezoneY;
-			w = 0.108281 * safezoneW;
-			h = 0.22 * safezoneH;
-			class controls
-			{
-				class MCC_AmmoText: MCC_RscText
-				{
-					idc = 81;
+			idc = -1;
+			onButtonClick = __EVAL("[3] execVM '"+MCCPATH+"mcc\pop_menu\mission_settings.sqf'");
+			text = "Confirm"; //--- ToDo: Localize;
 
-					x = 0.0257812 * safezoneW;
-					y = 0.011 * safezoneH;
-					w = 0.04125 * safezoneW;
-					h = 0.033 * safezoneH;
-				};
+			x = 0.120313 * safezoneW;
+			y = 0.15394 * safezoneH;
+			w = 0.0630208 * safezoneW;
+			h = 0.0329871 * safezoneH;
+		};
+		class MCC_timeDialogClose: MCC_RscButtonMenu
+		{
+			idc = -1;
+			onButtonClick = "((uiNamespace getVariable 'MCC_groupGen_Dialog') displayCtrl 502) ctrlShow false";
+			text = "Close"; //--- ToDo: Localize;
 
-				class MCC_RepairText: MCC_RscText
-				{
-					idc = 82;
+			x = 0.00572965 * safezoneW;
+			y = 0.15394 * safezoneH;
+			w = 0.0572917 * safezoneW;
+			h = 0.0329871 * safezoneH;
+		};
+		class MCC_timeMonthCombo: MCC_RscCombo
+		{
+			idc = 15;
+			x = 0.00572965 * safezoneW;
+			y = 0.0549788 * safezoneH;
+			w = 0.0515625 * safezoneW;
+			h = 0.0329871 * safezoneH;
+		};
+		class MCC_timeDayCombo: MCC_RscCombo
+		{
+			idc = 16;
+			x = 0.0687497 * safezoneW;
+			y = 0.0549788 * safezoneH;
+			w = 0.0515625 * safezoneW;
+			h = 0.0329871 * safezoneH;
+		};
+		class MCC_timeYearCombo: MCC_RscCombo
+		{
+			idc = 17;
+			x = 0.131771 * safezoneW;
+			y = 0.0549788 * safezoneH;
+			w = 0.0515625 * safezoneW;
+			h = 0.0329871 * safezoneH;
+		};
+		class MCC_timeHourCombo: MCC_RscCombo
+		{
+			idc = 18;
+			x = 0.0343746 * safezoneW;
+			y = 0.0989618 * safezoneH;
+			w = 0.0515625 * safezoneW;
+			h = 0.0329871 * safezoneH;
+		};
+		class MCC_timeMinuteCombo: MCC_RscCombo
+		{
+			idc = 19;
+			x = 0.0973957 * safezoneW;
+			y = 0.0989618 * safezoneH;
+			w = 0.0515625 * safezoneW;
+			h = 0.0329871 * safezoneH;
+		};
+		class MCC_timeS2Tittle: MCC_RscText
+		{
+			idc = -1;
 
-					x = 0.0257812 * safezoneW;
-					y = 0.055 * safezoneH;
-					w = 0.04125 * safezoneW;
-					h = 0.033 * safezoneH;
-				};
+			text = "/"; //--- ToDo: Localize;
+			x = 0.120313 * safezoneW;
+			y = 0.0549788 * safezoneH;
+			w = 0.0114583 * safezoneW;
+			h = 0.0329871 * safezoneH;
+		};
+		class MCC_timeS3Tittle: MCC_RscText
+		{
+			idc = -1;
 
-				class MCC_FuelText: MCC_RscText
-				{
-					idc = 83;
-
-					x = 0.0257812 * safezoneW;
-					y = 0.099 * safezoneH;
-					w = 0.04125 * safezoneW;
-					h = 0.033 * safezoneH;
-				};
-				class MCC_FoodText: MCC_RscText
-				{
-					idc = 84;
-
-					x = 0.0257812 * safezoneW;
-					y = 0.143 * safezoneH;
-					w = 0.04125 * safezoneW;
-					h = 0.033 * safezoneH;
-				};
-				class MCC_MedText: MCC_RscText
-				{
-					idc = 85;
-
-					x = 0.0257812 * safezoneW;
-					y = 0.187 * safezoneH;
-					w = 0.04125 * safezoneW;
-					h = 0.033 * safezoneH;
-				};
-				class MCC_Ammo: MCC_RscPicture
-				{
-					idc = -1;
-
-					text =  __EVAL(MCCPATH +"data\IconAmmo.paa");
-					x = 0.00515625 * safezoneW;
-					y = 0.011 * safezoneH;
-					w = 0.0154688 * safezoneW;
-					h = 0.033 * safezoneH;
-				};
-				class MCC_Repair: MCC_RscPicture
-				{
-					idc = -1;
-
-					text = __EVAL(MCCPATH +"data\IconRepair.paa");
-					x = 0.00515625 * safezoneW;
-					y = 0.055 * safezoneH;
-					w = 0.0154688 * safezoneW;
-					h = 0.033 * safezoneH;
-				};
-				class MCC_Fuel: MCC_RscPicture
-				{
-					idc = -1;
-
-					text = __EVAL(MCCPATH +"data\IconFuel.paa");
-					x = 0.00515625 * safezoneW;
-					y = 0.099 * safezoneH;
-					w = 0.0154688 * safezoneW;
-					h = 0.033 * safezoneH;
-				};
-				class MCC_FoodPic: MCC_RscPicture
-				{
-					idc = -1;
-
-					text = __EVAL(MCCPATH +"data\IconFood.paa");
-					x = 0.00515625 * safezoneW;
-					y = 0.143 * safezoneH;
-					w = 0.0154688 * safezoneW;
-					h = 0.033 * safezoneH;
-				};
-				class MCC_MedPic: MCC_RscPicture
-				{
-					idc = -1;
-
-					text = __EVAL(MCCPATH +"data\IconMed.paa");
-					x = 0.00515625 * safezoneW;
-					y = 0.187 * safezoneH;
-					w = 0.0154688 * safezoneW;
-					h = 0.033 * safezoneH;
-				};
-			};
+			text = ":"; //--- ToDo: Localize;
+			x = 0.0859376 * safezoneW;
+			y = 0.0989618 * safezoneH;
+			w = 0.0114583 * safezoneW;
+			h = 0.0329871 * safezoneH;
 		};
 	};
 };

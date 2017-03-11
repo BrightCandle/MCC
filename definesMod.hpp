@@ -1,5 +1,5 @@
 #define MCCPATH "\mcc_sandbox_mod\"
-#define MCCVersion "0.1"
+#define MCCVersion "(r20)"
 #define MCCMODE true
 
 
@@ -32,9 +32,6 @@
 //----Logistics-----------------
 #include "\mcc_sandbox_mod\mcc\Dialogs\mcc_logisticsLoadTruck.hpp"
 
-//----Interaction-----------------
-#include "\mcc_sandbox_mod\mcc\Dialogs\mcc_interactionMenu.hpp"
-
 //----Key Settings-----------------
 #include "\mcc_sandbox_mod\mcc\Dialogs\mcc_rscKeyBinds.hpp"
 
@@ -45,13 +42,7 @@
 #define CPPATH "\mcc_sandbox_mod\"
 #define CPVersion "0.1"
 
-#include "\mcc_sandbox_mod\configs\dialogs\cp_dialogs.hpp"
-#include "\mcc_sandbox_mod\configs\dialogs\gearPanel\respawnPanel.hpp"
-#include "\mcc_sandbox_mod\configs\dialogs\gearPanel\squadsPanel.hpp"
-#include "\mcc_sandbox_mod\configs\dialogs\gearPanel\gearPanel.hpp"
-#include "\mcc_sandbox_mod\configs\dialogs\gearPanel\weaponsPanel.hpp"
-#include "\mcc_sandbox_mod\configs\dialogs\gearPanel\accessoriesPanel.hpp"
-#include "\mcc_sandbox_mod\configs\dialogs\gearPanel\uniformPanel.hpp"
+#include "\mcc_sandbox_mod\mcc\roleSelection\cfg.hpp"
 
 //--------------------------Campaign----------------------------------------------------
 #include "\mcc_sandbox_mod\mcc\Dialogs\campaign\mcc_vehicleSpawner.hpp"
@@ -64,11 +55,14 @@
 #include "\mcc_sandbox_mod\bon_artillery\dialog\Artillery.hpp"
 #include "\mcc_sandbox_mod\VAS\menu.hpp"
 #include "\mcc_sandbox_mod\hcam\hcam.hpp"
+#include "\mcc_sandbox_mod\spectator\spectating.hpp"
+
 //--------------------------features----------------------------------------------------
 #include "\mcc_sandbox_mod\mcc\login\cfg.hpp"
 #include "\mcc_sandbox_mod\mcc\rts\cfg.hpp"
 #include "\mcc_sandbox_mod\mcc\bombDefuse\cfg.hpp"
 #include "\mcc_sandbox_mod\mcc\survive\cfg.hpp"
+#include "\mcc_sandbox_mod\mcc\interaction\cfg.hpp"
 
 //--------------------------Cfg----------------------------------------------------
 class CfgFunctions
@@ -87,6 +81,28 @@ class CfgFunctions
 		#include "\mcc_sandbox_mod\mcc\undercover\cfgFunctions.hpp"
 		#include "\mcc_sandbox_mod\mcc\bombDefuse\cfgFunctions.hpp"
 		#include "\mcc_sandbox_mod\mcc\survive\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\HUD\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\roleSelection\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\interaction\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\radio\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\AAS\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\missionWizard\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\helpers\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\helicopters\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\ambient\cfgFunctions.hpp"
+	};
+};
+
+class cfgRemoteExec {
+	class Functions {
+		// State of remoteExec: 0-turned off, 1-turned on, taking whitelist into account, 2-turned on, however, ignoring whitelists (default because of backward compatibility)
+		mode = 2;
+		// Ability to send jip messages: 0-disabled, 1-enabled (default)
+		jip = 1;
+
+		#include "\mcc_sandbox_mod\mcc\cfg\cfgRemoteExec.hpp"
+		#include "\mcc_sandbox_mod\mcc\radio\cfgRemoteExec.hpp"
+		#include "\mcc_sandbox_mod\mcc\AAS\cfgRemoteExec.hpp"
 	};
 };
 
@@ -103,6 +119,7 @@ class CfgMusic
 class CfgSounds
 {
 	#include "\mcc_sandbox_mod\mcc\cfg\CfgSounds.hpp"
+	#include "\mcc_sandbox_mod\mcc\ambient\CfgSounds.hpp"
 };
 
 class CfgNotifications
@@ -119,6 +136,10 @@ class RscTitles
 	#include "\mcc_sandbox_mod\mcc\dialogs\mcc_3dObject.hpp"
 	#include "\mcc_sandbox_mod\mcc\dialogs\sqlPDA\MCC_SQLPDA_rsc.hpp"
 	#include "\mcc_sandbox_mod\mcc\survive\dialogs\mcc_rscSurviveStats.hpp"
+	#include "\mcc_sandbox_mod\mcc\HUD\cfg.hpp"
+
+	//----medic-----------------
+	#include "mcc\Dialogs\medic\mcc_uncMain.hpp"
 };
 
 class CfgDebriefing

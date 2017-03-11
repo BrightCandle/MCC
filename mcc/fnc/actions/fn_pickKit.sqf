@@ -20,12 +20,10 @@ removeAllItemsWithMagazines player;
 removeAllItemsWithMagazines _suspect;
 
 //Backpack
-if (_backPackPlayer != "") then
-{
+if (_backPackPlayer != "") then {
 	removeBackpackGlobal player;
 
-	if (_backPackSuspect != "") then
-	{
+	if (_backPackSuspect != "") then {
 		removeBackpackGlobal _suspect;
 		player addBackpack _backPackSuspect;
 		_time = time;
@@ -34,11 +32,8 @@ if (_backPackPlayer != "") then
 	_suspect addBackpack _backPackPlayer;
 	_time = time;
 	waituntil {backpack _suspect == _backPackPlayer || time - _time > 3 };
-}
-else
-{
-	if (_backPackSuspect != "") then
-	{
+} else {
+	if (_backPackSuspect != "") then {
 		removeBackpackGlobal _suspect;
 		player addBackpack _backPackSuspect;
 		_time = time;
@@ -47,12 +42,10 @@ else
 };
 
 //Vest
-if (_vestPlayer != "") then
-{
+if (_vestPlayer != "") then {
 	removeVest player;
 
-	if (_vestSuspect != "") then
-	{
+	if (_vestSuspect != "") then {
 		removeVest _suspect;
 		player addVest _vestSuspect;
 		_time = time;
@@ -61,11 +54,8 @@ if (_vestPlayer != "") then
 	_suspect addVest _vestPlayer;
 	_time = time;
 	waituntil {vest _suspect == _vestPlayer || time - _time > 3 };
-}
-else
-{
-	if (_vestSuspect != "") then
-	{
+} else {
+	if (_vestSuspect != "") then {
 		removeVest _suspect;
 		player addVest _vestSuspect;
 		_time = time;
@@ -76,21 +66,22 @@ else
 //weapons
 private ["_nearHolders","_holder"];
 
-_nearHolders = (getpos _suspect nearObjects ["weaponHolderSimulated",3]);
+_nearHolders = (getpos _suspect nearObjects ["weaponHolderSimulated",5]);
 
-if (count _wepPlayer > 0) then
-{
-	if (count _nearHolders > 0) then
-	{
+if (count _wepPlayer > 0) then {
+	/*
+	if (count _nearHolders > 0) then {
 		_nearHolders = [_nearHolders,[],{(_suspect distance _x)},"ASCEND"] call BIS_fnc_sortBy;
 		_wepHolder = _nearHolders select 0;
-	}
-	else
-	{
+	} else {
 		_wepHolder = "weaponHolderSimulated" createVehicle getpos _suspect;
 		waituntil {!isnil "_wepHolder"};
 		_wepHolder setpos getpos _suspect;
 	};
+	*/
+	_wepHolder = "weaponHolderSimulated" createVehicle getpos _suspect;
+	waituntil {!isnil "_wepHolder"};
+	_wepHolder setpos getpos _suspect;
 
 	{
 		_weapon = if (typeName _x == "STRING") then {_x} else {_x select 0};
@@ -98,19 +89,25 @@ if (count _wepPlayer > 0) then
 	} foreach _wepPlayer;
 };
 
+if (count _nearHolders > 0) then {
+	_nearHolders = [_nearHolders,[],{(_suspect distance _x)},"ASCEND"] call BIS_fnc_sortBy;
+	_wepHolder = _nearHolders select 0;
+	{player action ["TakeWeapon", _wepHolder, _x]} foreach (weaponCargo _wepHolder);
+};
+
+/*
 {
 	_holder = _x;
 	{player action ["TakeWeapon", _holder, _x]} foreach (weaponCargo _x);
 } foreach _nearHolders;
-
+*/
 {
 	player action ["TakeWeapon", _suspect, _x];
 } foreach _wepSuspect;
 
 //Items + mage
 {
-	switch (true) do
-	{
+	switch (true) do {
 		case (isClass (configFile >> "CfgMagazines" >> _x)) : {player addMagazine _x};
 		case (isClass (configFile >> "CfgWeapons" >> _x)) : {player addItem _x};
 	};

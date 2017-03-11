@@ -1,7 +1,7 @@
 class MCC_Module_ambientCivilians : Module_F
 {
 	category = "MCC";
-	displayName = "Ambient units";
+	displayName = "Ambient Units";
 	function = "MCC_fnc_curatorAmbientCivilians";
 	scope = 2;
 	isGlobal = 0;
@@ -105,6 +105,42 @@ class MCC_Module_ambientCivilians : Module_F
 			typeName = "STRING";
 			description = "Config name";
 			defaultValue = "CIV_F";
+		};
+
+		class civRelations
+		{
+			displayName = "Civilians Reaction";
+			description = "Civilians Reaction to players";
+			typeName = "NUMBER";
+			class values
+			{
+				class bad
+				{
+					name = "Bad (IED & Suicide Bombers)";
+					value = 0.2;
+					default = 1;
+				};
+				class average
+				{
+					name = "Average";
+					value = 0.5;
+				};
+				class aboveAverage
+				{
+					name = "Above Average";
+					value = 0.6;
+				};
+				class good
+				{
+					name = "Good";
+					value = 0.8;
+				};
+				class verygood
+				{
+					name = "Very Good";
+					value = 0.9;
+				};
+			};
 		};
 	};
 

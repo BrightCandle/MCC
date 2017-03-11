@@ -13,7 +13,9 @@ switch (_type) do {
     case (2): //Give
     {
     	_class = lbData [0, (lbCurSel 0)];
+    	if (_class == "") exitWith {};
 
+    	_valor = 0;
     	//Weapon or magazine
     	switch (true) do {
 			case (isClass (configFile >> "CfgMagazines" >> _class)) : {_valor = getNumber(configFile >> "CfgMagazines" >> _class >> "value")};
@@ -87,12 +89,13 @@ switch (_type) do {
 		    };
 		};
 
-		player setVariable ["MCC_valorPoints",_playerValor + _valor];
+		player setVariable ["MCC_valorPoints",_playerValor + _valor,true];
     };
 
     case (3): //Take
     {
     	_class = lbData [1, (lbCurSel 1)];
+    	_valor = 0;
 
     	//Weapon or magazine
     	switch (true) do {

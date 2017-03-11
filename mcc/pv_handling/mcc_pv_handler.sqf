@@ -7,83 +7,8 @@ my_pv = [];
 
 if (isServer) then
 {
-	mcc_fnc_login = {_this call my_pv_loginhandler};
+
 	if (isnil "MCC_Chat") then {MCC_Chat = true};
-	my_pv_loginhandler =
-	{
-			#define MCCMISSIONMAKERNAME 1020
-			private ["_p_mcc_player","_p_mcc_player_name","_p_mcc_request","_isAdmin"];
-
-				disableSerialization;
-
-				_p_mcc_player = _this select 0;
-				_p_mcc_player_name = _this select 1;
-				_p_mcc_request = _this select 2;
-				_isAdmin = _this select 3;
-
-
-				//MM is logging out
-				if (mcc_missionmaker == _p_mcc_player_name) exitWith
-				{
-					if (MCC_Chat) then
-					{
-						[[[netId _p_mcc_player,_p_mcc_player], format["MCC ID %1-> %2 Logged out as Misson Maker.",_p_mcc_request,mcc_missionMaker], false],"MCC_fnc_groupchat",true,false] spawn BIS_fnc_MP;
-					};
-					mcc_missionmaker="";
-					unassignCurator MCC_curator;
-					publicVariable "mcc_missionmaker";
-					ctrlSetText [MCCMISSIONMAKERNAME, format["%1",mcc_missionmaker]];
-				};
-
-				//MM is logging in
-				if ((mcc_missionmaker == "") || _isAdmin) exitWith
-				{
-					mcc_missionmaker = _p_mcc_player_name;
-					if (MCC_Chat) then
-					{
-						[[[netId _p_mcc_player,_p_mcc_player], format["MCC ID %1-> Access granted to: %2",_p_mcc_request,mcc_missionMaker], false],"MCC_fnc_groupchat",true,false] spawn BIS_fnc_MP;
-					};
-					unassignCurator MCC_curator;
-					sleep 0.1;
-					_p_mcc_player assignCurator MCC_curator;
-
-					publicVariable "mcc_missionmaker";
-					publicVariable "mcc_zone_pos";
-					publicVariable "mcc_zone_size";
-					publicVariable "mcc_zone_dir";
-					publicVariable "mcc_zone_locations";
-					publicVariable "MCC_zones_numbers";
-
-					publicvariable (format ["MCC_evacVehicles_%1",playerside]);
-
-					ctrlSetText [MCCMISSIONMAKERNAME, format["%1",mcc_missionmaker]];
-
-					//load custom units arrays
-					//helicopters
-					missionNamespace setVariable ["MCC_vehicles_helicopters" ,["all","helicopterrtd","air"] call MCC_fnc_makeUnitsArray];
-					publicVariable "MCC_vehicles_helicopters";
-
-					//planes
-					missionNamespace setVariable ["MCC_vehicles_airplanes" ,["all","airplanex","air"] call MCC_fnc_makeUnitsArray];
-					publicVariable "MCC_vehicles_airplanes";
-
-					//cars
-					missionNamespace setVariable ["MCC_vehicles_vehicles" ,["all","carx"] call MCC_fnc_makeUnitsArray];
-					publicVariable "MCC_vehicles_vehicles";
-
-					//armor
-					missionNamespace setVariable ["MCC_vehicles_tanks" ,["all","tankx"] call MCC_fnc_makeUnitsArray];
-					publicVariable "MCC_vehicles_tanks";
-
-					//motorcycle
-					missionNamespace setVariable ["MCC_vehicles_motorcycles" ,["all","motorcyclex"] call MCC_fnc_makeUnitsArray];
-					publicVariable "MCC_vehicles_motorcycle";
-
-					//ships
-					missionNamespace setVariable ["MCC_vehicles_ships" ,["all","shipx"] call MCC_fnc_makeUnitsArray];
-					publicVariable "MCC_vehicles_ships";
-				}
-	};
 
 	mcc_setup =  {_this call my_pv_handler};
 	diag_log format ["Added 'mcc_setup' EventHandler for Server"];
@@ -259,6 +184,7 @@ my_pv_handler =
 									_p_mcc_zone_markername setMarkerShapeLocal _p_mcc_marker_zone_type;
 									_p_mcc_zone_markername setMarkerSizeLocal _p_mcc_zone_markerSize;
 									_p_mcc_zone_markername setMarkerDirLocal _p_mcc_marker_zone_dir;
+									_p_mcc_zone_markername setMarkerAlphaLocal 0;
 								}
 							else
 								{
@@ -266,6 +192,7 @@ my_pv_handler =
 									_p_mcc_zone_markername setMarkerShapeLocal _p_mcc_marker_zone_type;
 									_p_mcc_zone_markername setMarkerSizeLocal _p_mcc_zone_markerSize;
 									_p_mcc_zone_markername setMarkerDirLocal _p_mcc_marker_zone_dir;
+									//_p_mcc_zone_markername setMarkerAlphaLocal 0;
 								};
 							};
 
@@ -305,7 +232,7 @@ my_pv_handler =
 							_dummyUnit = _unitspawned createUnit [_p_mcc_spawnname, _p_safepos, [],0,""];
 
 							//Curator
-							MCC_curator addCuratorEditableObjects [[_dummyUnit],false];
+							{_x addCuratorEditableObjects [[_dummyUnit],false]} forEach allCurators;
 
 									_dummyUnit setSkill ["aimingspeed", MCC_AI_Aim];
 									_dummyUnit setSkill ["spotdistance", MCC_AI_Spot];
@@ -343,7 +270,7 @@ my_pv_handler =
 							_dummyUnit = _unitspawned createUnit [_p_mcc_spawnname, _p_safepos, [],0,""];
 
 							//Curator
-							MCC_curator addCuratorEditableObjects [[_dummyUnit],false];
+							{_x addCuratorEditableObjects [[_dummyUnit],false]} forEach allCurators;
 
 							if (MCC_Chat) then
 							{
@@ -379,7 +306,7 @@ my_pv_handler =
 										};
 
 									//Curator
-									MCC_curator addCuratorEditableObjects [[(_unitspawned select 0)],true];
+									{_x addCuratorEditableObjects [[(_unitspawned select 0)],true]} forEach allCurators;
 
 									//Find out who is the poor bastard leading this joint and then give him something to do with UPS
 									//Specific resctrictions or lifting rescrictions on type of unit in UPS
@@ -444,7 +371,7 @@ my_pv_handler =
 									_unitspawned 	= _p_mcc_spawnname createVehicle _p_safepos;
 
 									//Curator
-									MCC_curator addCuratorEditableObjects [[_unitspawned],false];
+									{_x addCuratorEditableObjects [[_unitspawned],false]} forEach allCurators;
 
 									if (MCC_Chat) then
 									{

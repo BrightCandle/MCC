@@ -55,6 +55,7 @@ switch (_type) do {
 			{
 				_targetUnit = MCC_UMunitsNames select (lbCurSel MCC_UM_LIST);	//Hijacked unit
 				if (isplayer _targetUnit) exitwith {hint "Can't hijak other players"};
+				if (isNil "_targetUnit" || isNull _targetUnit) exitWith {};
 				MCC_PrevHijacked_Group = netID (group _targetUnit);
 				MCC_Prev_HijackedGroupIsLeader = if (leader group _targetUnit == _targetUnit) then {true} else {false};
 
@@ -315,6 +316,7 @@ switch (_type) do {
 
 		case 9:	//HALO
 		{
+			/*
 			hint "click on the map to start the Parachute";
 			MCC_click = false;
 			onMapSingleClick " 	hint format ['%1 Paradroped', MCC_UMunitsNames];
@@ -338,19 +340,20 @@ switch (_type) do {
 					} foreach units _x;
 				} foreach MCC_selectedUnits;
 			};
+			*/
+			MCC_UMparadropIsHalo = 2; //HALO
+			MCC_UMParadropRequestMarker = true;
+			hint "click and dragto start the Drop";
 		};
 
 		case 10:	//Parachute
 		{
 			_answer = ["<t font='TahomaB'>Parachut or drop-pods?</t>","","Parachut","Drop-pods"] call BIS_fnc_guiMessage;
 			waituntil {!isnil "_answer"};
-			if (_answer) then
-			{
-				MCC_UMparadropIsHalo = false;
-			}
-			else
-			{
-				MCC_UMparadropIsHalo = true;
+			if (_answer) then {
+				MCC_UMparadropIsHalo = 0; //Drop pods
+			} else {
+				MCC_UMparadropIsHalo = 1; //Parachute
 			};
 			MCC_UMParadropRequestMarker = true;
 			hint "click and dragto start the Drop";

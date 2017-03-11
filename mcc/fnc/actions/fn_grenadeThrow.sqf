@@ -1,4 +1,4 @@
-//==================================================================MCC_fnc_grenadeThrow===============================================================================================
+//==================================================================MCC_fnc_grenadeThrow===============================================================================
 // Example: [] call MCC_fnc_grenadeThrow;
 //===========================================================================================================================================================================
 private ["_utility","_vel","_dir","_handPos","_speed","_magData","_magClass","_magMuzzle","_precise","_eh","_ctrl"];
@@ -29,8 +29,6 @@ if (!_primaryMod) exitWith
 	player setVariable ["MCC_falseGrenadePrecise",_precise];
 	player setVariable ["MCC_busy",false];
 };
-
-player removeMagazineGlobal _magClass;
 
 switch (_precise) do
 {
@@ -65,6 +63,7 @@ switch (_precise) do
 
 player forceWeaponFire [_magMuzzle,_magMuzzle];
 sleep 1;
+//player removeMagazineGlobal _magClass;
 if !(_magClass in (magazines player)) then
 {
 	player setVariable ["MCC_utilityItem",[]];

@@ -1,4 +1,4 @@
-//===================================================================MCC_fnc_trapSingle======================================================================================
+//===================================================================MCC_fnc_trapSingle=============================================================================
 // Create an IED
 //Example:[[pos,IEDkind,IEDVolume,IEDExplosionType,IEDDisarmTime,IEDJammable,IEDTriggerType,IEDdistance,IEDside,IEDMarkerName,IEDDir,_groupArray,_ambushSide],'MCC_fnc_trapSingle',true,false] call BIS_fnc_MP;
 // Params:
@@ -15,11 +15,10 @@
 // 	IEDDir: number, direction of the IED
 // 	_groupArray: Boolean, spawn an ambush
 //	_ambushSide: side, ambush side
-//==============================================================================================================================================================================
+//========================================================================================================================================================================
 
 //Made by Shay_Gman (c) 09.10
-private ["_pos", "_trapkind", "_trapvolume", "_IEDExplosionType", "_IEDDisarmTime", "_IEDJammable", "_IEDTriggerType", "_IEDAmbushGroup",
- "_trapdistance", "_iedside", "_iedMarkerName", "_fakeIed", "_dummy","_ok","_iedDir","_init","_time","_range","_ambushPos","_groupDir","_ambush"];
+private ["_pos", "_trapkind", "_trapvolume", "_IEDExplosionType", "_IEDDisarmTime", "_IEDJammable", "_IEDTriggerType", "_IEDAmbushGroup","_trapdistance", "_iedside", "_iedMarkerName", "_fakeIed", "_dummy","_ok","_iedDir","_init","_time","_range","_ambushPos","_groupDir","_ambush","_playersSides"];
 disableSerialization;
 
 if (!isServer) exitWIth {};
@@ -41,15 +40,17 @@ _ambushSide 		= if (_groupArray) then { _this select 12} else {east};
 
 _init = "";
 
+_playersSides = [west,east,resistance] - [_ambushSide];
+
 //Ammo?
 _fakeIed = _trapkind createVehicle _pos;
 _fakeIed setpos _pos;
 _fakeIed setdir _iedDir;
 _fakeIed setVariable ["isIED",true,true];
 _fakeIed setvariable ["vehicleinit",format ["_null =[[_this,'%1',%2,%3,%4,%5,%6,'%7'], 'MCC_fnc_createIED', false, false] spawn BIS_fnc_MP;",_trapvolume,_IEDExplosionType,_IEDDisarmTime,_IEDJammable,_IEDTriggerType,_trapdistance,_iedside]];
-MCC_curator addCuratorEditableObjects [[_fakeIed],false];
+{_x addCuratorEditableObjects [[_fakeIed],false]} forEach allCurators;
 
-[[_fakeIed,_trapvolume,_IEDExplosionType,_IEDDisarmTime,_IEDJammable,_IEDTriggerType,_trapdistance,_iedside], "MCC_fnc_createIED", false, false] spawn BIS_fnc_MP;
+[[_fakeIed,_trapvolume,_IEDExplosionType,_IEDDisarmTime,_IEDJammable,_IEDTriggerType,_trapdistance,_playersSides], "MCC_fnc_createIED", false, false] spawn BIS_fnc_MP;
 
 
 //Spawn AMBUSH

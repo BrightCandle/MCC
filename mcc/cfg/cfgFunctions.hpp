@@ -11,6 +11,7 @@ class general
 	file = "mcc\fnc\general";
 	#endif
 
+	class login {};
 	class activateAddons {preInit = 1; description = "Pre init addon";};
 	class gear	{preInit = 1; description = "Assign gear by roles";};
 
@@ -58,6 +59,7 @@ class general
 	class SetPitchBankYaw	{};
 	class openArtillery {};
 	class deleteBrush{};
+	class crewCount {description = "return empty seats of a specific vehicle with or without FFV (firing From Vehicles)";};
 };
 
 class ui
@@ -90,6 +92,8 @@ class ui
 	class getKeyFromCBA {description = "Get a pretty name from CBA key binds";};
 	class getGroupIconData {description = "get group icon depends on the group type and size";};
 	class 3Dcredits	{};
+	class musicTrigger {description = "Execute music or sound on all clients triggers";};
+	class tagSystem {description = "Init MCC 3d markers - tagging system. Adds 3D markers when tagging an enemy";};
 };
 
 class ied
@@ -128,6 +132,7 @@ class cas
 	class createPlane		{description = "create a flying plane from the given type and return the plane , pilot and group.";};
 	class deletePlane		{description = "set a plane to move to a location and delete it once it come closer then 800 meters.";};
 	class airDrop		{description = "Handles CAS and airdrop requests on the server";};
+	class uavDetect {};
 };
 
 class artillery
@@ -174,44 +179,6 @@ class console
 	class consoleClickGroupIcon	{description = "Define icon behaviot when clicked on the MCC Console";};
 };
 
-class missionWizard
-{
-	#ifdef MCCMODE
-	file = "\mcc_sandbox_mod\mcc\fnc\missionWizard";
-	#else
-	file = "mcc\fnc\missionWizard";
-	#endif
-
-	class MWFindMissionCenter	{description = "Find the mission Wizard's center";};
-	class MWbuildLocations		{description = "If the map have locations system it will build the locations";};
-	class MWCreateTask			{description = "Create Task";};
-	class MWFindbuildingPos		{description = "Scan for buildings and building's pos";};
-	class MWfindObjectivePos	{description = "Create objective position";};
-	class MWObjectiveHVT		{description = "Create an HVT objective";};
-	class MWObjectiveDestroy	{description = "Create a Destroy objective";};
-	class MWObjectiveIntel		{description = "Create a pick intel objective";};
-	class MWObjectiveClear		{description = "Create a clear area objective";};
-	class MWObjectiveDisable	{description = "Create a disable IED area objective";};
-	class MWCreateUnitsArray	{description = "Create units array by type";};
-	class MWUpdateZone			{description = "Create or update a new zone";};
-	class MWSpawnInZone			{description = "Spawn units or groups in a zone";};
-	class MWSpawnInfantry		{description = "Spawn infantry groups in the zone.";};
-	class MWSpawnVehicles		{description = "Spawn vehicles in the zone.";};
-	class buildRoadblock		{description = "Create a road block in the given position and direction.";};
-	class MWopenBriefing		{description = "Create The breifings.";};
-	class MWMapTooltip			{description = "Create The tooltips on breifings.";};
-	class MWreinforcement		{description = "Create a reinforcment type.";};
-	class MWSpawnStatic			{description = "Spawn static weapons in the zone.";};
-	class customTasks			{description = "Manage custom tasks.";};
-	class MWspawnAnimals		{description = "spawn animals in the area.";};
-	class MWinitMission			{description = "Init generated mission.";};
-	class populateObjective		{description = "Populate a zone with enemies.";};
-	class createConfigs			{description = "Create configs class for the MW";};
-	class campaignInit			{description = "Init campaign";};
-	class missionDone			{description = "Mission Done and allocate resources";};
-	class dayCycle				{description = "Control day and night cycle gain tickets and change weather every day";};
-};
-
 class ai
 {
 	#ifdef MCCMODE
@@ -250,6 +217,12 @@ class mp
 	class radioSupport		{description = "Broadcast radio support to all elements not including the broadcaster group";};
 	class inidbGet	{};
 	class inidbSet 	{};
+	class handleDB {};
+	class saveServer {description = "Save persistent data about the server to the server";};
+	class loadServer {description = "Load persistent data about the server from the server";};
+	class savePlayer {description = "Save persistent data about the player to the server";};
+	class loadPlayer {description = "Load persistent data about the player from the server";};
+	class clearPersistentData {description = "Clear all data from saved files";};
 };
 
 class actions
@@ -267,6 +240,7 @@ class actions
 	class attachPod		{description = "Attach a pod to Taru helicopter";};
 	class vault			{description = "Vault over an obstacle";};
 	class cover			{description = "Manage cover mechanics";};
+	class coverInit		{preInit = 1; description = "Init Cover System";};
 	class weaponSelect	{description = "Change weapons and throw utility";};
 	class utilityUse	{description = "use utility";};
 	class grenadeThrow	{description = "Throw grenades";};
@@ -279,80 +253,6 @@ class actions
 	class resupply {description = "Resupply ammo from an ammo box";};
 	class breakdown {description = "Breakdown MCC crate into supplies";};
 	class ACEdropAmmobox {description = "Drop MCC ammbox in ACE";};
-};
-
-class roleSelection
-{
-	#ifdef MCCMODE
-	file = "\mcc_sandbox_mod\mcc\fnc\roleSelection";
-	#else
-	file = "mcc\fnc\roleSelection";
-	#endif
-
-	class unlock	{description = "Check for gear unlocks and notify the player.";};
-	class gainXPfromRoles	{description = "gain XP from specific roles.";};
-	class createRespawnTent	{description = "Creates a respawn tent";};
-	class getVariable		{description = "Global execute a command on server only  - SERVER ONLY";};
-	class setValue			{description = "Sets variable with custom value on a specific player";};
-	class buildSpawnPoint	{description = "Create a spawn point to the given side - SERVER ONLY";};
-	class setGroupID		{description = "Set group ID - SERVER ONLY";};
-	class getGroupID		{description = "get group ID";};
-	class setGear			{description = "Sets gear to role";};
-	class assignGear		{description = " Sets gear to role";};
-	class addWeapon			{description = " Sets gear to role";};
-	class addItem {};
-	class setVariable{};
-	class allowedDrivers{};
-	class allowedWeapons{};
-	class handleRating 		{description = "Add xp for players when rating added";};
-	class createCameraOnPlayer {description = "Create a camera object on player";};
-};
-
-class interaction
-{
-	#ifdef MCCMODE
-	file = "\mcc_sandbox_mod\mcc\fnc\interaction";
-	#else
-	file = "mcc\fnc\interaction";
-	#endif
-
-	class interaction	{description = "Interaction perent";};
-	class interactMan	{description = "Interaction with man type";};
-	class interactManClicked	{};
-	class interactIED	{description = "Interaction with IED type";};
-	class interactDoor	{description = "Interaction with door type";};
-	class DOOR_CAM_Handler	{};
-	class DoorMenuClicked	{};
-	class interactObject	{description = "Interaction with containers object";};
-	class interactUtility	{description = "Interaction with utility object";};
-	class interactSelf	{description = "Interaction with self";};
-	class interactSelfClicked	{};
-	class requestDropOff	{description = "Request player or AI to drop off a cargo group in a specific place - shold run localy on the requestor";};
-	class isDoor	{description = "is the player facing a door";};
-	class isDoorLocked {description = "is the player facing a door";};
-	class checkDoor {description = "Give infor if the door is locked";};
-	class doorBreach {description = "Place a breaching charge on the door";};
-	class doorLock {description = "lock door";};
-	class doorUnlock {description = "unlock door";};
-	class doorCamera {description = "Mirror under the door";};
-	class isSurvivalObject {description = "check if an object is a survival object";};
-	class searchSurvivalObject {description = "Search a survival object";};
-};
-
-class radio
-{
-	#ifdef MCCMODE
-	file = "\mcc_sandbox_mod\mcc\fnc\radio";
-	#else
-	file = "mcc\fnc\radio";
-	#endif
-
-	class vonRadio		{description = "simulate real radio comms on ArmA VON";};
-	class settingsRadio	{description = "Real radio comms settings";};
-	class VONRadioBroadcast {};
-	class VONRadiofindChannel {};
-	class VONRadioPressed {};
-	class assignChannelServer{};
 };
 
 class medic
@@ -372,18 +272,6 @@ class medic
 	class medicDragCarry {description = "Handle drag and carry units";};
 	class loadWounded 	{description = "Unload wounded from a vehicle";};
 	class medicArea		{description = "create a building as a medic area";};
-};
-
-class helpers
-{
-	#ifdef MCCMODE
-	file = "\mcc_sandbox_mod\mcc\fnc\helpers";
-	#else
-	file = "mcc\fnc\helpers";
-	#endif
-
-	class createHelper		{description = "Create ingame UI helper for interacted objects";};
-	class deleteHelper		{description = "Delete ingame UI helper for interacted objects";};
 };
 
 class logistics
@@ -412,24 +300,7 @@ class evac
 	class evacSpawn {description = "Spawn a vehicle with crew and gunners, mark it as an evac vehicle";};
 	class repairEvac {description = "Repair evac helicopter";};
 	class setEvac {description = "Sets an empty ot AI vehicle into an ecav for a specific side";};
-};
-
-class ambient
-{
-	#ifdef MCCMODE
-	file = "\mcc_sandbox_mod\mcc\fnc\ambient";
-	#else
-	file = "mcc\fnc\ambient";
-	#endif
-
-	class ambientInit {description = "init ambient civilians";};
-	class findCivHouse {description = "find nearest civilian house";};
-	class ambientDeleteCiv {description = "Delete civilians when not in range and not seen by players";};
-	class ambientSpawnCiv {description = "Spawn civilians around the player";};
-	class ambientDeleteCar {description = "Delete cars when not in range and not seen by players";};
-	class ambientSpawnCar {description = "Spawn cars around the player";};
-	class ambientSpawnCarParked  {description = "Spawn parked cars on street shulders";};
-	class ambientDeleteCarParked {description = "Delete parked cars when not in range and not seen by players";};
+	class fastRopeLocal {description = "handles fast rope on clients";};
 };
 
 class dynamicDialog

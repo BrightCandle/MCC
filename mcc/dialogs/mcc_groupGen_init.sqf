@@ -20,6 +20,10 @@ private ["_mccdialog","_comboBox","_displayname","_pic", "_index", "_array", "_c
 disableSerialization;
 MCC_mcc_screen = 2;	//Group gen for poping up the same menu again
 
+//Clear old data
+missionNamespace setVariable ["MCC_selectedUnits",[]];
+missionNamespace setVariable ["MCC_GroupGenGroupSelected",[]];
+
 uiNamespace setVariable ["MCC_groupGen_Dialog", _this select 0];
 
 //Add delete button
@@ -39,7 +43,7 @@ ctrlShow [510,false];
 ctrlShow [MCC_GroupGenInfo_IDC,false];
 
 //Show zones
-{str _x setMarkerAlphaLocal 0.4;(format["LABEL_%1",_x]) setMarkerAlphaLocal 1;} foreach MCC_zones_numbers;
+{str _x setMarkerAlphaLocal 0.4;(format["LABEL_%1",_x]) setMarkerAlphaLocal 0.3;} foreach (missionNamespace getVariable ["MCC_zones_numbers",[]]);
 
 //Hide admin buttons for no-admins
 if !(serverCommandAvailable "#logout") then
@@ -105,7 +109,7 @@ lbClear _comboBox;
 {
 	_displayname = format ["%1",_x];
 	_comboBox lbAdd _displayname;
-} foreach MCC_zones_numbers;
+} foreach (missionNamespace getVariable ["MCC_zones_numbers",[]]);
 _comboBox lbSetCurSel MCC_zone_index;
 
 //------------------------------------------- Tooltip --------------------------------------------------------------------------------------------------
@@ -138,7 +142,7 @@ if (isnil "MCCFirstOpenUI") then
 
 	sleep 1;
 	//Loose mission maker when DC move to after login
-	if (!isnil "MCC_zones_numbers") then {[] call MCC_fnc_createMCCZones};
+	[] call MCC_fnc_createMCCZones;
 };
 
 //----------------------------------------------------------- GROUPs ----------------------------------------------------------------------------
@@ -146,30 +150,25 @@ if (isnil "MCCFirstOpenUI") then
 [] spawn MCC_fnc_groupGenRefresh;
 
 //-------------------------------------------------FPS Loop  -----------------------------
-while {(str (finddisplay groupGen_IDD) != "no display")} do
-{
+while {(str (finddisplay groupGen_IDD) != "no display")} do {
 	MCC_clientFPS  = round(diag_fps);
 	ctrlSetText [MCCCLIENTFPS, format["%1",MCC_clientFPS]];
 
 	if (isnil "mcc_fps_running") then {mcc_fps_running = false};
-	if !(mcc_fps_running) then
-	{
+	if !(mcc_fps_running) then {
 		[[1],"MCC_fnc_FPS",true,false] spawn BIS_fnc_MP;
 		sleep 0.5;
 	};
 
-	if !( MCC_isHC ) then
-	{
+	if !( MCC_isHC ) then {
 		ctrlSetText [MCCSERVERFPS, format["%1",MCC_serverFPS]];
-	}
-	else
-	{
+	} else {
 		ctrlSetText [MCCSERVERFPS, format[" %1 - HC FPS: %2", MCC_serverFPS, MCC_hcFPS]];
 	};
 	sleep 1;
 };
 
 //Hide zones
-{str _x setMarkerAlphaLocal 0;(format["LABEL_%1",_x]) setMarkerAlphaLocal 0;} foreach MCC_zones_numbers;
+{str _x setMarkerAlphaLocal 0;(format["LABEL_%1",_x]) setMarkerAlphaLocal 0;} foreach (missionNamespace getVariable ["MCC_zones_numbers",[]]);
 
 //------------------------------------------------------------------------------------------

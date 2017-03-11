@@ -35,7 +35,7 @@ MCC_fn_loadZones =
 
 		sleep 1;
 		mcc_zone_markername setMarkerColorLocal "colorBlack";
-		mcc_zone_markername setMarkerAlphalocal 0.4;
+		mcc_zone_markername setMarkerAlphalocal 0.2;
 
 	} foreach _zonesNumber;
 };
@@ -46,8 +46,7 @@ _mccdialog = findDisplay MCC_SaveLoadScreen_IDD;
 _string = "";
 MCC_saveIndex = (lbCurSel MCC_SAVE_LIST);
 
-switch (_type) do
-{
+switch (_type) do {
 	case 0:	//Load MCC Mission config code
 	{
 		_string = ctrlText MCC_LOAD_INPUT;
@@ -70,7 +69,7 @@ switch (_type) do
 	{
 		private ["_temp"];
 		_temp = [] call MCC_fnc_saveToMCC;
-		MCC_savedZones = str [MCC_zones_numbers, mcc_zone_pos, mcc_zone_size, mcc_zone_dir, mcc_zone_locations];
+		MCC_savedZones = str [(missionNamespace getVariable ["MCC_zones_numbers",[]]), mcc_zone_pos, mcc_zone_size, mcc_zone_dir, mcc_zone_locations];
 		MCC_savedZones = [MCC_savedZones, "<null>", "nil"] call MCC_fnc_replaceString;
 
 		MCC_output = 'MCC_savedObjectives = ' + (str((call compile _temp) select 0)) + ';' + _br
@@ -106,7 +105,7 @@ switch (_type) do
 		private ["_temp"];
 		_temp = call compile ([] call MCC_fnc_saveToMCC);
 
-		MCC_savedZones = str [MCC_zones_numbers, mcc_zone_pos, mcc_zone_size, mcc_zone_dir, mcc_zone_locations];
+		MCC_savedZones = str [(missionNamespace getVariable ["MCC_zones_numbers",[]]), mcc_zone_pos, mcc_zone_size, mcc_zone_dir, mcc_zone_locations];
 		MCC_savedZones = [MCC_savedZones, "<null>", "nil"] call MCC_fnc_replaceString;
 
 		MCC_output = [_temp select 0, _temp select 1, _temp select 2, _temp select 3, _temp select 4, _temp select 5, call compile MCC_savedZones, mcc_safe];
@@ -179,6 +178,33 @@ switch (_type) do
 	{
 		//_null = [false] execVm "mcc\fnc\general\fn_saveToSQM.sqf";
 		[false] call MCC_fnc_saveToSQM;
+	};
+
+	//Activate persistent data
+	case 8:
+	{
+		//load server
+		["MCC_campaign",true,true,true,true,true,true,true,true,true] remoteExec ["MCC_fnc_loadServer", 2];
+
+		//load players
+		[true,true,true] remoteExec ["MCC_fnc_loadPlayer", 0];
+
+		sleep 20;
+
+		//Save server
+		["MCC_campaign",10,false,true,true,true,true,true,true,true,true] remoteExec ["MCC_fnc_saveServer", 2];
+
+		//save players
+		[10,true,true,true] remoteExec ["MCC_fnc_savePlayer", 2];
+
+		systemChat "DB Activated";
+	};
+
+	//Delete data
+	case 9:
+	{
+		0 spawn MCC_fnc_clearPersistentData;
+		systemChat "DB cleared";
 	};
 };
 

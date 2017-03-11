@@ -81,9 +81,8 @@ else
 
 	_heli setSpeedMode "FULL";
 	while {!(_heli getVariable "wp_complete")} do {sleep 1};
-	{
-		_heli animateDoor [_x,1];
-	} foreach ["door_back_L","door_back_R","door_L","door_R","Door_6_source","Door_rear_source"];
+
+	[_heli,true] spawn MCC_fnc_heliOpenCloseDoor;
 
 	switch (_landing) do		//Which insertion do we want
 	{
@@ -140,20 +139,9 @@ else
 				if (!(alive _pilot) || (damage _heli >= 0.5)) exitWith {};
 			};
 
-			_endpos = getpos(_nearSmokes select 0);
-			_distance = [_heli, _endpos] call BIS_fnc_distance2D;
-
-			while {_distance>5} do
-			{
-				if (!(alive _pilot) || (damage _heli >= 0.5)) exitWith {};
-				_relDirHor = [getpos _heli, _endpos] call BIS_fnc_DirTo;
-				_heli setDir _relDirHor;
-				_velocityX = ((_endpos select 0) - ((getPosASL _heli) select 0)) / 4;
-				_velocityY = ((_endpos select 1) - ((getPosASL _heli) select 1)) / 4;
-				_heli setVelocity [_velocityX,_velocityY,0];
-				_distance = [_heli, _endpos] call BIS_fnc_distance2D;
-				sleep 0.2;
-			};
+			_endpos = getPosASL (_nearSmokes select 0);
+			_endpos = _endpos vectorAdd [0,0,_height];
+			[_heli,_endpos] call MCC_fnc_heliPreciseLanding;
 
 			_heli setVelocity [0,0,0];
 			_heli flyinHeight 2;
@@ -216,31 +204,22 @@ else
 					_ropes = [[1.3,1.3,0],[-1.3,1.3,0]];
 				};
 			};
+			_pos = (AGLToASL _pos) vectorAdd [0,0,_height];
+			[_heli, _pos] call MCC_fnc_heliPreciseLanding;
 
-			_distance = [_heli, _pos] call BIS_fnc_distance2D;
-			while {_distance>5 && (alive _heli) && (canMove _heli) && (alive _pilot) && (damage _heli < 0.5)} do
-			{
-				_relDirHor = [getpos _heli, _pos] call BIS_fnc_DirTo;
-				_heli setDir _relDirHor;
-				_velocityX = ((_pos select 0) - ((getPosASL _heli) select 0)) / 4;
-				_velocityY = ((_pos select 1) - ((getPosASL _heli) select 1)) / 4;
-				_heli setVelocity [_velocityX,_velocityY,0];
-				_distance = [_heli, _pos] call BIS_fnc_distance2D;
-				sleep 0.2;
-			};
-
-			_heli setVelocity [0,0,0];
-			sleep 1;
-			_heli flyInHeight 35;
+			_heli setVelocity [0,0,0]; velocity
+			sleep 0.1;
+			_heli flyInHeight 20;
 			sleep 4;
-			_heli globalChat "Golf 1 in position, get ready for fast rope";
-			waitUntil { sleep 1; ( (abs(speed _heli) < 0.5) && ((getPos _heli select 2) < 40) ) || !alive _heli || !alive (driver _heli)};
-			if (!alive _heli) exitWith {};
 
-			{_heli animateDoor [_x, 1]} foreach ["Door_6_source","Door_rear_source"];
+			_heli globalChat "Golf 1 in position, get ready for fast rope";
+			waitUntil { sleep 1; (abs(speed _heli) < 0.5)  || !alive _heli || !alive (driver _heli)};
+			if (!alive _heli || !alive (driver _heli)) exitWith {};
+
+			[_heli,true] spawn MCC_fnc_heliOpenCloseDoor;
 
 			{
-				_rope = ropeCreate [_heli, _x,55,[10],[10], true];
+				_rope = ropeCreate [_heli, _x,55,[10]];
 				_actualRopes pushBack _rope;
 				/*
 				_rope = createVehicle ["land_rope_f", [0,0,0], [], 0, "CAN_COLLIDE"];
@@ -260,50 +239,7 @@ else
 			{
 				_rope = _actualRopes select (_forEachIndex % 2);
 
-				[_x, _rope] spawn
-					{
-						private ["_unit", "_zc", "_zdelta", "_rope","_timeOut","_time"];
-						_unit = _this select 0;
-						_rope = _this select 1;
-						_zdelta = 7 / 10;
-						_zc = -4;
-
-						if (isMultiplayer) then
-						{
-							_unit action ["GETOUT", vehicle _unit];
-							unassignVehicle _unit;
-							[compile format ["objectFromNetID '%1' switchmove 'crew_tank01_out'", netID _unit], "BIS_fnc_spawn", true, false] call BIS_fnc_MP;
-						}
-						else
-						{
-							unassignVehicle _unit;
-							_unit action ["GETOUT", vehicle _unit];
-							_unit switchmove "crew_tank01_out";
-						};
-
-						_time = time + 5;
-						waituntil {(vehicle _unit == _unit) || _time < time};
-						if (_time < time) exitWith {};
-						//gunner_standup01
-
-						_unit setpos [(getpos _unit select 0), (getpos _unit select 1), 0 max ((getpos _unit select 2) - 3)];
-
-						while { (alive _unit) && ( (getpos _unit select 2) > 0.3 ) && ( _zc > -55 ) } do
-						{
-							_unit attachTo [_rope, [0,0,_zc]];
-							_zc = _zc - _zdelta;
-							sleep 0.1;
-						};
-						detach _unit;
-						if (isMultiplayer) then
-						{
-							 [compile format ["objectFromNetID '%1' switchmove '';", netID _unit], "BIS_fnc_spawn", true, false] call BIS_fnc_MP;
-						}
-						else
-						{
-							[compile format ["objectFromNetID '%1' switchmove ''", netID _unit], "BIS_fnc_spawn", true, false] call BIS_fnc_MP;
-						};
-					};
+				[[_x, _rope],"MCC_fnc_fastRopeLocal",_x,false] spawn BIS_fnc_MP;
 
 				sleep ( 1 + ((random 6)/10) );
 			} foreach _cargoUnits;
@@ -338,12 +274,27 @@ else
 				*/
 			} foreach _actualRopes;
 		};
+
+		case 6:			//Precise Landing
+		{
+			_pos = (AGLToASL _pos) vectorAdd [0,0,_height];
+			[_heli, _pos] call MCC_fnc_heliPreciseLanding;
+			_heli setVelocity [0,0,0];
+
+			sleep 0.1;
+			_heli flyInHeight 1;
+			sleep 2;
+
+			[_heli,true] spawn MCC_fnc_heliOpenCloseDoor;
+
+			_timeOut = time + 10;
+			waitUntil { sleep 1; (count (assignedCargo _heli) == 0) || (time > _timeOut)  || (!alive _heli) || (!alive (driver _heli))};
+			sleep 3;
+		};
 	};
 
 	//Close doors
-	{
-	_heli animateDoor [_x,0];
-	} foreach ["door_back_L","door_back_R","door_L","door_R","Door_6_source","Door_rear_source"];
+	[_heli,false] spawn MCC_fnc_heliOpenCloseDoor;
 
 	//Do we have a return trip
 	if (count _cargoUnits > 0) then

@@ -1,13 +1,16 @@
-//=================================================================MCC_fnc_vehicleSpawnerInitDialog=============================================================================
+//=================================================================MCC_fnc_vehicleSpawnerInitDialog====================================================================
 //  Open vehicle spawner Dialog
-//==============================================================================================================================================================================
- private ["_simTypesUnits","_faction","_CfgVehicles","_CfgVehicle","_vehicleDisplayName","_cfgclass","_cfgFaction","_simulation","_vehicleArray","_comboBox","_mccdialog","_displayname","_index","_array","_rtsAnchor","_caller","_vehicleType","_spawnPad","_arguments"];
+//=======================================================================================================================================================================
+ private ["_simTypesUnits","_side","_CfgVehicles","_CfgVehicle","_vehicleDisplayName","_cfgclass","_cfgSide","_simulation","_vehicleArray","_comboBox","_mccdialog","_displayname","_index","_array","_rtsAnchor","_caller","_vehicleType","_spawnPad","_arguments","_commadner","_pic","_faction","_cfgFaction"];
 
 //We got here from the addaction
-_caller = [_this, 0, objNull, [objNull]] call BIS_fnc_param;
-_arguments = [_this, 1, [], [[]]] call BIS_fnc_param;
+_caller = param [0, objNull, [objNull]];
+_arguments = param [1, [], [[]]];
+_commadner = param [2, false, [false]];
 _vehicleType = _arguments select 0;
 _spawnPad = _arguments select 1;
+
+missionNamespace setVariable ["MCC_vehicleSpawner_IsCommadner",_commadner];
 
 //If it is an RTS spawner and we don't have elec on
 _rtsAnchor = if (MCC_isMode) then {
@@ -23,6 +26,12 @@ if ((attachedTo _spawnPad) isKindOf _rtsAnchor && !((missionNamespace getVariabl
 createDialog "MCC_VEHICLESPAWNER";
 waitUntil {!isnull (uiNamespace getVariable ["MCC_VEHICLESPAWNER_IDD", displayNull])};
 
+if (_commadner) then {
+    ctrlshow [1003,false];
+    ctrlshow [1103,false];
+    ctrlshow [84,false];
+    ctrlshow [94,false];
+};
 
 _simTypesUnits = switch (tolower _vehicleType) do {
                             case "vehicle": {["car","carx", "motorcycle"]};
@@ -30,14 +39,17 @@ _simTypesUnits = switch (tolower _vehicleType) do {
                             case "heli":  {["helicopter","helicopterX", "helicopterrtd"]};
                             case "jet":  {["airplane","airplanex"]};
                             case "ship":  {["ship","shipx", "shipX","submarinex"]};
+                            case "units":  {["men","menx","soldier"]};
                             default  {["car","carx", "motorcycle"]};
                         };
 
+_side = side _caller;
 _faction = faction _caller;
-if (isNil "_faction") exitWith {};
+
+if (isNil "_side") exitWith {};
 
 //Is there a user designed vehicle costs?
-_vehicleArray = missionNamespace getVariable ([format["MCC_RTS_%1_%2",tolower _vehicleType,_faction],[]]);
+_vehicleArray = missionNamespace getVariable ([format["MCC_RTS_%1_%2",tolower _vehicleType,side _caller],[]]);
 
 if (count _vehicleArray == 0) then {
     _CfgVehicles        = configFile >> "CfgVehicles" ;
@@ -48,22 +60,27 @@ if (count _vehicleArray == 0) then {
         //Keep going when it is a public entry
         if ((getNumber(_CfgVehicle >> "scope") == 2)) then {
 
-            _vehicleDisplayName     = getText(_CfgVehicle >> "displayname");
+            _vehicleDisplayName = getText(_CfgVehicle >> "displayname");
             _cfgclass           = (configName (_CfgVehicle));
-            _cfgFaction             = getText(_CfgVehicle >> "faction");
-            _simulation             = getText(_CfgVehicle >> "simulation");
-            _cost                   = floor (getNumber(_CfgVehicle >> "cost")/700);
-            _vehicleDisplayName = [_vehicleDisplayName, gettext(_CfgVehicle >> "picture")];
+            _cfgSide            = (getNumber(_CfgVehicle >> "side")) call BIS_fnc_sideType;
+            _simulation         = getText(_CfgVehicle >> "simulation");
+            _cfgFaction         = getText(_CfgVehicle >> "faction");
+            _cost               = floor (getNumber(_CfgVehicle >> "cost")/200);
+            _pic                =  if ((gettext(_CfgVehicle >> "editorPreview")) == "") then {gettext(_CfgVehicle >> "picture")} else {gettext(_CfgVehicle >> "editorPreview")};
+            if (!(["paa", _pic] call BIS_fnc_inString) && !(["jpg", _pic] call BIS_fnc_inString)) then {_pic = ""};
+            _vehicleDisplayName = [_vehicleDisplayName, _pic];
 
             if (_simulation in _simTypesUnits) then  {
-                if (toUpper(_cfgFaction) == _faction && !(tolower(getText(_CfgVehicle >> "vehicleClass")) in ["static","support","autonomous"])) then {
+                if ((((_cfgSide == _side) && (missionNamespace getVariable ["MCC_vehicleKioskBySide",false])) ||
+                      (_cfgFaction == _faction)) &&
+                      !(tolower(getText(_CfgVehicle >> "vehicleClass")) in ["static","support","autonomous"])) then {
                     _vehicleArray pushback [_cfgclass,_vehicleDisplayName,_cost];
                 };
             };
         };
     };
 
-    missionNamespace setVariable [format["MCC_RTS_%1_%2",tolower _vehicleType,_faction],_vehicleArray];
+    missionNamespace setVariable [format["MCC_RTS_%1_%2",tolower _vehicleType,_side],_vehicleArray];
 };
 
 missionNamespace setVariable ["MCC_private_vehicleArray",_vehicleArray];

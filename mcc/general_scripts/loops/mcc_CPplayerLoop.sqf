@@ -5,17 +5,16 @@ MCC_fnc_mapDrawPlayersWPConsole =
 	if (MCC_ConsolePlayersCanSeeWPonMap && ("ItemGPS" in (assignedItems player) || "B_UavTerminal" in (assignedItems player) || "MCC_Console" in (assignedItems player))) then
 	{
 		_wpArray = waypoints (group player);
-		if (count _wpArray > 0)then
-		{
+		if (count _wpArray > 0)then {
 			private ["_wp","_wPos","_wType","_lastPos"];
 			_lastPos = nil;
 			_texture = gettext (configfile >> "CfgMarkers" >> "waypoint" >> "icon");
-			for [{_i= currentWaypoint (group player)},{_i < count _wpArray},{_i=_i+1}] do 	//Draw the current WP
-			{
+
+			//Draw the current WP
+			for [{_i= currentWaypoint (group player)},{_i < count _wpArray},{_i=_i+1}] do {
 				_wp = (_wpArray select _i);
 				_wPos  = waypointPosition _wp;
-				if ((_wPos  distance [0,0,0]) > 50) then
-				{
+				if ((_wPos  distance [0,0,0]) > 50) then {
 					_wType = waypointType _wp;
 
 					_map drawIcon [
@@ -47,38 +46,86 @@ MCC_fnc_mapDrawPlayersWPConsole =
 	};
 
 	//Custom Group Markers
-	if (MCC_groupMarkers) then
-	{
-		private ["_groups","_texture"];
+	if (missionNamespace getVariable ["MCC_groupMarkers",true]) then {
+		private ["_groups","_texture","_blackList","_units","_iconSize","_iconText","_group","_textSize"];
 		_groups	 = switch (side player) do
 				{
 					case west:			{CP_westGroups};
 					case east:			{CP_eastGroups};
-					case resistance:	{CP_guarGroups};
-					case civilian:		{CP_guarGroups};
 					default				{CP_guarGroups};
 				};
 
-		_texture = gettext (configfile >> "CfgMarkers" >> "b_hq" >> "icon");
 
+		_blackList = [];
 		{
-			_map drawIcon [
+			_group = _x;
+			_units =if ((missionNamespace getVariable ["MCC_indevidualMarkers",false]) && (_group select 0) == group player) then {units (_group select 0)} else {[leader (_group select 0)]};
+			_color = if (group player == (_group select 0)) then {[0,1,0,0.8]} else {[0,0,1,0.8]};
+
+			{
+				if !(vehicle _x in _blackList) then {
+
+					if (_x == leader _x) then {
+						_iconSize = 30;
+						_iconText = _group select 1;
+						_textSize = 0.06;
+						_texture = if (vehicle _x == _x) then {gettext (configfile >> "CfgMarkers" >> "b_hq" >> "icon")} else {gettext (configfile >> "CfgVehicles" >> typeof vehicle _x >> "icon")};
+					} else {
+						_iconSize =18;
+						_iconText = [name _x,0,8] call BIS_fnc_trimString;
+						_textSize = 0.03;
+						_texture = gettext (configfile >> "CfgVehicles" >> typeof vehicle _x >> "icon");
+					};
+
+					//In vehicle
+					if (vehicle _x != _x) then {
+						_blackList pushBack vehicle _x;
+					};
+
+					_map drawIcon [
 						_texture,
-						[0,0,1,1],
-						getPos leader (_x select 0),
-						28,
-						28,
+						_color,
+						position _x,
+						_iconSize,
+						_iconSize,
+						direction _x,
+						_iconText,
 						0,
-						(_x select 1),
-						0,
-						0.06,
-						"PuristaBold"
+						_textSize,
+						"PuristaBold",
+						"Right"
 					];
+				};
+			} forEach _units;
 		} foreach _groups;
 	};
+
+	//Draw icons for UAV
+	{
+		if (vehicle _x == _x || _x == driver vehicle _x) then {
+			_texture = gettext (configfile >> "CfgVehicles" >> typeof vehicle _x >> "icon");
+			_color = (getNumber (configfile >> "CfgVehicles" >> typeof vehicle _x >> "side")) call BIS_fnc_sideColor;
+			_map drawIcon [
+							_texture,
+							_color,
+							position _x,
+							18,
+							18,
+							direction _x,
+							"",
+							0,
+							0.03,
+							"PuristaBold",
+							"Right"
+						];
+		};
+	} forEach (missionNamespace getVariable [(format ["MCC_uavSpotted_%1", playerSide]),[]]) + allUnitsUAV;
 };
 
 findDisplay 12 displayCtrl 51 ctrlAddEventHandler ["Draw","_this call MCC_fnc_mapDrawPlayersWPConsole"];
+
+//3D tag system 3DSpotting
+0 spawn MCC_fnc_tagSystem;
 
 sleep 10;
 //Loop
@@ -119,9 +166,6 @@ while {true} do {
 		missionNamespace setVariable ["MCC_save_secondaryWeaponMagazine",secondaryWeaponMagazine player];
 		missionNamespace setVariable ["MCC_save_handgunMagazine",handgunMagazine player];
 
-		//Add XP/Fame
-		_null = [] spawn MCC_fnc_handleRating;
-
 		//Repair/refuel from boxed all this ifs are to reduce unnecessary nearObjects - efficiency
 		if (!MCC_isMode && vehicle player != player) then {
 			_vehicle = vehicle player;
@@ -136,12 +180,14 @@ while {true} do {
 			};
 		};
 
-		if (CP_activated) then {
-			//Check if in vehicle
-			[] call MCC_fnc_allowedDrivers;
+		if (missionNamespace getVariable ["CP_activated",false]) then {
+			//Add XP/Fame
+			_null = [] spawn MCC_fnc_handleRating;
 
 			//Check if allowed weapons
-			[] call MCC_fnc_allowedWeapons;
+			if (missionNamespace getVariable ["MCC_rsEnableRoleWeapons",true]) then {
+				[] call MCC_fnc_allowedWeapons
+			};
 
 			//Manage XP
 			if (missionNamespace getvariable ["CP_gainXP",true]) then {
@@ -153,26 +199,10 @@ while {true} do {
 			};
 		};
 
-		//Delete Markers
-		if (!isnil "MCC_PDAMarkers") then {
-			_time = time;
-			{
-				if (time > (_x +300)) then
-				{
-					deletemarkerlocal (MCC_PDAMarkers select _foreachindex);
-					MCC_PDAMarkers set [_foreachindex, -1];
-					MCC_PDAMarkersTime set [_foreachindex, -1];
-				};
-			} foreach MCC_PDAMarkersTime;
-
-			MCC_PDAMarkers = MCC_PDAMarkers - [-1];
-			MCC_PDAMarkersTime = MCC_PDAMarkersTime - [-1];
-		};
-
 		//Medic effects
 		if (missionNamespace getvariable ["MCC_medicSystemEnabled",false]) then {
 			[] call MCC_fnc_medicEffects;
 		};
 	};
-	sleep 2;
+	sleep 4;
 };

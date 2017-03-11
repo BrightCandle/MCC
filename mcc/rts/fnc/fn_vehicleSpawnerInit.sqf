@@ -1,5 +1,5 @@
 //=================================================================MCC_fnc_vehicleSpawnerInit==================================================================================
-//  [_this,"vehicle"] call MCC_fnc_vehicleSpawnerInit
+//  [_this,"vehicle"] spawn MCC_fnc_vehicleSpawnerInit
 //  Init an object as a vehicle spawner and add an add action to it
 //  Parameter(s):
 //     0: OBJECT - objct to which items will be added
@@ -8,8 +8,8 @@
 //==============================================================================================================================================================================
 private ["_object","_arguments","_null","_syncItems","_syncedObjects","_billboard","_helipad","_type"];
 
-_object = [_this, 0, objNull, [objNull]] call BIS_fnc_param;
-
+_object = param [0, objNull, [objNull]];
+waitUntil {time > 1};
 //We came here from a moudle
 if (_object isKindOf "mcc_sandbox_modulevehicleSpawner" || _object isKindOf "MCC_Module_vehicleSpawnerCurator") exitWith {
     _syncedObjects = synchronizedObjects _object;
@@ -24,6 +24,8 @@ if (_object isKindOf "mcc_sandbox_modulevehicleSpawner" || _object isKindOf "MCC
     };
 
     _type = _object getVariable ["type","vehicle"];
+    missionNamespace setVariable ["MCC_vehicleKioskBySide",(_object getVariable ["spawnFrom",0])==1];
+
     //Add the objects to curator
     [_billboard,_helipad,_type] spawn {
         private ["_billboard","_helipad","_type"];
@@ -52,19 +54,18 @@ if (count _this <=3) then {
                                 case "heli": {[0,"\A3\Air_F_Beta\Heli_Attack_01\Data\UI\Heli_Attack_01_CA.paa"]};
                                 case "jet": {[0,"\A3\Air_F_EPC\Plane_CAS_01\Data\UI\Plane_CAS_01_CA.paa"]};
                                 case "ship": {[0,"\A3\boat_f\Boat_Armed_01\data\ui\Boat_Armed_01_minigun.paa"]};
+                                case "units": {[0,format ["%1data\IconMen.paa",MCC_path]]};
                                 default {[0,"\A3\Soft_F\MRAP_01\Data\UI\MRAP_01_Base_ca.paa"]};
                             });
     _object setObjectTexture [1,'#(rgb,8,8,3)color(0.5,0.5,0.5,0.1)'];
     _object setObjectTexture [2,'#(rgb,8,8,3)color(0.5,0.5,0.5,0.1)'];
     _null = _object addAction [format ["<t color=""#ff1111"">Purchase %1</t>",_arguments select 0], {call MCC_fnc_vehicleSpawnerInit}, _arguments,10,true,true];
 } else {
-    private ["_simTypesUnits","_faction","_CfgVehicles","_CfgVehicle","_vehicleDisplayName","_cfgclass","_cfgFaction","_simulation","_vehicleArray","_comboBox","_mccdialog","_displayname","_index","_array","_rtsAnchor","_caller","_vehicleType","_spawnPad"];
+    private ["_caller","_arguments"];
 
     //We got here from the addaction
     _caller = [_this, 1, objNull, [objNull]] call BIS_fnc_param;
     _arguments = [_this, 3, [], [[]]] call BIS_fnc_param;
-    _vehicleType = _arguments select 0;
-    _spawnPad = _arguments select 1;
 
     if (isNull _caller) exitWith {};
 

@@ -4,7 +4,7 @@
 // "keyUp" 		string: "keyUp" or "KeyDown"
 // _this 			ctrl varable
 //==============================================================================================================================================================================
-private ["_keyVarable","_ehType","_ctrl","_dikCode","_shift","_ctrlKey","_alt","_arrayToCheck","_action","_null"];
+private ["_keyVarable","_ehType","_ctrl","_dikCode","_shift","_ctrlKey","_alt","_arrayToCheck","_action","_null","_lastKeyStroke"];
 disableSerialization;
 
 _ehType	 	= _this select 0;
@@ -16,8 +16,11 @@ _shift 		= _keyVarable select 2;
 _ctrlKey 	= _keyVarable select 3;
 _alt 		= _keyVarable select 4;
 
-//Disable keybinds id uncconcious or role selection
-if (!(player getVariable ["cpReady",true]) || (player getvariable ["MCC_medicUnconscious",false])) exitWith {};
+//Disable keybinds id uncconcious or role selection or in Zeus
+if (!(player getVariable ["cpReady",true]) ||
+    (player getvariable ["MCC_medicUnconscious",false]) ||
+    !(isnull curatorcamera)
+   ) exitWith {};
 
 //IF CBA do not use the keybinds
 if !(MCC_isCBA) then {
@@ -29,7 +32,15 @@ if !(MCC_isCBA) then {
 	} foreach MCC_keyBinds;
 };
 
+_lastKeyStroke = missionNamespace getvariable ["MCC_lastKeyStroke",[]];
+if (count _lastKeyStroke > 3) then {
+	_lastKeyStroke = [];
+};
+_lastKeyStroke pushBack (str _this);
+missionNamespace setvariable ["MCC_lastKeyStroke",_lastKeyStroke];
+
 if (tolower _ehType == "keyup") exitWith {
+
 	//ACE ui position
 	if (_dikCode == 219 && _ctrlKey && !(isnil "MCC_ACEKeyPos")) then {0 spawn {sleep 1; MCC_ACEKeyPos = nil}};
 
@@ -49,50 +60,77 @@ if (tolower _ehType == "keyup") exitWith {
 		};
 	};
 
+	//Disable key holding
+	MCC_interactionKey_holding = false;
+
 	//keybinds
-	switch (_action) do
-	{
+	switch (_action) do {
 		case 0 : {_null = [nil,nil,nil,nil,0] execVM format ["%1mcc\dialogs\mcc_PopupMenu.sqf",MCC_path]};	//MCC
 		case 1 : {_null = [nil,nil,nil,nil,1] execVM format ["%1mcc\dialogs\mcc_PopupMenu.sqf",MCC_path]};	//Console
 		case 2 : {_null = [objNull] execVM format["%1mcc\general_scripts\mcc_SpawnToPosition.sqf",MCC_path]};	//t2t
 		case 3 : {_null = [nil,nil,nil,nil,2] execVM format ["%1mcc\dialogs\mcc_PopupMenu.sqf",MCC_path]};	//Squad Dialog
-		case 4 : {MCC_interactionKey_down = false; MCC_interactionKey_up = true; MCC_interactionKey_holding = false};	//Interaction
+		case 4 : {
+			(uiNamespace getVariable ["MCC_INTERACTION_MENU",displayNull]) closeDisplay 1;
+			MCC_interactionKey_down = false;
+			MCC_interactionKey_up = true;
+			(missionNamespace setVariable ["MCC_interactionOn",false])
+		};	//Interaction
 		case 5 : {_null = [nil,nil,nil,nil,3] execVM format ["%1mcc\dialogs\mcc_PopupMenu.sqf",MCC_path]};	//Console
+		case 6 : {(uiNamespace getVariable ["MCC_INTERACTION_MENU",displayNull]) closeDisplay 1; MCC_interactionKey_down = false; MCC_interactionKey_up = true;};	//Self Interaction
 	};
 };
 
 if (tolower _ehType == "keydown") exitWith {
 	//ACE ui position
 	if (MCC_isACE) then {
-		if (_dikCode == (((["ACE3 Common","ace_interact_menu_SelfInteractKey"] call CBA_fnc_getKeybind) select 5) select 0) && isnil "MCC_ACEKeyPos") then { MCC_ACEKeyPos =  screenToWorld [0.5,0.5];};
+		if (_dikCode == (((["ACE3 Common","ace_interact_menu_SelfInteractKey"] call CBA_fnc_getKeybind) select 5) select 0) && isnil "MCC_ACEKeyPos") then {
+
+			_ins = lineIntersectsSurfaces [
+					AGLToASL positionCameraToWorld [0,0,0],
+					AGLToASL positionCameraToWorld [0,0,3000],
+					player,
+					objNull,
+					true,
+					1,
+					"GEOM",
+					"NONE"
+				];
+			MCC_ACEKeyPos = if (count _ins == 0) then {screenToWorld [0.5,0.5]} else {ASLToATL (_ins select 0 select 0)};
+		};
 	};
 
 	//No need to go further if CBA
 	if (MCC_isCBA) exitWith {};
 
-	//keybinds
-	switch (_action) do
-	{
-		case 4 :
-		{
-			//Interaction
-			if (missionNameSpace getVariable ["MCC_interaction",false]) then
-			{
-				MCC_interactionKey_down = true;
-				MCC_interactionKey_up = false;
+	if (!(missionNamespace getVariable ["MCC_interactionKey_holding",false]) && ({_x == str _this} count _lastKeyStroke >= 3)) then {
+		MCC_interactionKey_holding = true;
+	};
 
-				//_null = [] execVM format["%1mcc\fnc\interaction\fn_interaction.sqf",MCC_path];
-				[] spawn MCC_fnc_interaction
+	//keybinds
+	switch (_action) do {
+		case 4 :{
+
+			//Interaction
+			MCC_interactionKey_up = false;
+			if ((missionNameSpace getVariable ["MCC_interaction",false]) && !(missionNamespace getVariable ["MCC_interactionOn",false]) )then {
+				//No rapid fire
+				missionNamespace setVariable ["MCC_interactionOn",true];
+
+				0 spawn {
+					sleep 0.2;
+					MCC_interactionKey_holding = missionNamespace getVariable ["MCC_interactionOn",false];
+
+					_null = [MCC_interactionKey_holding] spawn MCC_fnc_interaction
+				};
 			};
 		};
 
-		case 6:
-		{
+		case 6:	{
 			//Self
-			if (missionNameSpace getVariable ["MCC_interaction",false]) then
-			{
+			if (missionNameSpace getVariable ["MCC_interaction",false]) then {
+				MCC_interactionKey_up = false;
+
 				[player] spawn MCC_fnc_interactSelf;
-				//_null = [player] execVM format["%1mcc\fnc\interaction\fn_interactSelf.sqf",MCC_path];
 			};
 		};
 	};

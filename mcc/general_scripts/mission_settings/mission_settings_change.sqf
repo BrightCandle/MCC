@@ -122,7 +122,7 @@ if !mcc_isloading then
 	//NameTags
 	missionNamespace setVariable ["MCC_nameTagsIndex",lbCurSel MCC_IDCNAMETAGS];
 	publicvariable "MCC_nameTagsIndex";
-	MCC_nameTags = if ((lbCurSel MCC_IDCNAMETAGS) == 0) then {false} else {true};
+	MCC_nameTags = (lbCurSel MCC_IDCNAMETAGS) == 0;
 	publicvariable "MCC_nameTags";
 
 	//Save gear EH
@@ -132,8 +132,6 @@ if !mcc_isloading then
 	publicvariable "MCC_saveGear";
 
 	//Group Markers
-	missionNamespace setVariable ["MCC_groupMarkersIndex",lbCurSel mcc_showGRPMarkerComboIDC];
-	publicvariable "MCC_groupMarkersIndex";
 	MCC_groupMarkers = if ((lbCurSel mcc_showGRPMarkerComboIDC) == 0) then {false} else {true};
 	publicvariable "MCC_groupMarkers";
 
@@ -202,15 +200,11 @@ if !mcc_isloading then
 
 	for "_i" from 8427 to 8435 do {
 		_var = _tempArray select (_i-8427);
-		missionNameSpace setVariable [_var, if ((lbCurSel _i)==0) then {false} else {true}];
+		missionNameSpace setVariable [_var, (lbCurSel _i)>0];
 		publicVariable _var;
 	};
 
-	//fire local EH
-	if (missionNamespace getVariable ["MCC_surviveMod",false]) then {
-		[] spawn MCC_fnc_surviveInit;
-	};
-
+	missionNameSpace setVariable ["MCC_surviveModAllowSearch", (lbCurSel 8428)==1];
 	Hint "Mission Settings Saved";
     closedialog 0;
 };

@@ -31,10 +31,11 @@ _time 			= time +0.2;
 MCC_unitInit 	= "";
 MCC_unitName 	= "";
 
+/*
 //Recognize shift key so we can disable MCC custom Zeus if we want to
 _keyUp = (findDisplay 312) displayAddEventHandler  ["KeyUp", "if (_this select 2) then {missionNamespace setvariable ['MCC_shiftPressed',false]}"];
 _keyDown = (findDisplay 312) displayAddEventHandler  ["KeyDown", "if ((_this select 2) && !(missionNamespace getvariable ['MCC_shiftPressed',false])) then {missionNamespace setvariable ['MCC_shiftPressed',true]}"];
-
+*/
 if (!alive _target || isNull _target || isplayer _target || (_target isKindof "Module_F") || missionNamespace getVariable ["MCC_shiftPressed",false]) exitWith {};
 
 //What are we dealing here
@@ -42,53 +43,42 @@ _targetData = _target call bis_fnc_objectType;
 _targetCategory = _targetData select 0;
 _targetType = _targetData select 1;
 
-if (_targetCategory != "Object") then
-{
+if (_targetCategory != "Object") then {
 	waituntil {dialog};
-}
-else
-{
+} else {
 	waituntil {(time > _time)};
 };
 
-closeDialog 0;
+while {dialog} do {closeDialog 0};
 
-switch (_targetCategory) do
-{
-		case ("Soldier"):
-		{
-			_class = "MCC_RscDisplayAttributesMan";
-			_cargEnabled	= false;
-			missionnamespace setvariable ["MCC_CuratorInitLine_presettype","unit"];
-		};
+switch (_targetCategory) do {
+	case ("Soldier"): {
+		_class = "MCC_RscDisplayAttributesMan";
+		_cargEnabled	= false;
+		missionnamespace setvariable ["MCC_CuratorInitLine_presettype","unit"];
+	};
 
-		case ("Vehicle"):
-		{
-			if (isNull (group _target)) then
-			{
-				_class = "MCC_RscDisplayAttributesVehicleEmpty";
-			}
-			else
-			{
-				_class = "MCC_RscDisplayAttributesVehicle";
-			};
-			_cargEnabled	= true;
-			missionnamespace setvariable ["MCC_CuratorInitLine_presettype","vehicle"];
-		};
-
-		case ("VehicleAutonomous"):
-		{
+	case ("Vehicle"): {
+		if (isNull (group _target)) then {
+			_class = "MCC_RscDisplayAttributesVehicleEmpty";
+		} else {
 			_class = "MCC_RscDisplayAttributesVehicle";
-			_cargEnabled	= false;
-			missionnamespace setvariable ["MCC_CuratorInitLine_presettype","vehicle"];
 		};
+		_cargEnabled	= true;
+		missionnamespace setvariable ["MCC_CuratorInitLine_presettype","vehicle"];
+	};
 
-		case ("Object"):
-		{
-			_class = "MCC_RscDisplayAttributesObject";
-			_cargEnabled	= if (_targetType == "AmmoBox") then {true} else {false};
-			missionnamespace setvariable ["MCC_CuratorInitLine_presettype","object"];
-		};
+	case ("VehicleAutonomous"):	{
+		_class = "MCC_RscDisplayAttributesVehicle";
+		_cargEnabled	= false;
+		missionnamespace setvariable ["MCC_CuratorInitLine_presettype","vehicle"];
+	};
+
+	case ("Object"): {
+		_class = "MCC_RscDisplayAttributesObject";
+		_cargEnabled	= if (_targetType == "AmmoBox") then {true} else {false};
+		missionnamespace setvariable ["MCC_CuratorInitLine_presettype","object"];
+	};
 };
 
 
@@ -305,5 +295,7 @@ if (MCC_unitInit != "" && (MCC_unitInit != (_target getVariable ["vehicleInit","
 	[[[netid _target,_target], MCC_unitInit], "MCC_fnc_setVehicleInit", true, true] spawn BIS_fnc_MP;
 };
 
+/*
 _keyUp = (findDisplay 312) displayRemoveEventHandler  ["KeyUp",_keyUp];
 _keyDown = (findDisplay 312) displayRemoveEventHandler  ["KeyDown", _keyDown];
+*/

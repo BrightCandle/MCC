@@ -19,24 +19,21 @@ _ctrlKey = _params select 5;
 _alt = _params select 6;
 MCC_XYmap = [_posX,_posY];
 
-if (mcc_missionmaker == (name player)) then
-{
+if (mcc_missionmaker == (name player)) then {
 	MCC_GroupGenMouseButtonDown = true;	//Mouse state
 	MCC_GroupGenMouseButtonUp = false;
 
 	if (isnil "MCC_doubleClicked") then {MCC_doubleClicked =false};
 
 	//Close Group info control
-	if (_pressed == 1 && !MCC_doubleClicked) then
-	{
+	if (_pressed == 1 && !MCC_doubleClicked) then {
 		ctrlShow [510,false];
 		ctrlShow [MCC_GroupGenInfo_IDC,false];
 		hintsilent "";
 	};
 
 	//Open Curator
-	if ((_pressed == 0) && (uiNameSpace getVariable ["MCC_ZeusOpen",false]))  exitWith
-	{
+	if ((_pressed == 0) && (uiNameSpace getVariable ["MCC_ZeusOpen",false]))  exitWith {
 		uiNameSpace setVariable ["MCC_ZeusOpen",false];
 
 		//worldPos
@@ -53,8 +50,7 @@ if (mcc_missionmaker == (name player)) then
 	};
 
 	//Open 3D
-	if ((_pressed == 0) && _alt)  exitWith
-	{
+	if ((_pressed == 0) && _alt)  exitWith {
 		//worldPos
 		MCC_ConsoleWPpos = _ctrl ctrlMapScreenToWorld [_posX,_posY];
 
@@ -62,8 +58,7 @@ if (mcc_missionmaker == (name player)) then
 	};
 
 	//Select zone
-	if (_pressed == 0) then
-	{
+	if (_pressed == 0) then {
 		private ["_nearZone","_selectedPos","_newZone","_comboBox","_distance","_marker","_nearMarker","_markerName","_isIcon"];
 		_selectedPos = _ctrl ctrlmapscreentoworld MCC_XYmap;
 		_nearZone 	= false;
@@ -72,10 +67,8 @@ if (mcc_missionmaker == (name player)) then
 
 		//Are we near a zone marker
 		{
-			if (!isnil "_x") then
-			{
-				if ((_selectedPos distance _x) < _distance) exitWith
-				{
+			if (!isnil "_x") then {
+				if ((_selectedPos distance _x) < _distance) exitWith {
 					_nearZone = true;
 					_newZone = _foreachIndex;
 				};
@@ -84,12 +77,11 @@ if (mcc_missionmaker == (name player)) then
 
 		//Are we near MCC marker
 		{
-			if ((_selectedPos distance (markerpos _x)) < _distance) exitWith
-			{
+			if ((_selectedPos distance (markerpos _x)) < _distance) exitWith {
 				_nearMarker = true;
 				_markerName = _x;
 			};
-		} foreach MCC_activeMarkers;
+		} foreach (missionNamespace getVariable ["MCC_activeMarkers",[]]);
 
 		if ((_nearZone || _nearMarker) && !(missionNameSpace getVariable ["MCC_artilleryEnabled",false]) && !(missionNameSpace getVariable ["MCC_spawnEnabled",false]) && !MCC_ConsoleRuler && !MCC_doubleClicked && !MCC_zone_drawing && !MCC_CASrequestMarker && !MCC_brush_drawing && !MCC_drawTriggers
 			&& !MCC_drawMinefield && !MCC_delete_drawing && !MCC_ambushPlacing && !MCC_UMParadropRequestMarker) exitWith
@@ -110,7 +102,7 @@ if (mcc_missionmaker == (name player)) then
 				_isIcon = if (MarkerShape _markerName == "ICON") then {0} else {1};
 
 				if (!MCC_GroupGenMouseButtonDown) exitWith {};
-				_markerName setMarkerAlphalocal 1;
+				_markerName setMarkerAlphalocal 0.6;
 
 				//While mouse pressed
 				while {MCC_GroupGenMouseButtonDown} do
@@ -334,8 +326,7 @@ if (mcc_missionmaker == (name player)) then
 		_away 		= [_markerPos,3500,_markerDir] call BIS_fnc_relpos;
 		_ammount	=  floor (((getMarkerSize _marker) select 1)/50) + 1; 		//Ammount of drop min 0 max 6
 
-		if (MCC_capture_state) then
-		{
+		if (MCC_capture_state) then {
 			hint "Air support captured.";
 			MCC_capture_var=MCC_capture_var + FORMAT ['
 				[[%1, %2 , %3, %4, %5, %6],"MCC_fnc_airDrop",false,false] spawn BIS_fnc_MP;
@@ -346,11 +337,9 @@ if (mcc_missionmaker == (name player)) then
 				,MCC_planeType
 				,_spawn
 				,_away];
-		}
-		else
-		{
+		} else {
 			hint "Air support incomming.";
-			[[_ammount, MCC_spawnkind , getmarkerpos _marker, MCC_planeType, _spawn,_away,(missionNamespace getVariable ["MCC_airdropIsParachute",true])],"MCC_fnc_airDrop",false,false] spawn BIS_fnc_MP;
+			[[_ammount, MCC_spawnkind , getmarkerpos _marker, MCC_planeType, _spawn,_away,(missionNamespace getVariable ["MCC_airdropIsParachute",0])],"MCC_fnc_airDrop",false,false] spawn BIS_fnc_MP;
 		};
 
 		MCC_CASrequestMarker = false;			//Wait and delete the marker
@@ -379,7 +368,9 @@ if (mcc_missionmaker == (name player)) then
 		_spawn 		= [_markerPos,4500,(_markerDir -180)] call BIS_fnc_relpos;
 		_away 		= [_markerPos,4500,_markerDir] call BIS_fnc_relpos;
 
-		[[getmarkerpos _marker, MCC_selectedUnits, MCC_UMUnit, MCC_UMparadropIsHalo,_spawn,_away, MCC_path], "MCC_fnc_realParadrop", false] spawn BIS_fnc_MP;
+		//[getmarkerpos _marker, MCC_selectedUnits, MCC_UMUnit, MCC_UMparadropIsHalo,_spawn,_away] execVM "mcc\fnc\general\fn_realParadrop.sqf";
+
+		[[getmarkerpos _marker, MCC_selectedUnits, MCC_UMUnit, MCC_UMparadropIsHalo,_spawn,_away], "MCC_fnc_realParadrop", false] spawn BIS_fnc_MP;
 
 		MCC_UMParadropRequestMarker = false;			//Wait and delete the marker
 		sleep 40;

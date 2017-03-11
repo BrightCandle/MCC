@@ -15,4 +15,11 @@ class survive {
 	class surviveUseItemHeadTorch {};
 	class surviveBuild {};
 	class getSurvivalPlaceHolders {};
+	class loadGear {};
+	class surviveItemClicked {};
+	class handleInventoryClick {};
+	class foodWaterConsumption {};
+	class survivalProgressBars {};
+	class spawnCratesInHouses {};
+	class spawnCratesInHousesInit {description = "Spawn survival spawn crates in houses"};
 };

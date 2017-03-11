@@ -1,28 +1,31 @@
-//==================================================================MCC_fnc_manageSB===============================================================================================
+//==================================================================MCC_fnc_manageSB==============================================================================
 // Handle suicide bomber behavior
 // Example: [_sb, _iedside, _trapvolume, _IEDExplosionType] spawn MCC_fnc_manageSB;
 // <in>: 	_sb 			= position, center of the explosion.
 //		_iedside 			= side, which side trigger the armed civilian
 //		_trapvolume 		= String "small", "medium", "large"
-//		_IEDExplosionType	= Integer, 1- deadly 	2- Disabling	3- Fake
+//		_IEDExplosionType	= Integer, 0- deadly 	1- Disabling	2- Fake
 // <out>	NOTHING
-//=================================================================================================================================================================================
+//==================================================================================================================================================================
 private ["_sb","_iedside","_trapvolume","_IEDExplosionType","_check","_close","_dummy","_init","_closeunit","_enemy","_sound","_targ","_sbspeed","_IedExplosion"];
-_sb					= _this select 0;
-_iedside			= _this select 1;
-_trapvolume			= _this select 2;
-_IEDExplosionType	= _this select 3;
+_sb					= param [0,objNull];
+_iedside			= param [1,west];
+_trapvolume			= param [2,"medium"];
+_IEDExplosionType	= param [3,1];
 
 if (typeName _iedside == "STRING") then {
 	_iedside = switch (tolower _iedside) do
 				{
-				   case "west":	{west};
-				   case "east":	{east};
-				   case "guer":	{resistance};
-				   case "civ":	{civilian};
-				   default {west};
+				   case "west":	{[west]};
+				   case "east":	{[east]};
+				   case "guer":	{[resistance]};
+				   case "civ":	{[civilian]};
+				   default {[west]};
 				};
 };
+
+if (typeName _iedside == typeName sideLogic) then {_iedside = [_iedside]};
+
 
 _sound		=1; //choose 0 for no sounds
 _targ 		= ["Car","Tank","Man"];
@@ -44,21 +47,19 @@ if !(_sb getVariable ["static",false]) then {[group _sb, getPos _sb, 350] call b
 
 _check = true;
 
-while {alive _sb && _check} do
-{
+while {alive _sb && _check} do {
 	sleep 1;
 	_close = (getPos _sb) nearObjects 100;
 
-	if(_iedside countSide _close > 0) then
-	{
-		while {(alive _sb) && (_check)} do
-		{
+	if({side _x in _iedside} count _close > 0) then {
+
+		while {(alive _sb) && (_check)} do {
 			sleep 1;
 			_closeunit = [];
-			{if(side _x == _iedside) then {_closeunit = _closeunit + [_x]}} forEach _close;
+			{if(side _x in _iedside) then {_closeunit = _closeunit + [_x]}} forEach _close;
 			_count=count _closeunit;
-			for [{_x=0},{_x<_count},{_x=_x+1}] do
-			{
+
+			for [{_x=0},{_x<_count},{_x=_x+1}] do {
 				_enemy = _closeunit select _x;
 
 				{

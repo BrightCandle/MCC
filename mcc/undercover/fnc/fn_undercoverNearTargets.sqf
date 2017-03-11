@@ -2,13 +2,14 @@
 private ["_enemySides","_group", "_unit", "_spotted", "_spottedWithWeapon", "_weapons", "_nearTargets", "_count", "_nearCount","_target","_leader","_canSee"];
 
 _target = _this select 0;
-_enemySides = [_target] call bis_fnc_enemySides;
 
 _spottedWithWeapon = false;
 _count = 0;
 
 while { true } do {
+	_enemySides = [_target] call bis_fnc_enemySides;
 	_spotted = false;
+
 	{
 		_group = _x;
 		if (side _group in _enemySides) then {
@@ -36,7 +37,7 @@ while { true } do {
 						if ([_x,_target,500] call GAIA_fnc_haslineofsight) exitWith {_canSee = true};
 					} forEach units _group;
 
-					if (_canSee && ((_target distance _x) < 10 || (vehicle _target == _target && ((speed _target > 10) || (stance _target != "STAND"))))
+					if (_canSee && ((_target distance _unit) < 10 || (vehicle _target == _target && ((speed _target > 10) || (stance _target != "STAND"))))
 						&& !_spottedWithWeapon) then {
 
 						if (_target getVariable ["MCC_undercoverNearEnemy",false]) then {

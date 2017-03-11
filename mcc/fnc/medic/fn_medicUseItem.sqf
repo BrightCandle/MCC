@@ -4,6 +4,9 @@
 private ["_item","_itemType","_unit","_complex","_self","_fail","_remaineBlood","_maxBleeding","_hitArray","_hitSelections","_damage","_break","_string","_magPlayer","_magUnit"];
 _itemType 	= _this select 0;
 _unit 		= _this select 1;
+
+if (typeName _unit == typeName "") then {_unit = objectFromNetId _unit};
+
 _self		= if (_unit == player) then {true} else {false};
 _break	= false;
 
@@ -60,7 +63,7 @@ switch (_itemType) do {
 	};
 
 	case "heal": {
-		_fail = ["First Aid",20,_unit] call MCC_fnc_medicProgressBar;
+		_fail = ["Healing",20,_unit] call MCC_fnc_medicProgressBar;
 		if !(_fail) then {
 			_hitArray = [];
 			_hitSelections = ["HitHead","HitBody","hitHands","hitLegs"];

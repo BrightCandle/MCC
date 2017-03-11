@@ -42,9 +42,11 @@ _units = param [1,[]];
 _activated = param [2,true,[true]];
 _mode = param [3,"init",[""]];
 
+waitUntil {!isNil "MCC_initDone"};
+
 //--- Return all capture points
 if (typename _logic == typename true) exitwith {
-	missionnamespace getvariable ["MCC_fnc_moduleCapturPoints_all",[]]
+	missionnamespace getvariable ["BIS_fnc_moduleSector_sectors",[]]
 };
 
 //--- Return all capture points belonging to a side
@@ -55,7 +57,7 @@ if (typename _logic == typename sideunknown) exitwith {
 	_sectors = [];
 	{
 		if ((_x getvariable ["owner",sideUnknown])==_side) then {_sectors pushBack _x};
-	} forEach (missionnamespace getvariable ["MCC_fnc_moduleCapturPoints_all",[]]);
+	} forEach (missionnamespace getvariable ["BIS_fnc_moduleSector_sectors",[]]);
 
 	_sectors
 };
@@ -136,7 +138,7 @@ switch _mode do {
 		_logic setVariable ["texture",_iconTexture,true];
 
 		//--- Load synced objects
-		_sectors = missionnamespace getvariable ["MCC_fnc_moduleCapturPoints_all",[]];
+		_sectors = missionnamespace getvariable ["BIS_fnc_moduleSector_sectors",[]];
 		_areas = [];
 		_markersArea = [];
 		_markerIconText = "";
@@ -179,7 +181,8 @@ switch _mode do {
 			//build flag pole
 			if (_flag) then {
 				_dummy = "FlagPole_F" createVehicle position _trigger;
-				MCC_curator addCuratorEditableObjects [[_dummy],false];
+				{_x addCuratorEditableObjects [[_dummy],false]} forEach allCurators;
+
 			};
 
 			_trigger setvariable ["markers",_triggerMarkers];
@@ -223,7 +226,7 @@ switch _mode do {
 		_logic setvariable ["designation",_designation,true];
 
 		_sectors set [count _sectors,_logic];
-		missionnamespace setvariable ["MCC_fnc_moduleCapturPoints_all",_sectors];
+		missionnamespace setvariable ["BIS_fnc_moduleSector_sectors",_sectors];
 		publicvariable "MCC_fnc_moduleCapturPoints_all";
 
 		//--- Wait until scripts are initialized (to avoid being faster than initServer.sqf)
@@ -243,10 +246,10 @@ switch _mode do {
 
 			//--- Load variables
 			_areas = _logic getvariable ["areas",_areas];
-			_sides = _logic getvariable ["sides",_sides];
-			_sectorScore = _logic getvariable ["sectorScore",[0,0,0]];
+			_sides = [west,east,resistance];
+			_sectorScore = _logic getvariable ["sideScore",[0,0,0,0,0,0]];
 			_owner = _logic getvariable ["owner",sideUnknown];
-			_sectorBalance = [0,0,0];
+			_sectorBalance = [0,0,0,0,0,0];
 
 			//Calculate side strengths
 			{
@@ -256,7 +259,7 @@ switch _mode do {
 						if (_side in _sides && !(vehicle _x isKindOf "air")) then {
 							_sideID = _side call bis_fnc_sideID;
 							_balance = _sectorBalance select _sideID;
-							_balance = _balance + ((count crew _x) min 3);
+							_balance = _balance + (((count crew _x) min 3)/200);
 							_sectorBalance set [_sideID,_balance];
 						};
 
@@ -269,19 +272,22 @@ switch _mode do {
 					};
 				} foreach list _x;
 
-				//Disable Progress Bar
-				for "_i" from 0 to (count _playersInList)-1 do {
-					private ["_player"];
-					_player = _playersInList select _i;
-					if !(_player in list _x) then {
+				sleep 0.1;
+			} foreach _areas;
+
+			//Disable Progress Bar
+			for "_i" from 0 to (count _playersInList)-1 do {
+				private ["_player"];
+				_player = _playersInList select _i;
+				if !(isNil "_player") then {
+					if ({_player in list _x} count _areas <= 0) then {
 						_playersInList set [_i,-1];
 						[[_logic,[],true,"player",false],"MCC_fnc_moduleCapturePoint",_player] call bis_fnc_mp;
 					};
-					_playersInList = _playersInList - [-1];
 				};
+			};
 
-				sleep 0.1;
-			} foreach _areas;
+			_playersInList = _playersInList - [-1];
 
 			//Lets find out who is wining
 			_extreme = [_sectorBalance, 1] call BIS_fnc_findExtreme;
@@ -293,13 +299,13 @@ switch _mode do {
 
 				for "_i" from 0 to (count _sectorScore)-1 do {
 					_score = ((_sectorScore select _i) + (if (_i == _sideLeadingID) then {_extreme} else {-_extreme})) max 0;
-					_sectorScore set [_i,_score min 100];
+					_sectorScore set [_i,_score min 1];
 
 					//we have a winner
-					if (_score >= 100 && _owner !=(_i call bis_fnc_sideType)) exitWith {
+					if (_score >= 1 && _owner !=(_i call bis_fnc_sideType)) exitWith {
 						_owner = (_i call bis_fnc_sideType);
-						_sectorScore = [0,0,0];
-						_sectorScore set [_i,100];
+						_sectorScore = [0,0,0,0,0,0];
+						_sectorScore set [_i,1];
 					};
 				};
 			};
@@ -358,7 +364,9 @@ switch _mode do {
 				if (_flagTexture =="") then {(_owner call bis_fnc_sidecolor) call bis_fnc_colorRGBAtoTexture};
 
 				//Change texture
-				{_x setflagtexture _flagTexture;} foreach nearestObjects [_logic,["FlagCarrierCore"],_radius];
+				{
+					{_x setflagtexture _flagTexture;} foreach nearestObjects [(getpos _x),["FlagCarrierCore"],_radius];
+				} foreach _areas;
 
 
 				//--- Show notification
@@ -371,7 +379,7 @@ switch _mode do {
 
 			_ownerOld = _owner;
 
-			_logic setvariable ["sectorScore",_sectorScore,true];
+			_logic setvariable ["sideScore",_sectorScore,true];
 
 			//Add resources
 			if (_step mod 5 == 0 && _owner != sideUnknown && _type <3) then {
@@ -386,13 +394,21 @@ switch _mode do {
 			sleep 1;
 		};
 
+		//Disable Progress Bar
+		for "_i" from 0 to (count _playersInList)-1 do {
+			private ["_player"];
+			_player = _playersInList select _i;
+			[[_logic,[],true,"player",false],"MCC_fnc_moduleCapturePoint",_player] call bis_fnc_mp;
+			sleep 0.01;
+		};
+
 		//--- Sector finalized
 		if (isnull _logic) then {
 
-			_sectors = missionnamespace getvariable ["MCC_fnc_moduleCapturPoints_all",[]];
+			_sectors = missionnamespace getvariable ["BIS_fnc_moduleSector_sectors",[]];
 			_sectors = _sectors - [_logic,objnull];
-			missionnamespace setvariable ["MCC_fnc_moduleCapturPoints_all",_sectors];
-			publicvariable "MCC_fnc_moduleCapturPoints_all";
+			missionnamespace setvariable ["BIS_fnc_moduleSector_sectors",_sectors];
+			publicvariable "BIS_fnc_moduleSector_sectors";
 
 			//--- Delete markers
 			{
@@ -405,7 +421,8 @@ switch _mode do {
 
 			//--- Make markers transparent
 			{
-				_x setmarkeralpha (markeralpha _x * 0.5);
+				//_x setmarkeralpha (markeralpha _x * 0.5);
+				deleteMarker _x;
 			} foreach (_markersArea + [_markerIcon,_markerIconText]);
 		};
 
@@ -421,11 +438,11 @@ switch _mode do {
 		private ["_progress","_logic"];
 		disableSerialization;
 		_logic = _this select 0;
-		_progress = (_logic getvariable ["sectorScore",[0,0,0]]) select ((playerSide call bis_fnc_sideID) min 2);
+		_progress = (_logic getvariable ["sideScore",[0,0,0,0,0]]) select ((playerSide call bis_fnc_sideID) min 2);
 
-		_progress = _progress/100;
+		//_progress = _progress/100;
 
-		//Close the cature UI
+		//Close the capture UI
 		if (!(_this select 4) || _progress == 1) exitWith {(["MCC_captureProgressRsc"] call BIS_fnc_rscLayer) cutText ["", "PLAIN"];};
 
 
@@ -446,19 +463,25 @@ switch _mode do {
 		if (missionNamespace getVariable ["MCC_capturePointsHudEnabled",false]) exitWith {};
 		missionNamespace setVariable ["MCC_capturePointsHudEnabled",true];
 
+		//Create game HUD
+		private _layer = "RscMPProgress" call bis_fnc_rscLayer;
+		_layer cutrsc ["RscMPProgress","plain"];
+
 		//Create structures Icons
 		["MCC_capturePointsHudID", "onEachFrame",
 		{
 			private ["_obj","_text","_color","_texture","_pos"];
 			{
 				_obj 	= _x;
+				_pos = position ((_obj getvariable ["areas",[objNull]]) select 0);
+				_pos set [2,(_pos select 2)+20];
+
 				_text 	= _obj getvariable ["name",""];
 				_texture = _obj getVariable ["texture",""];
 				_color = [(_obj getvariable ["owner",sideUnknown])] call bis_fnc_sidecolor;
-				_color set [3,0.7];
-				_text = _text + format [" %1 m",floor (player distance _obj)];
-				_pos = position _obj;
-				_pos set [2,30];
+				_color set [3,1-(((player distance2d _pos)/1000)) max 0.2];
+				_text = _text + format [" %1 m",floor (player distance2d _pos)];
+
 
 				drawIcon3D [
 								_texture,
@@ -512,6 +535,7 @@ switch _mode do {
 				};
 			};
 
+			/*
 			if (_winingSide != sideUnknown) then {
 				_sides = _sides - [_winingSide];
 
@@ -522,12 +546,14 @@ switch _mode do {
 						[_side,-1] call BIS_fnc_respawnTickets;
 					};
 
+
 					if (([_side] call BIS_fnc_respawnTickets)<1) exitWith {
 						[["sidetickets"], "BIS_fnc_endMissionServer", false, false] spawn BIS_fnc_MP;
 					};
+
 				} forEach _sides;
 			};
-
+			*/
 			sleep 10;
 		};
 	};

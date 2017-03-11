@@ -4,19 +4,23 @@
 // <in> Nothing
 //<out> Nothing
 //==============================================================================================================================================================================
-private ["_string","_respawnItems","_airports","_counter","_searchArray","_key","_text"];
+#define MCC_HELPER "UserTexture1m_F"
+
+private ["_string","_respawnItems","_airports","_counter","_searchArray","_key","_text","_nul"];
 
 //Interactive objects EH
 uiNameSpace setVariable ["MCC_interactionActive",false];
 
-["MCC_interactionEH", "onEachFrame", {
+_nul = ["MCC_interactionEH", "onEachFrame"] call BIS_fnc_removeStackedEventHandler;;
+
+_nul = ["MCC_interactionEH", "onEachFrame", {
 		if !(missionNameSpace getVariable ["MCC_ingameUI", true]) exitWith {};
 		_interactiveObjects = missionNameSpace getVariable ["MCC_interactionObjects",[]];
 		{
 			_obj 	= _x select 0;
 			_text 	= _x select 1;
 			_dist 	= (player distance _obj) / 10;
-			_color  = [1,0,1,1 - _dist];
+			_color  = [1,1,1,1 - _dist];
 			drawIcon3D [
 							"",
 							_color,
@@ -70,14 +74,12 @@ _text spawn
 
 	while {alive player} do
 	{
-		if (vehicle player == player) then
-		{
-			_objects = player nearObjects ["UserTexture1m_F",7];
+		if (vehicle player == player && !(player getVariable ["MCC_medicUnconscious",false])) then {
+			_objects = player nearObjects [MCC_HELPER,7];
 			_interactiveObjects = [];
 
 			//Handle Objects
-			if (count _objects > 0) then
-			{
+			if (count _objects > 0) then {
 				_selected = objnull;
 				{
 					_tested = ([_objects,[],{player distance _x},"ASCEND"] call BIS_fnc_sortBy) select _foreachIndex;
@@ -85,8 +87,7 @@ _text spawn
 					if (_dir>340 || _dir < 20) exitWith {_selected = _tested};
 				} foreach _objects;
 
-				if (!isnull _selected) then
-				{
+				if (!isnull _selected) then {
 					//IED
 					_text =_selected getVariable ["MCC_helperText",""];
 					if ((_text != "") && !(_selected getVariable ["MCC_isInteracted",false])) then
@@ -109,8 +110,7 @@ _text spawn
 };
 
 //Add MCC respawn tent string
-if (MCC_isMode) then
-{
+if (MCC_isMode) then {
 	if ((player getVariable ["MCC_actionRespawnTent",-1]) != -1) then	{player removeAction (player getVariable ["MCC_actionRespawnTent",nil])};
 	_respawnItems = ["MCC_TentDome","MCC_TentA"];	//respawn items
 	_string = format ["secondaryWeapon _target in %1 && (vehicle _target == vehicle _this) && (leader _this == _this)",_respawnItems];
@@ -118,10 +118,9 @@ if (MCC_isMode) then
 	player setVariable ["MCC_actionRespawnTent",_null];
 };
 
-if (missionNamespace getvariable ["MCC_showActionKey",true]) then
-{
-	if !(MCC_isACE && MCC_isMode) then
-	{
+if (missionNamespace getvariable ["MCC_showActionKey",true]) then {
+	/*
+	if !(MCC_isACE && MCC_isMode) then {
 		//Add MCC Comander
 		if ((player getVariable ["MCC_actionCommander",-1]) != -1) then	{player removeAction (player getVariable ["MCC_actionCommander",nil])};
 		_string = format ["((MCC_server getVariable ['CP_commander%1','']) == getPlayerUID _this )&& (vehicle _target == vehicle _this) && (missionNamespace getVariable ['MCC_allowConsole',true]) && (missionNamespace getvariable ['MCC_showActionKey',true])",side player];
@@ -134,10 +133,17 @@ if (missionNamespace getvariable ["MCC_showActionKey",true]) then
 		_null = player addaction ["<t color=""#FFCC01"">Squad Leader - PDA</t>", MCC_path + "mcc\dialogs\mcc_PopupMenu.sqf",[nil,nil,nil,nil,3],-1,false,true,"",_string];
 		player setVariable ["MCC_actionSQLpda",_null];
 	};
+	*/
 
 	// Add MCC to the action menu
 	if ((player getVariable ["MCC_actionMCCMain",-1]) != -1) then	{player removeAction (player getVariable ["MCC_actionMCCMain",nil])};
 	_string = "(vehicle _target == vehicle _this) && (getplayerUID player in (missionNamespace getvariable ['MCC_allowedPlayers',[]]) || 'all' in  (missionNamespace getvariable ['MCC_allowedPlayers',['all']]) || (serverCommandAvailable '#logout' && missionNamespace getvariable ['MCC_allowAdmin',true]) || (isServer && missionNamespace getvariable ['MCC_allowAdmin',true]) || (player getvariable ['MCC_allowed',false])) && (missionNamespace getvariable ['MCC_showActionKey',true])";
 	mcc_actionInedx = player addaction ["<t color=""#99FF00"">--= MCC =--</t>", MCC_path + "mcc\dialogs\mcc_PopupMenu.sqf",[nil,nil,nil,nil,0], 0,false, false, "",_string];
 	player setVariable ["MCC_actionMCCMain",mcc_actionInedx];
+
+	if (!MCC_isMode && !MCC_isCBA) then {
+		_string = "(vehicle _target == vehicle _this) && !(getplayerUID player in (missionNamespace getvariable ['MCC_allowedPlayers',[]]) || 'all' in  (missionNamespace getvariable ['MCC_allowedPlayers',['all']]) || (serverCommandAvailable '#logout' && missionNamespace getvariable ['MCC_allowAdmin',true]) || (isServer && missionNamespace getvariable ['MCC_allowAdmin',true]) || (player getvariable ['MCC_allowed',false])) || !(missionNamespace getvariable ['MCC_showActionKey',true])";
+
+		_null =  player addaction ["<t color=""#FF0000"">Set Keys</t>",{createDialog "mcc_rscKeyBinds"},[nil,nil,nil,nil,0], 0,false, false, "",_string];
+	};
 };

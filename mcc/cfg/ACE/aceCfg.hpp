@@ -103,6 +103,15 @@ class ReammoBox_F: thingX {
                 priority = 1.2;
             };
 
+        class ACE_MCC_supplyBoxFOB {
+                displayName = "Resupply";
+                distance = 5;
+               condition = "(_target isKindof 'Box_FIA_Support_F') && !(isNull attachedTo _target)";
+                statement =  "[_target,true] call MCC_fnc_resupply;";
+                icon = "\a3\ui_f\data\IGUI\Cfg\Actions\reload_ca.paa";
+                showDisabled = 0;
+        };
+
         class ACE_MCC_supplyBox {
                 displayName = "Resupply";
                 distance = 5;
@@ -147,7 +156,7 @@ class CAManBase: Man {
     };
 	class ACE_SelfActions {
 		class ACE_MCC_CommanderTab {
-			condition = "((MCC_server getVariable [format ['CP_commander%1',playerside],'']) == getPlayerUID _player) && (missionNamespace getVariable ['MCC_allowConsole',true])";
+			condition = "((MCC_server getVariable [format ['CP_commander%1',playerside],'']) == getPlayerUID _player) && (missionNamespace getVariable ['MCC_allowConsole',true]) || 'MCC_itemConsole' in (assignedItems player)";
 			displayName = "Commander<br/>Tab";
 			icon = "\A3\Ui_f\data\GUI\Cfg\Ranks\colonel_gs.paa";
 			statement = "_null = [nil,nil,nil,nil,1] execVM '\mcc_sandbox_mod\mcc\dialogs\mcc_PopupMenu.sqf';";
@@ -163,7 +172,7 @@ class CAManBase: Man {
 		};
 
 		class ACE_MCC_doorinteraction {
-			condition = "([cursorTarget] call MCC_fnc_isDoor) != ''";
+			condition = "(([cursorTarget] call MCC_fnc_isDoor) select 0) != ''";
 			displayName = "Door<br/>Interaction";
 			icon = "\a3\ui_f\data\IGUI\Cfg\Actions\open_door_ca.paa";
 			showDisabled = 0;
@@ -201,6 +210,15 @@ class CAManBase: Man {
 				icon = "\a3\ui_f\data\IGUI\Cfg\Actions\ladderdown_ca.paa";
 				statement = "[cursorTarget] spawn MCC_fnc_doorCamera;";
 			};
+
+			class ACE_MCC_door_bang {
+                    displayName =  "Bang<br/>N<br/>Clear";
+                    condition = "!(currentThrowable _player isEqualTo [])";
+                    icon = "\mcc_sandbox_mod\mcc\interaction\data\grenade.paa";
+                    statement = "";
+                    insertChildren = "[_player] call MCC_fnc_ACE_addGrenadesChildren";
+                    exceptions[] = {"isNotSwimming"};
+                };
 		};
 
 		class ACE_MCC_survivalInteraction {
@@ -213,7 +231,7 @@ class CAManBase: Man {
 
 		class ACE_MCC_miniGameDefuse {
             displayName = "Bomb Defuse";
-            condition ="((cursorTarget getVariable ['realIed',objnull]) getVariable ['MCC_isIEDMiniGame',false]) && (_player distance cursorTarget < 8)";
+            condition ="((cursorTarget getVariable ['realIed',objnull]) getVariable ['MCC_isIEDMiniGame',false]) && ((cursorTarget getVariable ['realIed',objnull]) getVariable ['armed',false]) && (_player distance cursorTarget < 8)";
             statement = "[cursorTarget] spawn MCC_fnc_bdStart";
             showDisabled = 0;
             icon = "\A3\ui_f\data\map\markers\military\unknown_CA.paa";
@@ -344,24 +362,44 @@ class CAManBase: Man {
 
 				class ACE_MCC_FOB {
 					displayName = "F.O.B";
-					icon = "\A3\ui_f\data\map\mapcontrol\Bunker_CA.paa";
+					icon = "\A3\Ui_f\data\GUI\Cfg\Ranks\colonel_gs.paa";
 					statement = "['fob'] call MCC_fnc_callConstruct";
 				};
 				class ACE_MCC_Bunker {
 					displayName = "Bunker";
-					icon = "\A3\ui_f\data\map\mapcontrol\Stack_CA.paa";
+					icon = "\A3\ui_f\data\map\mapcontrol\Bunker_CA.paa";
 					statement = "['bunker'] call MCC_fnc_callConstruct";
 				};
+
+				class ACE_MCC_wall {
+					displayName = "Beg Fence";
+					icon = "\A3\ui_f\data\map\mapcontrol\Stack_CA.paa";
+					statement = "['wall'] call MCC_fnc_callConstruct";
+				};
+
 				class ACE_MCC_HMG {
 					displayName = "HMG";
 					icon = "\A3\Static_f_gamma\data\ui\gear_StaticTurret_MG_CA.paa";
 					statement = "['hmg'] call MCC_fnc_callConstruct";
+				};
+
+				class ACE_MCC_HMGH {
+					displayName = "HMG(Raised)";
+					icon = "\A3\Static_f_gamma\data\ui\gear_staticturret_mg_high_ca.paa";
+					statement = "['hmgh'] call MCC_fnc_callConstruct";
 				};
 				class ACE_MCC_GMG {
 					displayName = "GMG";
 					icon = "\A3\Static_f_gamma\data\ui\gear_StaticTurret_GMG_CA.paa";
 					statement = "['gmg'] call MCC_fnc_callConstruct";
 				};
+
+				class ACE_MCC_GMGH {
+					displayName = "GMG(Raised)";
+					icon = "\A3\Static_f_gamma\data\ui\gear_staticturret_gmg_high_ca.paa";
+					statement = "['gmgh'] call MCC_fnc_callConstruct";
+				};
+
 				class ACE_MCC_AT {
 					displayName = "AT";
 					icon = "\A3\Static_f_gamma\data\ui\gear_StaticTurret_AT_CA.paa";

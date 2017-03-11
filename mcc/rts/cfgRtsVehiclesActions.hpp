@@ -8,12 +8,12 @@ class MCC_rts_mountGuns
 
 	displayName = "Mount HMG";
 	descriptionShort = "Upgrade the vehicle with HMG";
-	condition = "typeOf _target in ['B_G_Offroad_01_F','C_Offroad_01_F'] && alive _target";
+	condition = "typeOf _target in ['B_G_Offroad_01_F','C_Offroad_01_F','O_G_Offroad_01_F'] && alive _target";
 	dontShowDisabled = 1;
 	requiredBuildings[] = {{"workshop",1}};
 	needelectricity = 0;
 	actionFNC = "MCC_fnc_rtsMountGuns";
-	resources[] = {{"repair",200},{"time",10}};
+	resources[] = {{"ammo",200},{"time",10}};
 };
 
 class MCC_rts_LoadResources
@@ -204,7 +204,7 @@ class MCC_rts_orderStealth
 	#endif
 
 	displayName = "Stealth";
-	descriptionShort = "Order group units to switch to stealth behaviour";
+	descriptionShort = "Order group units to switch to stealth behavior";
 	condition =  "alive _target && behaviour _target != 'STEALTH';";
 	dontShowDisabled = 0;
 	requiredBuildings[] = {};
@@ -222,7 +222,7 @@ class MCC_rts_orderAware
 	#endif
 
 	displayName = "Aware";
-	descriptionShort = "Order group units to switch to aware behaviour";
+	descriptionShort = "Order group units to switch to aware behavior";
 	condition = "alive _target && behaviour _target == 'STEALTH';";
 	dontShowDisabled = 0;
 	requiredBuildings[] = {};

@@ -1,5 +1,5 @@
 #define MCCPATH ""
-#define MCCVersion "0.1"
+#define MCCVersion "(r20)"
 
 
 //--------------------------Dialogs----------------------------------------------------
@@ -31,14 +31,8 @@
 //----Logistics-----------------
 #include "mcc\Dialogs\mcc_logisticsLoadTruck.hpp"
 
-//----Interaction-----------------
-#include "mcc\Dialogs\mcc_interactionMenu.hpp"
-
 //----Key Settings-----------------
 #include "mcc\Dialogs\mcc_rscKeyBinds.hpp"
-
-//----medic-----------------
-#include "mcc\Dialogs\medic\mcc_uncMain.hpp"
 
 //---- test I should delete it at the end
 #include "mcc\dialogs\test.hpp"
@@ -47,13 +41,7 @@
 #define CPPATH ""
 #define CPVersion "0.1"
 
-#include "configs\dialogs\cp_dialogs.hpp"
-#include "configs\dialogs\gearPanel\respawnPanel.hpp"
-#include "configs\dialogs\gearPanel\squadsPanel.hpp"
-#include "configs\dialogs\gearPanel\gearPanel.hpp"
-#include "configs\dialogs\gearPanel\weaponsPanel.hpp"
-#include "configs\dialogs\gearPanel\accessoriesPanel.hpp"
-#include "configs\dialogs\gearPanel\uniformPanel.hpp"
+#include "mcc\roleSelection\cfg.hpp"
 
 //--------------------------Campaign----------------------------------------------------
 #include "mcc\Dialogs\campaign\mcc_vehicleSpawner.hpp"
@@ -71,6 +59,7 @@
 #include "mcc\rts\cfg.hpp"
 #include "mcc\bombDefuse\cfg.hpp"
 #include "mcc\survive\cfg.hpp"
+#include "mcc\interaction\cfg.hpp"
 
 //--------------------------Cfg----------------------------------------------------
 class CfgFunctions
@@ -89,6 +78,27 @@ class CfgFunctions
 		#include "mcc\undercover\cfgFunctions.hpp"
 		#include "mcc\bombDefuse\cfgFunctions.hpp"
 		#include "mcc\survive\cfgFunctions.hpp"
+		#include "mcc\HUD\cfgFunctions.hpp"
+		#include "mcc\roleSelection\cfgFunctions.hpp"
+		#include "mcc\interaction\cfgFunctions.hpp"
+		#include "mcc\radio\cfgFunctions.hpp"
+		#include "mcc\AAS\cfgFunctions.hpp"
+		#include "mcc\missionWizard\cfgFunctions.hpp"
+		#include "mcc\helpers\cfgFunctions.hpp"
+		#include "mcc\helicopters\cfgFunctions.hpp"
+		#include "mcc\ambient\cfgFunctions.hpp"
+	};
+};
+
+class cfgRemoteExec {
+	class Functions {
+		// State of remoteExec: 0-turned off, 1-turned on, taking whitelist into account, 2-turned on, however, ignoring whitelists (default because of backward compatibility)
+		mode = 2;
+		// Ability to send jip messages: 0-disabled, 1-enabled (default)
+		jip = 1;
+		#include "mcc\cfg\cfgRemoteExec.hpp"
+		#include "mcc\radio\cfgRemoteExec.hpp"
+		#include "mcc\AAS\cfgRemoteExec.hpp"
 	};
 };
 
@@ -105,6 +115,7 @@ class CfgMusic
 class CfgSounds
 {
 	#include "mcc\cfg\CfgSounds.hpp"
+	#include "mcc\ambient\CfgSounds.hpp"
 };
 
 class CfgNotifications
@@ -151,6 +162,10 @@ class RscTitles
 	#include "mcc\dialogs\mcc_3dObject.hpp"
 	#include "mcc\dialogs\sqlPDA\MCC_SQLPDA_rsc.hpp"
 	#include "mcc\survive\dialogs\mcc_rscSurviveStats.hpp"
+	#include "mcc\HUD\cfg.hpp"
+
+	//----medic-----------------
+	#include "mcc\Dialogs\medic\mcc_uncMain.hpp"
 };
 
 class CfgDebriefing

@@ -1,7 +1,5 @@
 if (isDedicated || MCC_isLocalHC) exitWith {}; // not a player machine
 
-//[] spawn MCC_fnc_startLocations;
-
 // Basicly wait till mission start
 while { (isnil ("MCC_TRAINING"))  } do {sleep 3};
 while { true } do {
@@ -22,14 +20,5 @@ while { true } do {
 	[player] join MCC_deadGroup;
 	player attachto [MCC_respawnAnchor,[2,2,2]];
 	sleep 2;
-	
-	[] spawn {
-	waitUntil {inputAction "revealTarget" > 0};  
-	["Terminate"] call BIS_fnc_EGSpectator;
-	};
-
-	["Initialize", [player, [], true, true, true, true, true, true, true, true]] call BIS_fnc_EGSpectator;
-	_ret = [true] call acre_api_fnc_setSpectator;
-	
-	cutText ["","BLACK IN",2];
+	[] execVM MCC_path + "spectator\specta.sqf";
 };

@@ -19,12 +19,7 @@
 //	_p_mcc_spawnfaction		String, Faction name.
 //	_startPosDir				Array, spawn and de-spawn location for the helicopter.
 //===========================================================================================================================================================================
-private ["_away","_p_mcc_zone_markername","_heli","_heliCrew","_helocargo","_pos","_paraSide", "_paraType", "_helitype",
-         "_heli_pilot","_spawn","_heliPilot","_gunnersGroup","_type","_entry","_turrets","_path", "_timeOut",
-		 "_unit", "_side", "_spawnParaGroup", "_paraGroupArray", "_paraGroup", "_paraMode", "_heliCrewCount",
-		 "_p_mcc_spawnfaction", "_p_mcc_zone_behavior", "_p_mcc_awareness", "_newParaGroup", "_rampOutPos", "_flyHeight",
-		 "_dropPos", "_rope", "_ropes"
-		 ];
+private ["_away","_p_mcc_zone_markername","_heli","_heliCrew","_pos","_paraSide", "_paraType", "_helitype","_heli_pilot","_spawn","_heliPilot","_gunnersGroup","_type","_entry","_turrets","_path", "_timeOut","_unit", "_side", "_spawnParaGroup", "_paraGroupArray", "_paraGroup", "_paraMode", "_heliCrewCount","_p_mcc_spawnfaction", "_p_mcc_zone_behavior", "_mcc_awareness", "_newParaGroup", "_rampOutPos", "_flyHeight","_dropPos", "_rope", "_ropes","_vehicleClass"];
 
 _pos 					= _this select 0;
 _paraSide				= _this select 1;
@@ -57,22 +52,20 @@ _actualRopes = [];
 
 // get group configs
 {
-	if ( ((_x select 3) == "Rifle Squad") || ((_x select 3) == "Recon Team") ) then
-	{
-		_paraGroupArray set [count _paraGroupArray, format ["%1", ( _x select 2)]];
+	if ( ((_x select 3) == "Rifle Squad") || ((_x select 3) == "Recon Team") ) then {
+		_paraGroupArray pushBack (format ["%1", ( _x select 2)]);
 	};
 } forEach ([_paraSide,_p_mcc_spawnfaction,"Infantry","LAND"] call mcc_make_array_grps);
 
 
-if ( (count _paraGroupArray) == 0 ) then
-{
+if ( (count _paraGroupArray) == 0 ) then {
 	_customParaGroup = true;
 	_unitsArray = [];
 
 	//Let's build the faction unit's array
 	{
-		_unitsArray	set [ count _unitsArray, _x select 0];
-	} foreach ( [_p_mcc_spawnfaction,"soldier"] call MCC_fnc_makeUnitsArray );
+		_unitsArray	pushBack (_x select 0);
+	} foreach ([_p_mcc_spawnfaction,"soldier","",false] call MCC_fnc_makeUnitsArray);
 
 	//diag_log format ["MCC paradrop custom array: %1", _unitsArray];
 
@@ -85,94 +78,122 @@ if ( (count _paraGroupArray) == 0 ) then
 
 if ( (count _paraGroupArray) == 0 ) exitWith { diag_log format ["MCC Warning: no suitable paratrooper group found for %1", _this]; player groupChat format ["Error: no suitable paratrooper group for this Faction"]; };
 
-switch (_paraSide) do
-	{
-		case "WEST":
+//Set default helicopter and crew
+switch (_paraSide) do {
+	case "WEST": {
+		_side = west;
+		switch (_paraType % 3) do
 		{
-			_side = west;
-			switch (_paraType % 3) do
+			case 0: // 0, 3, 6
 			{
-				case 0: // 0, 3, 6
-				{
-					_helitype = "B_Heli_Light_01_F";
-					//_spawnParaGroup = _paraGroupArray select 1;
-					_spawnParaGroup = _paraGroupArray select ((count _paraGroupArray) -1);
-					_ropes = [[0.6,0.5,0],[-0.8,0.5,0]];
-				};
-				case 1: // 1, 4, 7
-				{
-					_helitype = "B_Heli_Transport_01_F";
-					_spawnParaGroup = _paraGroupArray select ((count _paraGroupArray) -1);
-					_ropes = [[-1.11,2.5,0],[1.11,2.5,0]];
-				};
-				case 2: // 2, 5, 8
-				{
-					_helitype = "B_Heli_Transport_03_F";
-					_spawnParaGroup = _paraGroupArray select 0;
-					_ropes = [[1,-4,-1],[-1,-4,-1]];
-				};
+				_helitype = "B_Heli_Light_01_F";
+				//_spawnParaGroup = _paraGroupArray select 1;
+				_spawnParaGroup = _paraGroupArray select ((count _paraGroupArray) -1);
+				_ropes = [[0.6,0.5,0],[-0.8,0.5,0]];
 			};
-		};
-
-		case "EAST":
-		{
-			_side = east;
-			switch (_paraType % 3) do
+			case 1: // 1, 4, 7
 			{
-				case 0:
-				{
-					_helitype = "O_Heli_Attack_02_F";
-					_spawnParaGroup = _paraGroupArray select ((count _paraGroupArray) - 1);
-					_ropes = [[1.35,1.35,0],[-1.45,1.35,0]];
-				};
-				case 1:
-				{
-					_helitype = "O_Heli_Light_02_F";
-					_spawnParaGroup = _paraGroupArray select ((count _paraGroupArray) -1);
-					//_ropes = [[1.3,1.3,-25],[-1.3,1.3,-25]];
-					_ropes = [[1.3,1.3,0],[-1.3,1.3,0]];
-				};
-				case 2:
-				{
-					_helitype = "O_Heli_Transport_04_covered_F";
-					_spawnParaGroup = _paraGroupArray select 0;
-					_ropes = [[1,-4,-1],[-1,-4,-1]];
-				};
+				_helitype = "B_Heli_Transport_01_F";
+				_spawnParaGroup = _paraGroupArray select ((count _paraGroupArray) -1);
+				_ropes = [[-1.11,2.5,0],[1.11,2.5,0]];
 			};
-		};
-
-		case "GUER":
-		{
-			_side = resistance;
-			_helitype = "I_Heli_Transport_02_F";
-
-			switch (_paraType % 3) do
+			case 2: // 2, 5, 8
 			{
-				case 0:
-				{
-					_helitype = "I_Heli_light_03_F";
-					_spawnParaGroup = _paraGroupArray select ((count _paraGroupArray) -1);
-					_ropes = [[1.3,1.3,0],[-1.3,1.3,0]];
-				};
-				case 1:
-				{
-					_helitype = "I_Heli_light_03_unarmed_F";
-					_spawnParaGroup = _paraGroupArray select ((count _paraGroupArray) -1);
-					_ropes = [[1.3,1.3,0],[-1.3,1.3,0]];
-				};
-				case 2:
-				{
-					_helitype = "I_Heli_Transport_02_F";
-					_spawnParaGroup = _paraGroupArray select 0;
-					_ropes = [[1,-5,0],[-1,-5,0]];
-				};
+				_helitype = "B_Heli_Transport_03_F";
+				_spawnParaGroup = _paraGroupArray select 0;
+				_ropes = [[1,-4,-1],[-1,-4,-1]];
 			};
 		};
 	};
 
+	case "EAST": {
+		_side = east;
+		switch (_paraType % 3) do
+		{
+			case 0:
+			{
+				_helitype = "O_Heli_Attack_02_F";
+				_spawnParaGroup = _paraGroupArray select ((count _paraGroupArray) - 1);
+				_ropes = [[1.35,1.35,0],[-1.45,1.35,0]];
+			};
+			case 1:
+			{
+				_helitype = "O_Heli_Light_02_F";
+				_spawnParaGroup = _paraGroupArray select ((count _paraGroupArray) -1);
+				//_ropes = [[1.3,1.3,-25],[-1.3,1.3,-25]];
+				_ropes = [[1.3,1.3,0],[-1.3,1.3,0]];
+			};
+			case 2:
+			{
+				_helitype = "O_Heli_Transport_04_covered_F";
+				_spawnParaGroup = _paraGroupArray select 0;
+				_ropes = [[1,-4,-1],[-1,-4,-1]];
+			};
+		};
+	};
+
+	default {
+		_side = resistance;
+		_helitype = "I_Heli_Transport_02_F";
+
+		switch (_paraType % 3) do
+		{
+			case 0:
+			{
+				_helitype = "I_Heli_light_03_F";
+				_spawnParaGroup = _paraGroupArray select ((count _paraGroupArray) -1);
+				_ropes = [[1.3,1.3,0],[-1.3,1.3,0]];
+			};
+			case 1:
+			{
+				_helitype = "I_Heli_light_03_unarmed_F";
+				_spawnParaGroup = _paraGroupArray select ((count _paraGroupArray) -1);
+				_ropes = [[1.3,1.3,0],[-1.3,1.3,0]];
+			};
+			case 2:
+			{
+				_helitype = "I_Heli_Transport_02_F";
+				_spawnParaGroup = _paraGroupArray select 0;
+				_ropes = [[1,-5,0],[-1,-5,0]];
+			};
+		};
+	};
+};
+
 
 if ( isNil "_spawnParaGroup" ) exitWith { diag_log format ["MCC ERROR: no group found for %1", _this]; };
 
+//Try to find an helicopter from the faction
+private ["_minSpaces","_vehiclesTypesArray","_availableSpaces","_newHeliClassesArray","_totalSeats","_crewSeats"];
+_minSpaces = switch (_paraType % 3) do {
+				case 0: {6};
+				case 1: {12};
+				default {18};
+			};
+
+_vehiclesTypesArray = [_p_mcc_spawnfaction,"helicopterrtd","air"] call MCC_fnc_makeUnitsArray;
+if (count _vehiclesTypesArray < 2) then {
+	_vehiclesTypesArray = [_p_mcc_spawnfaction,"helicopterrtd"] call MCC_fnc_makeUnitsArray;
+};
+
+_vehiclesTypesArray = _vehiclesTypesArray + ([_p_mcc_spawnfaction,"helicopterX"] call MCC_fnc_makeUnitsArray);
+
+_newHeliClassesArray = [];
+
+for "_i" from 0 to (count _vehiclesTypesArray)-1 step 1 do {
+	_vehicleClass = (_vehiclesTypesArray select _i) select 0;
+    _availableSpaces = [_vehicleClass, "allCargo"] call MCC_fnc_crewCount;
+
+	//if enogh cargo space add it
+	if ( _availableSpaces >= _minSpaces) then {
+		_newHeliClassesArray pushBack [_availableSpaces, _vehicleClass]
+	};
+};
+
+if (count _newHeliClassesArray > 0) then {
+	_newHeliClassesArray sort true;
+	_helitype = (_newHeliClassesArray select 0) select 1;
+};
 
 if ( _paraType < 3 ) then
 {
@@ -192,7 +213,7 @@ else
 	_flyHeight = 50;
 };
 
-_heli 				= [_heliType, _spawn, _pos, _flyHeight, false, _side] call MCC_fnc_createPlane;
+_heli 				= [_helitype, _spawn, _pos, _flyHeight, false, _side] call MCC_fnc_createPlane;
 _heliCrew			= group _heli;
 _heliPilot			= driver _heli;
 crew _heli joinSilent _heliCrew;
@@ -225,86 +246,69 @@ if ( _paraMode > 0 ) then
 	_heliPilot flyInHeight _flyHeight;
 };
 
-private ["_cargoNum","_unitsArray","_i","_type"];
+private ["_cargoNum","_unitsArray","_i","_type","_z","_cargoGroups"];
 //--------spawn the jumping group----------------------
-_cargoNum = _heli emptyPositions "cargo"; //populate heli before kick off
-_cargoUnits = [];
+_cargoNum = [_helitype, "allCargo"] call MCC_fnc_crewCount; //populate heli before kick off
 _cargoGroups = [];
 
-if (_cargoNum > 0) then
-{
-	_helocargo = creategroup side _heli;
+if (_cargoNum > 0) then {
 
-	_cargoEmtpy = _cargoNum;
-
-	// small
-	if ( ( (_paraType % 3) == 0 ) && ( _cargoNum >= 6 ) ) then
-	{
-		_cargoEmtpy = 5;
-	};
-	// QRF
-	if ( ( (_paraType % 3) == 1 ) && ( _cargoNum >= 7 ) ) then
-	{
-		_cargoEmtpy = 7;
-	};
-
-
-	While { true } do
-	{
-		if !( _customParaGroup ) then
+	//Limit group size
+	switch (_paraType % 3) do {
+		case 0:
 		{
-			_unitspawned=[[100,100,5000], _side, (call compile _spawnParaGroup),[],[],[0.1,MCC_AI_Skill],[],[_cargoEmtpy, 0]] call MCC_fnc_spawnGroup;
-			sleep 0.1;
-		}
-		else
-		{
-			_newParaGroup = grpNull;
-			_newParaGroup = createGroup _side;
-			for [{_i=0},{_i<=_cargoEmtpy},{_i=_i+1}] do
-			{
-				if ( _cargoEmtpy > 0 ) then
-				{
-					//diag_log format ["MCC paradrop custom group array: %1", _spawnParaGroup];
-					_type = _spawnParaGroup select round (random 4);
-					_unit = _newParaGroup createUnit [_type, _spawn, [], 0.5, "NONE"];
-
-					//Curator
-					MCC_curator addCuratorEditableObjects [[_unit],false];
-				};
-			};
-
-			//diag_log format ["MCC paradrop custom group: %1 - %2 - group array: %3", _paraSide, _p_mcc_spawnfaction, units _newParaGroup];
-			_unitspawned = _newParaGroup;
+			_cargoNum =  _cargoNum min 6
 		};
 
+		case 1:
 		{
-			_cargoUnits set [count _cargoUnits,_x];
-		} forEach (units _unitspawned);
+			_cargoNum =  _cargoNum min 12
+		};
 
-		_cargoGroups set [count _cargoGroups,_unitspawned];
-		_cargoEmtpy = _cargoEmtpy - (count _cargoUnits);
-
-		//diag_log format ["Spawned: %1 - %2 - %3 - %4", count (units _unitspawned), count _cargoUnits, _cargoEmtpy, (units _unitspawned)];
-
-		// if only 1 or 2 seats left do not create a 1 or 2-man group but leave seat(s) empty
-		if ( _cargoEmtpy < 3 ) exitWith {};  // { diag_log format ["Spawned: aborting: %1", _cargoEmtpy]; };
+		default
+		{
+			_cargoNum =  _cargoNum min 18
+		};
 	};
 
-	//diag_log format ["Paradrop: %1 - %2 - %3", _cargoNum, count _cargoUnits, _cargoUnits];
+	//lets spawn groups
+	for "_i" from 0 to (ceil (_cargoNum /6)) step 1 do {
 
-	{
-		_x assignAsCargo _heli;
-		_x moveInCargo _heli;
-		_x setSkill ["aimingspeed", MCC_AI_Aim];
-		_x setSkill ["spotdistance", MCC_AI_Spot];
-		_x setSkill ["aimingaccuracy", MCC_AI_Aim];
-		_x setSkill ["aimingshake", MCC_AI_Aim];
-		_x setSkill ["spottime", MCC_AI_Spot];
-		_x setSkill ["commanding", MCC_AI_Command];
-		_x setSkill ["general", MCC_AI_Skill];
-		removeBackpack _x;
-		//_x addBackpack "B_Parachute";
-	} forEach _cargoUnits;
+		if !( _customParaGroup ) then {
+			_unitspawned=[[100,100,5000], _side, (call compile _spawnParaGroup),[],[],[0.1,MCC_AI_Skill],[],[(6 min _cargoNum), 0]] call MCC_fnc_spawnGroup;
+			sleep 0.1;
+		} else {
+
+			_unitspawned = createGroup _side;
+
+			for "_z" from 1 to (6 min _cargoNum) step 1 do	{
+				_type = _spawnParaGroup select round (random 4);
+				_unit = _unitspawned createUnit [_type, _spawn, [], 0.5, "NONE"];
+
+				//Curator
+				{_x addCuratorEditableObjects [[_unit],false]} forEach allCurators;
+			};
+		};
+
+		_cargoGroups pushBack _unitspawned;
+		_cargoNum = _cargoNum - (count units _unitspawned);
+
+		{
+			_x assignAsCargo _heli;
+			_x moveInCargo _heli;
+			_x setSkill ["aimingspeed", MCC_AI_Aim];
+			_x setSkill ["spotdistance", MCC_AI_Spot];
+			_x setSkill ["aimingaccuracy", MCC_AI_Aim];
+			_x setSkill ["aimingshake", MCC_AI_Aim];
+			_x setSkill ["spottime", MCC_AI_Spot];
+			_x setSkill ["commanding", MCC_AI_Command];
+			_x setSkill ["general", MCC_AI_Skill];
+			/*
+				removeBackpack _x;
+				_x addBackpack "B_Parachute";
+			*/
+		} forEach (units _unitspawned);
+	};
 };
 
 _dropPos = _pos findEmptyPosition [10,150,_heliType];
@@ -317,11 +321,10 @@ _heliCrew move _pos;
 _heli setSpeedMode "FULL";
 _heli setDestination [_away, "VehiclePlanned", true];
 
-waitUntil { sleep 1;(_heli distance _dropPos) < ((getPosATL _heli select 2) + 150)};  // include heli heigth else if flying higher then 250 m this wil be 'true'
+waitUntil { sleep 1;(driver _heli) move _pos;(_heli distance _dropPos) < ((getPosATL _heli select 2) + 150)};  // include heli heigth else if flying higher then 250 m this wil be 'true'
 
-{
-	_heli animateDoor [_x,1];
-} foreach ["door_back_L","door_back_R","door_L","door_R","Door_6_source","Door_rear_source"];
+//Open doors
+[_heli,true] spawn MCC_fnc_heliOpenCloseDoor;
 
 if ( _paraMode == 2 ) then  // toss ropes for fast-rope
 {
@@ -350,7 +353,7 @@ if ( _paraMode == 2 ) then  // toss ropes for fast-rope
 
 {
 	[units _x] allowGetIn false;
-	[_x, _heli, _p_mcc_zone_markername, _p_mcc_zone_behavior, _p_mcc_awareness, _paraMode, _paraType, _actualRopes, _forEachIndex, count _cargoGroups] spawn
+	[_x, _heli, _p_mcc_zone_markername, _p_mcc_zone_behavior, _p_mcc_awareness, _paraMode, _paraType, _actualRopes, (_forEachIndex % 2), count _cargoGroups] spawn
 	{
 		private ["_paraGroup", "_dir", "_p_mcc_zone_markername", "_p_mcc_zone_behavior", "_p_mcc_awareness", "_paraMode", "_paraType",
 					"_actualRopes", "_rope", "_index", "_number"];
@@ -443,6 +446,8 @@ if ( _paraMode == 2 ) then  // toss ropes for fast-rope
 							_rope = _this select 1;
 							_zdelta = 7 / 10;
 							_zc = -4;
+
+							if (isNil "_rope") exitWith {};
 
 							_unit action ["GETOUT", vehicle _unit];
 							unassignVehicle _unit;
@@ -537,12 +542,8 @@ _heli setBehaviour "CARELESS";
 
 _heli setDestination [_away, "VehiclePlanned", true];
 
-
-{
-	_heli animateDoor [_x,0];
-} foreach ["door_back_L","door_back_R","door_L","door_R","Door_6_source","Door_rear_source"];
-
-_heli animate ["CargoRamp_Open", 0];
+//Close doors
+[_heli,false] spawn MCC_fnc_heliOpenCloseDoor;
 
 // Allow chopper to leave else AI will board again :-/
 sleep 5;

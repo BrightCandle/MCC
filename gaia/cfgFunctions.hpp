@@ -20,6 +20,8 @@ class GAIA
         class ShowLocationOwner {};
         
     };
+
+
     class Cache
     {
         #ifdef MCCMODE
@@ -38,6 +40,7 @@ class GAIA
         class uncacheFar {};
         class uncacheOriginalGroup {};
     };
+
     class General
     {
         #ifdef MCCMODE
@@ -63,6 +66,7 @@ class GAIA
         class rotatePosition {};
         class startGaia {};
     };
+
     class Control
     {
         #ifdef MCCMODE
@@ -72,7 +76,6 @@ class GAIA
         #endif
 
         class addAttackWaypoint {};
-		class addAttackWaypointCar {};
         class addWaypoint {};
         class analyzeForces {};
         class analyzeTargets {};
@@ -101,6 +104,7 @@ class GAIA
         class removeWaypoints {};
         
     };
+
     class Orders
     {
         #ifdef MCCMODE
@@ -111,7 +115,6 @@ class GAIA
 
         class doArtillery {};
         class doAttack {};
-		class doAttackSearch {};
         class doAttackCar {};
         class doAttackHelicopter {};
         class doAttackInfantry {};
@@ -144,6 +147,7 @@ class GAIA
         class doTransportTank {};
         class doWait {};
     };
+
     class Fortify
     {
         #ifdef MCCMODE
