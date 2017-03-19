@@ -1,105 +1,149 @@
 /* ----------------------------------------------------------------------------
 Function: CBA_fnc_taskDefend
-//change by spirit 11-3-2014 for specific purposes of gaia
-
 Description:
-	A function for a group to defend a parsed location. Groups will mount nearby static machine guns, and bunker in nearby buildings. They may also patrol the radius unless otherwise specified.
-
+    A function for a group to defend a parsed location.
+    Units will mount nearby static machine guns and bunker in nearby buildings.
+    They may also patrol the radius unless otherwise specified.
 Parameters:
-	- Group (Group or Object)
-
+    - Group (Group or Object)
 Optional:
-	- Position (XYZ, Object, Location or Group)
-	- Defend Radius (Scalar)
-	- Building Size Threshold (Integer, default 2)
-	- Can patrol (boolean)
-
+    - Position (XYZ, Object, Location or Group)
+    - Defend Radius (Scalar)
+    - Building Size Threshold (Integer, default 2)
 Example:
     (begin example)
-	[this] call CBA_fnc_taskDefend
+    [this] call CBA_fnc_taskDefend
     (end)
-
 Returns:
-	Nil
-
+    Nil
 Author:
-	Rommel
-
+    Rommel, SilentSpike, BrightCandle
 ---------------------------------------------------------------------------- */
 
-private ["_group","_position","_radius","_threshold"];
-_group = (_this select 0) ;
-_position = (_this select 1);
-_radius = if (count _this > 2) then {_this select 2} else {50};
-_threshold = 1;
+params [
+    ["_group",grpNull,[grpNull,objNull]],
+    ["_position",[],[[],objNull,grpNull,locationNull],3],
+    ["_radius",50,[0]],
+    ["_threshold",1,[0]]
+];
 
-_group enableattack false;
+_group = _group call CBA_fnc_getGroup;
+if !(local _group) exitWith {}; // Don't create waypoints on each machine
 
-private ["_count", "_list", "_list2", "_units", "_i"];
-//_statics = [_position, vehicles, _radius, {(_x iskindof "StaticWeapon") && {(_x emptypositions "Gunner" > 0)}}] call CBA_fnc_getnearest;
-_statics = [(nearestObjects [_position,["StaticWeapon"], _radius]), {(_x iskindof "StaticWeapon") && (isnull(assignedGunner (_x))) && {[(position _x),_zone] CALL GAIA_fnc_isPositionInMarker} && {(_x emptypositions "Gunner" > 0)}}] call BIS_fnc_conditionalSelect;
-//[(position PLAYER),"1"] CALL GAIA_fnc_isPositionInMarker
-//_buildings = _position nearObjects ["building",_radius];
-_zone	 = (((_group) getVariable ["GAIA_zone_intend",[]])select 0);
+_position = [_position,_group] select (_position isEqualTo []);
+_position = _position call CBA_fnc_getPos;
 
-_buildings = [(_position nearObjects ["building",_radius]), {[(position _x),_zone] CALL GAIA_fnc_isPositionInMarker}] call BIS_fnc_conditionalSelect;
-_units = units _group;
-_count = count _units;
+private _statics = _position nearObjects ["StaticWeapon", _radius];
+private _buildings = _position nearObjects ["Building", _radius];
 
-if !(isnil("_Zone")) then
-{
-		{
-			if (str(_x buildingpos _threshold) == "[0,0,0]") then {_buildings = _buildings - [_x]};
-		} foreach _buildings;
-		_i = 0;
-		{
-			_count = (count _statics) - 1;
-			if (_count > -1) then {
-				[_x] join grpNull;
-				_x assignasgunner (_statics select _count);
-				_statics resize _count;
-				[_x] ordergetin true;
-				_i = _i + 1;
-			} else {
-				if (count _buildings > 0) then {
-					private ["_building","_p","_array"];
-					_building = _buildings call BIS_fnc_selectRandom;
-					_array = _building getvariable "CBA_taskDefend_positions";
-					if (isnil "_array") then {
-						private "_k"; _k = 0;
-						_building setvariable ["CBA_taskDefend_positions",[]];
-						while {str(_building buildingpos _k) != "[0,0,0]"} do {
-							_building setvariable ["CBA_taskDefend_positions",(_building getvariable "CBA_taskDefend_positions") + [_k]];
-							_k = _k + 1;
-						};
-						_array = _building getvariable "CBA_taskDefend_positions";
-					};
-					if (count _array > 0) then {
-						_p = (_building getvariable "CBA_taskDefend_positions") call BIS_fnc_selectRandom;
-						_array = _array - [_p];
-						if (count _array == 0) then {
-							_buildings = _buildings - [_building];
-							_building setvariable ["CBA_taskDefend_positions",nil];
-						};
-						_building setvariable ["CBA_taskDefend_positions",_array];
-						[_x,_building buildingpos _p] spawn {
-							if (surfaceIsWater (_this select 1)) exitwith {};
-							(_this select 0) domove (_this select 1);
-							(_this select 0) setSpeedMode "FULL";
-							sleep 5;
-							waituntil {unitready (_this select 0)};
-							(_this select 0) disableai "move";
-							dostop _this;
-							waituntil {not (unitready (_this select 0))};
-							(_this select 0) enableai "move";
-						};
-						_i = _i + 1;
-					};
-				};
-			};
-		} foreach _units;
-		{
-			_x setvariable ["CBA_taskDefend_positions",nil];
-		} foreach _buildings;
+// Filter out occupied statics
+_statics = _statics select {(_x emptyPositions "Gunner") > 0};
 
+// Filter out buildings below the size threshold (and store positions for later use)
+_buildings = _buildings select {
+    private _positions = _x buildingPos -1;
+    private _postionCount = count (_positions);
+
+    if (isNil {_x getVariable "CBA_taskDefend_positions"}) then {
+        _x setVariable ["CBA_taskDefend_positions", _positions];
+    };
+
+    if (isNil {_x getVariable "CBA_taskDefend_remainingPositions"}) then {
+        _x setVariable ["CBA_taskDefend_remainingPositions", _postionCount];
+    };
+
+    _postionCount > _threshold
 };
+
+private _units = units _group;
+
+GAIA_taskDefend_FNC_chooseBuilding = {
+	params ["_buildings"];
+	
+	private _building = nil;
+	while { (! (_buildings isEqualto [])) && {isNil "_building"} } do {
+		_building = _buildings call BIS_fnc_selectRandom;
+		
+		private _buildingRemainingPositions = _building getVariable ["CBA_taskDefend_remainingPositions",0];
+		private _buildingHasSpace = _buildingRemainingPositions > 0;
+
+		if(_buildingHasSpace) then {
+			_building setVariable ["CBA_taskDefend_remainingPositions",_buildingRemainingPositions -1];
+		} else {
+			_building=nil;
+		};
+	};
+	
+	if !(isNil "_building") then {
+		_building;
+	}
+};
+
+GAIA_taskDefend_FNC_releaseBuilding = {
+	params ["_building"];
+	
+	private _buildingRemainingPositions = _building getVariable ["CBA_taskDefend_remainingPositions",0];
+	_building setVariable ["CBA_taskDefend_remainingPositions",_buildingRemainingPositions +1];
+};
+
+GAIA_taskDefend_FNC_releasePosition = {
+	params ["_building","_position"];
+	
+	private _positions = _building getVariable ["CBA_taskDefend_positions",[]];
+	_positions pushBack _position;
+};
+
+GAIA_taskDefend_FNC_moveToPosition = {
+	params ["_unit","_building"];
+	private _positions = _building getVariable ["CBA_taskDefend_positions",[]];
+
+	if !(_positions isEqualTo [] || ((behaviour _unit) =="COMBAT")) then {
+		private _pos = _positions deleteAt (floor(random(count _positions)));
+		
+		private _previousPos = _unit getVariable "CBA_taskDefend_pos";
+		
+		if !(isNil "_previousPos") then {
+			[_building,_previousPos] call GAIA_taskDefend_FNC_releasePosition;
+		};
+
+		_building setVariable ["CBA_taskDefend_positions",_positions];
+
+		_unit setVariable ["CBA_taskDefend_pos",_pos];
+		_unit enableai "move";
+		
+		_unit doMove _pos;
+		
+		waituntil {unitReady _unit};
+		_unit disableai "move";
+		doStop _unit;
+	};
+};
+
+{
+    if (!(_statics isEqualto []) ) then {
+        _x assignAsGunner (_statics deleteAt 0);
+        [_x] orderGetIn true;
+    } else {
+		[_x, _buildings] spawn {
+			params ["_unit","_buildings"];
+			private _building= [_buildings] call GAIA_taskDefend_FNC_chooseBuilding;
+	
+			if (!(isNil "_building")) then {
+
+				while {alive _unit} do {
+					[_unit] call CBA_fnc_clearWaypoints;
+					
+					[_unit,_building] call GAIA_taskDefend_FNC_moveToPosition;
+					
+					sleep( random [10,60,600] );
+					if( (random 1)> 0.75 ) then {
+						[_building] call GAIA_taskDefend_FNC_releaseBuilding;
+						_building= [_buildings] call GAIA_taskDefend_FNC_chooseBuilding;
+					};
+					
+				};
+
+			};
+		};
+    };
+} forEach _units;
