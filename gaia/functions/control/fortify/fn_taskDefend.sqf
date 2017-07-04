@@ -97,7 +97,7 @@ GAIA_taskDefend_FNC_moveToPosition = {
 	params ["_unit","_building"];
 	private _positions = _building getVariable ["CBA_taskDefend_positions",[]];
 
-	if !(_positions isEqualTo [] || ((behaviour _unit) =="COMBAT")) then {
+	if !(_positions isEqualTo []) then {
 		private _pos = _positions deleteAt (floor(random(count _positions)));
 		
 		private _previousPos = _unit getVariable "CBA_taskDefend_pos";
@@ -135,7 +135,7 @@ GAIA_taskDefend_FNC_moveToPosition = {
 					
 					[_unit,_building] call GAIA_taskDefend_FNC_moveToPosition;
 					
-					sleep( random [10,60,600] );
+					sleep( random [10,60,120] );
 					if( (random 1)> 0.75 ) then {
 						[_building] call GAIA_taskDefend_FNC_releaseBuilding;
 						_building= [_buildings] call GAIA_taskDefend_FNC_chooseBuilding;
