@@ -40,7 +40,9 @@ _Radius		= 40;
 _waypoint = _group addWaypoint 				[_position, 0];
 _waypoint setWaypointType 						_WPType;
 _waypoint setWaypointCompletionRadius _Radius;
-_waypoint	setWaypointTimeout [20, 30, 25];
+_waypoint setWaypointTimeout [5, 60, 15];
+
+_waypoint setWaypointSpeed "LIMITED";
 
 _waypoint;
 
