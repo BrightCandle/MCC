@@ -136,6 +136,7 @@ class GAIA
         class doPark {};
         class doPatrol {};
         class doPatrolCar {};
+		class doPatrolTank {};
         class doPatrolHelicopter {};
         class doPatrolInfantry {};
         class doPatrolMechanizedInfantry {};

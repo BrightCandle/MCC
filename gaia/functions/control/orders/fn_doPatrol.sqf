@@ -25,6 +25,8 @@ if (!IsNil("_class") and !Isnil("_zone")) then
 					{ _dummy= [_group,_zone] call GAIA_fnc_doPatrolMotorizedInfantry;};
 				case "Car":
 					{ _dummy= [_group,_zone] call GAIA_fnc_doPatrolCar;};
+				case "Tank":
+					{ _dummy= [_group,_zone] call GAIA_fnc_doPatrolTank;};
 				case "MotorizedRecon":
 					{ _dummy= [_group,_zone] call GAIA_fnc_doPatrolMotorizedInfantry;};
 				case "Ship":

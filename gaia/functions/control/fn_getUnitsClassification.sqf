@@ -191,7 +191,7 @@ switch(true)do
 				_class = "Tank";
 				if (_EnoughCargo) then {_speed 	= "MEDIUM";};
 				//For now i dont want tanks to patrol. Do needs a better option in a later version.
-				_portfolio = _portfolio					+ _DoHide;
+				_portfolio = _portfolio					+ _DoPatrol;
 
 				//If we failed to see our tank class but it holds no guns, then please dont let it attack.
 				if (_VehicleHasGuns) then

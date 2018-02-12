@@ -42,8 +42,6 @@ _waypoint setWaypointType 						_WPType;
 _waypoint setWaypointCompletionRadius _Radius;
 _waypoint setWaypointTimeout [5, 60, 15];
 
-_waypoint setWaypointSpeed "LIMITED";
-
 _waypoint;
 
 
