@@ -136,7 +136,7 @@ GAIA_taskDefend_FNC_moveToPosition = {
 					[_unit,_building] call GAIA_taskDefend_FNC_moveToPosition;
 					
 					sleep( random [10,60,120] );
-					if( (random 1)> 0.75 ) then {
+					if( (random 1)> 0.85 ) then {
 						[_building] call GAIA_taskDefend_FNC_releaseBuilding;
 						_building= [_buildings] call GAIA_taskDefend_FNC_chooseBuilding;
 					};
