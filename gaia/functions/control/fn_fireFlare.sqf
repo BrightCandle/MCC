@@ -28,10 +28,10 @@ _verticalSpeed 		= [_this, 3, 30, [0]] call BIS_fnc_param;
 private "_class";
 _class = [
 	"F_40mm_Cir",
-	"F_40mm_Green",
-	"F_40mm_Red",
-	"F_40mm_White",
-	"F_40mm_Yellow"
+	"CF_F_40mm_Green",
+	"CF_F_40mm_Red",
+	"CF_F_40mm_White",
+	"CF_F_40mm_Yellow"
 ] call BIS_fnc_selectRandom;
 
 //The moving direction of the flare

@@ -92,17 +92,17 @@ diag_log format["Cannon to fire: %1, Cannon avilable: %2",_cannons_to_fire, _can
 							[_splashpos, _artitype, _spread, 1, true] spawn MCC_fnc_artyFlare;
 						};
 
-						case "F_40mm_White":	//Flare White
+						case "CF_F_40mm_White":	//Flare White
 						{
 							[_splashpos, _artitype, _spread, 1, true] spawn MCC_fnc_artyFlare;
 						};
 
-						case "F_40mm_Green":	//Flare Green
+						case "CF_F_40mm_Green":	//Flare Green
 						{
 							[_splashpos, _artitype, _spread, 1, true] spawn MCC_fnc_artyFlare;
 						};
 
-						case "F_40mm_Red":	//Flare Red
+						case "CF_F_40mm_Red":	//Flare Red
 						{
 							[_splashpos, _artitype, _spread, 1, true] spawn MCC_fnc_artyFlare;
 						};

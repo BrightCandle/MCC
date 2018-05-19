@@ -826,7 +826,7 @@ _StartTimeIssueOrders = time;
 					   		if (_IsNight and count(_ca)>0 and ((_ClosestCA distance (leader _x))<400) and _LetsDoSome and (((leader _x) findNearestEnemy _PosLead) distance _PosLead >100)  ) then
 					   			{
 
-					   				[[(_ClosestCA select 0),(_ClosestCA select 1),100],[(_PosLead select 0),(_PosLead select 1),40],50,30,"F_40mm_Green"] call GAIA_fnc_fireFlare;
+					   				[[(_ClosestCA select 0),(_ClosestCA select 1),100],[(_PosLead select 0),(_PosLead select 1),40],50,30,"CF_F_40mm_Green"] call GAIA_fnc_fireFlare;
 					   			};
 
 					   		//Check if this unit needs some smoke for cover. Make sure to check if previous points is bigger then 0, we dont like devide by zero

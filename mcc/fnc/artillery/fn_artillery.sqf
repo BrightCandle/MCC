@@ -3,7 +3,7 @@
 // Example:[[_pos, shelltype, shellspread, nshell,simulate],"MCC_fnc_artillery",true,false] spawn BIS_fnc_MP;
 // Params:
 // 	_pos: array, position
-// 	shelltype: string, vehicleClass ["GrenadeHand","Sh_120_HE","Cluster_120mm_AMOS","Mo_cluster_AP","Mine_120mm_AMOS_range","Sh_120mm_AMOS_LG","Sh_82mm_AMOS","Fire_82mm_AMOS","Smoke_120mm_AMOS_White","Smoke_82mm_AMOS_White","G_40mm_SmokeGreen","G_40mm_SmokeRed","F_40mm_White""F_40mm_Green","F_40mm_Red"];
+// 	shelltype: string, vehicleClass ["GrenadeHand","Sh_120_HE","Cluster_120mm_AMOS","Mo_cluster_AP","Mine_120mm_AMOS_range","Sh_120mm_AMOS_LG","Sh_82mm_AMOS","Fire_82mm_AMOS","Smoke_120mm_AMOS_White","Smoke_82mm_AMOS_White","G_40mm_SmokeGreen","G_40mm_SmokeRed","CF_F_40mm_White""CF_F_40mm_Green","CF_F_40mm_Red"];
 //	shellspread: number, 1st: weapon class 2nd: ammount [["weaponClass1","weaponClass2"],[1,5]]
 //	nshell: number, ammount of artillery per salvo
 //	simulate: number, shell simulation 0-DPICM, 1- bomb, 2 - flare, 3 - laser guided
