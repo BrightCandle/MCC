@@ -21,7 +21,9 @@ _pos= [_group,_zone,"VEH_HILLS_ROAD_FLAT"] call GAIA_fnc_generateWaypoints;
 if (count (waypoints _group) != (currentWaypoint _group)) then
 	{
 			//_dummy 	=  [_group,(position leader _group),"GETIN NEAREST"] call GAIA_fnc_addWaypoint;
-			_dummy 	=  [_group,_pos,"MOVE"] call GAIA_fnc_addWaypoint;
+			_waypoint = [_group,_pos,"MOVE"] call GAIA_fnc_addWaypoint;
+
+			[_waypoint,_group,_pos] call GAIA_fnc_timeoutWaypoint;
 
 	};
 

@@ -14,9 +14,9 @@ _zone				=	_this select 1;
 
 
 //Go somewhere
-_pos= [_group,_zone,"VEH_HILLS_ROAD_FLAT"] call GAIA_fnc_generateWaypoints;
+_waypoint = [_group,_zone,"VEH_HILLS_ROAD_FLAT"] call GAIA_fnc_generateWaypoints;
 
-
+[_waypoint,_group,_pos] call GAIA_fnc_timeoutWaypoint;
 
 
 

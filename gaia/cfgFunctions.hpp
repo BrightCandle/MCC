@@ -103,6 +103,7 @@ class GAIA
         class issueOrders {};
         class occupy {};
         class removeWaypoints {};
+        class timeoutWaypoint {};
         
     };
 

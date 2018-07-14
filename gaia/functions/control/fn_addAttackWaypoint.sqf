@@ -32,11 +32,15 @@ _waypoint setWaypointType 								_WPType;
 
 if (behaviour (leader _group) != "COMBAT") then
 	{_waypoint setWaypointBehaviour 				"AWARE";};
-	
-_waypoint setWaypointCombatMode 					"RED";
-_waypoint setWaypointSpeed 								"FULL" ;
-_waypoint setWaypointFormation 						"VEE" ;
-_waypoint setWaypointCompletionRadius 		_Radius;
+
+_combatMode = selectRandom ["GREEN","WHITE","YELLOW","YELLOW","RED","RED"];
+_speed = selectRandom ["LIMITED","NORMAL","NORMAL","FULL","FULL"];
+_formation = selectRandom ["WEDGE","WEDGE","LINE","LINE","VEE","ECH LEFT","ECH RIGHT"];
+
+_waypoint setWaypointCombatMode _combatMode;
+_waypoint setWaypointSpeed _speed;
+_waypoint setWaypointFormation _formation;
+_waypoint setWaypointCompletionRadius _Radius;
 _waypoint;
 
 
