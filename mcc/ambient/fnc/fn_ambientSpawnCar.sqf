@@ -62,7 +62,7 @@ for "_i" from 1 to _counter do {
 
 	if (_spawn) then {
 		_carGroup = creategroup _side;
-		_car = ([_pos,getdir _road ,_carClass, _carGroup] call BIS_fnc_spawnVehicle) select 0;
+		_car = ([_pos,getdir _road ,_carClass, _carGroup] call MCC_fnc_spawnVehicle) select 0;
 
 
 		if (_side == civilian) then {

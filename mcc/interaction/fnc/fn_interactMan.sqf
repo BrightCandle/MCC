@@ -23,10 +23,10 @@ if (!(missionNamespace getVariable ["MCC_interactionKey_holding",false]) && ((_s
 };
 
 if ((missionNamespace getVariable ["MCC_interactionKey_holding",false]) && (player distance  _suspect < 2) && !dialog) exitWith {
-	_suspectName = if (name _suspect == "Error: No unit") then {"John Doe"} else {name _suspect};
+	_suspectName = if (name _suspect == "No unit") then {"John Doe"} else {name _suspect};
 	_array = [["closeDialog 0","<t size='1' align='center' color='#ffffff'>"+_suspectName+"</t>",""],
 			  ["['zip'] spawn MCC_fnc_interactManClicked","Restrain",format ["%1data\iconHandcuffs.paa",MCC_path]],
-			  ["['follow'] spawn MCC_fnc_interactManClicked","Order Around",format ["%1data\iconOrder.paa",MCC_path]],
+			  ["['follow'] spawn MCC_fnc_interactManClicked","Command",format ["%1data\iconOrder.paa",MCC_path]],
 			  ["['pickKit'] spawn MCC_fnc_interactManClicked","Pick Up Kit",format ["%1data\IconAmmo.paa",MCC_path]],
 			  ["['medic'] spawn MCC_fnc_interactManClicked","Examine",MCC_path + "mcc\interaction\data\IconBleeding.paa"],
 			  ["['drag'] spawn MCC_fnc_interactManClicked","Drag",format ["%1data\IconDrag.paa",MCC_path]]];
@@ -47,7 +47,7 @@ if ((missionNamespace getVariable ["MCC_interactionKey_holding",false]) && (play
 
 	{
 		_vehicleName = getText (configfile >> "CfgVehicles" >> typeof _x >> "displayName");
-		_array pushBack [format ["['load_%1'] spawn MCC_fnc_interactManClicked",_foreachIndex],format ["Load into %1",_vehicleName],"\A3\ui_f\data\igui\cfg\actions\getincargo_ca.paa"];
+		_array pushBack [format ["['load_%1'] spawn MCC_fnc_interactManClicked",_foreachIndex],format ["Load into %1",_vehicleName],(getText (configfile >> "CfgVehicles" >> typeof _x >> "picture"))];
 	} forEach _nearVehicles;
 
 	//Manage array

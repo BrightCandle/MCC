@@ -7,7 +7,7 @@
 
 0 spawn {
 
-	if (missionNamespace getVariable ["MCC_surviveModinitialized",false]) exitWith {};
+	if ((missionNamespace getVariable ["MCC_surviveModinitialized",false]) || !hasInterface) exitWith {};
 	missionNamespace setVariable ["MCC_surviveModinitialized",true];
 
 	while {!(missionNamespace getVariable ["MCC_surviveMod",false])} do {sleep 1};
@@ -22,7 +22,9 @@
 		0 spawn MCC_fnc_survivalProgressBars;
 
 		//Load player
-		[true,true,true] spawn MCC_fnc_loadPlayer;
+		[(missionNamespace getVariable ["MCC_surviveModPlayerPos",false]),
+		(missionNamespace getVariable ["MCC_surviveModPlayerGear",false]),
+		(missionNamespace getVariable ["MCC_surviveModPlayerStats",false])] spawn MCC_fnc_loadPlayer;
 
 	};
 
@@ -38,7 +40,7 @@
 			["MCC_SERVER_SURVIVAL",1200,false,false,true,false,false,false,false,false,false] spawn MCC_fnc_saveServer;
 
 			//Save player
-			[30,true,true,true] spawn MCC_fnc_savePlayer;
+			[600,true,true,true] spawn MCC_fnc_savePlayer;
 		};
 	};
 };

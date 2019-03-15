@@ -139,8 +139,36 @@ class MCC_Module_inGameUI : Module_F
 
 		class hitRadar
 		{
-			displayName = "Hit Radar";
+			displayName = "Fire Direction indicator";
 			description = "Indicate the general direction of enemies firing on the player";
+			typeName = "BOOL";
+			class values
+			{
+				class realistic
+				{
+					name = "Realistic";
+					value = 0;
+					default = 1;
+				};
+
+				class Arcade
+				{
+					name = "Arcade";
+					value = 1;
+				};
+
+				class off
+				{
+					name = "Off";
+					value = 2;
+				};
+			};
+		};
+
+		class tickets
+		{
+			displayName = "Tickets";
+			description = "Show opposing sides and tickets remains";
 			typeName = "BOOL";
 			class values
 			{
@@ -199,6 +227,28 @@ class MCC_Module_inGameUI : Module_F
 				{
 					name = "Enable";
 					value = true;
+				};
+			};
+		};
+
+		class tutorials
+		{
+			displayName = "MCC Tutorials";
+			description = "Enable MCC Tutorials such as Squad Leader role exc";
+			typeName = "BOOL";
+			class values
+			{
+				class disable
+				{
+					name = "Disable";
+					value = false;
+				};
+
+				class enable
+				{
+					name = "Enable";
+					value = true;
+					default = 1;
 				};
 			};
 		};

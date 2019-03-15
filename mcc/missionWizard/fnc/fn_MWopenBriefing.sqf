@@ -60,7 +60,7 @@ _mapSize = [] call bis_fnc_mapSize;
 MCC_MWMap_mapSize = _mapSize;
 MCC_MWMap_isNight = _isNight;
 
-_scale = 3500 / _mapSize / safezoneH;
+_scale = (3500 / _mapSize / safezoneH) max 0.2;
 _scale = _scale * (_defaultScale max 0 min 1);
 _maxSatelliteAlpha = if (_isNight) then {0.75} else {1};
 
@@ -91,6 +91,8 @@ if (_playMusic == 0) then {
 
 
 		//First scene
+		if (isNil "_units") then {_units = []};
+
 		_specialIntro = switch (true) do
 							{
 								case (overcast > 0.2 && random 1 < 0.3): {"sky"};
@@ -106,7 +108,7 @@ if (_playMusic == 0) then {
 		{
 			_module = (_x select 8);
 			_object = if !(isnull (_module getVariable ["AttachObject_object",objNull])) then {_module getVariable ["AttachObject_object",objNull]} else {_module};
-			_taskDescription = _x select 3;
+			_taskDescription = _x select 2;
 			_zoomEnd = if (_object isKindOf "man") then {0.6} else {0.3};
 
 			_sfx =  switch (true) do

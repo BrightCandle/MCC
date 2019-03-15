@@ -1,6 +1,8 @@
 private ["_comboBox","_spawnArray","_pos","_spawn","_nearObjects","_spawnErrorCode","_targets","_target","_groups","_countRole","_roleLimit","_role","_spawnPos","_playerDeployPos"];
 disableSerialization;
 
+#define	MWinitMissionMusic	["LeadTrack01a_F","LeadTrack03_F","LeadTrack04a_F","BackgroundTrack03_F","BackgroundTrack01_F","BackgroundTrack01a_F","BackgroundTrack02_F","LeadTrack01_F_EPA","LeadTrack02_F_EPA","EventTrack01_F_EPA","EventTrack01a_F_EPA","EventTrack03_F_EPA"]
+
 #define CP_RESPAWNPANEL_IDD (uiNamespace getVariable "CP_RESPAWNPANEL_IDD")
 #define CP_respawnPointsList (uiNamespace getVariable "CP_respawnPointsList")
 #define CP_ticketsWestText (uiNamespace getVariable "CP_ticketsWestText")
@@ -67,7 +69,7 @@ if (missionNamespace getVariable ["CP_activated",false]) then {
 //Check if no enemy is close by
 if (_activeSpawn == leader player) then {
 	_targets = ["Car","Tank","Man"];
-	_nearObjects = (getpos _activeSpawn) nearObjects 100;
+	_nearObjects = (getpos _activeSpawn) nearObjects 50;
 
 	if ((count _nearObjects) > 0) then {
 		private ["_enemySides"];
@@ -103,15 +105,21 @@ private ["_maxPos","_cpPos"];
 _maxPos = 1;
 _cpPos = getpos _activeSpawn;
 
-waitUntil {
-	_maxPos = _maxPos +1;
-	_playerDeployPos  =_cpPos findEmptyPosition [0,_maxPos];
-	count _playerDeployPos > 0;
+if (_activeSpawn getVariable ["MCC_isLHD",false]) then {
+	_playerDeployPos  =_cpPos;
+} else {
+	waitUntil {
+		_maxPos = _maxPos +2;
+		_playerDeployPos  =_cpPos findEmptyPosition [0,_maxPos];
+		count _playerDeployPos > 0;
+	};
 };
 
 if (format["%1",_playerDeployPos] == "[-500,-500,0]" ) exitWith {
 	[9999,"No good position found! Try again.",3,true] spawn MCC_fnc_setIDCText
 };
+
+//Mark as deoployed
 playerDeploy = true;
 
 //Is it a spawn tent and we spawned as the squad leader - delete the tent
@@ -130,6 +138,37 @@ waitUntil {isNull attachedTo player};
 //Spawn mechanic
 switch (true) do
 {
+	//Spawn on LHD or Static ship
+	case (_activeSpawn getVariable ["MCC_isLHD",false]):	{
+
+		switch (_activeSpawn getVariable ["MCC_ShipType",0]) do
+		{
+			//Carrier
+			case 1:
+			{
+				player setPosASLW  (_activeSpawn modelToWorld [0,0,24]);
+			};
+
+			//Submarine
+			case 2:
+			{
+				player setPosASLW  (_activeSpawn modelToWorld [15,0,1]);
+			};
+
+			//CUP
+			case 3:
+			{
+				[_activeSpawn, player] call CUP_fnc_moveInCargo;
+			};
+
+			//Destroyer
+			default
+			{
+				player setPosASLW  (_activeSpawn modelToWorld [0,45,10]);
+			};
+		};
+	};
+
 	//On leader
 	case (_activeSpawn == leader player && (vehicle _activeSpawn != _activeSpawn)):	{
 		player assignAsCargo (vehicle _activeSpawn);
@@ -149,6 +188,7 @@ switch (true) do
 				player setpos (_playerDeployPos findEmptyPosition [1, 50]);
 			} else {
 				//if the vehicle is flying parachute the player
+				_teleportAtStart = 4;
 				[getPos _activeSpawn, ["",player], false, (getPos _activeSpawn) select 2, floor (random 40)] call MCC_fnc_paradrop;
 			};
 		};
@@ -205,6 +245,62 @@ if (_activeSpawn == leader player && (vehicle _activeSpawn != _activeSpawn)) the
 };
 */
 
+//Start respawn cinematic
+if ((missionNamespace getVariable ["MCC_respawnCinematic",true]) && _teleportAtStart == 1) then {
+	private ["_camera","_relPos","_relDir","_music"];
+
+	//Play music
+	_music = MWinitMissionMusic call BIS_fnc_selectRandom;
+	playMusic [_music,5];
+
+	_camera = "Camera" camcreate (player modelToWorld [0,400,3000]);
+	_camera cameraeffect ["internal","back"];
+	_camera camPrepareFOV 0.900;
+	_camera camsetTarget vehicle player;
+	cameraEffectEnableHUD false;
+	showCinemaBorder true;
+
+	//Start cinematic text
+	0 = [] spawn MCC_fnc_camp_showOSD;
+
+	{
+		_camera camSetRelPos _x;
+		_camera camcommit 1;
+		waitUntil {camCommitted _camera};
+		sleep 0.3;
+	} forEach [[0,1000,200],
+			   [0,500,100],
+			   [0,3,2.5]
+			  ];
+
+	sleep 1;
+
+	//Dissolve effect
+	private ["_blur"];
+	_blur = ppEffectCreate ["DynamicBlur", 474];
+	_blur ppEffectEnable true;
+	_blur ppEffectAdjust [10];
+	_blur ppEffectCommit 0.5;
+
+	waitUntil {ppEffectCommitted _blur};
+
+	_camera cameraEffect ["TERMINATE", "BACK"];
+	camdestroy _camera;
+	_camera = nil;
+
+
+	_blur ppEffectAdjust [0];
+	_blur ppEffectCommit 0.5;
+
+	waitUntil {ppEffectCommitted _blur};
+
+	_blur ppEffectEnable false;
+	ppEffectDestroy _blur;
+
+	sleep 5;
+	playMusic ["",1];
+};
+
 //Remove escape event handlers and reseting menu
 if (!isnil "CP_RESPAWNPANEL_IDD") then {CP_RESPAWNPANEL_IDD displayRemoveEventHandler ["KeyDown", CP_disableEsc]};
 if (!isnil "CP_SQUADPANEL_IDD") then {CP_SQUADPANEL_IDD displayRemoveEventHandler ["KeyDown", CP_disableEsc]};
@@ -213,3 +309,7 @@ if (!isnil "CP_WEAPONSPANEL_IDD") then {CP_WEAPONSPANEL_IDD displayRemoveEventHa
 if (!isnil "CP_ACCESPANEL_IDD") then {CP_ACCESPANEL_IDD displayRemoveEventHandler ["KeyDown", CP_disableEsc]};
 if (!isnil "CP_UNIFORMSPANEL_IDD") then {CP_UNIFORMSPANEL_IDD displayRemoveEventHandler ["KeyDown", CP_disableEsc]};
 CP_respawnPanelOpen = false;
+
+//Remove MCC medic effects
+if (!isNil "MCC_medicBleedingPPEffectColor") then {MCC_medicBleedingPPEffectColor ppEffectEnable false};
+if (!isNil "MCC_medicBleedingPPEffectBlur") then {MCC_medicBleedingPPEffectBlur ppEffectEnable false};

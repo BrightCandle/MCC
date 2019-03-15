@@ -3,8 +3,7 @@ private ["_dir","_difx","_dify","_relativedir","_adis","_bdis","_borderdis","_po
 _pos =  param [0,[0,0,0],[[]]];
 _marker = param [1,"",[""]];
 
-if (isnil "pos") exitWith {false};
-if (count _pos < 3) exitWith {false};
+if (count _pos < 2) exitWith {false};
 
 _pos inArea _marker;
 

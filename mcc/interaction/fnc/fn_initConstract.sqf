@@ -13,7 +13,8 @@
 #define REQUIRE_FOB_FOB_MIN_DISTANCE 500
 #define REQUIRE_CONSTRUCT_FOB_MIN_DISTANCE 100
 #define MAX_WALLS 14
-#define ANCHOR_ITEM "Land_Bricks_V3_F"
+#define ANCHOR_ITEM "Land_TreeBin_F"
+#define	MCC_FOB_BaseItem	"Land_TBox_F"
 
 private ["_conType","_available","_errorMessegeIndex","_errorMesseges","_check","_respawPositions","_error","_dir","_pos","_vehicleType","_const","_success"];
 
@@ -68,7 +69,9 @@ if (_conType in ["wall","bunker"]) then {
 	//Check Near FOB
 	_respawPositions = [player] call BIS_fnc_getRespawnPositions;
 	if (_conType == "fob") then {
-		_check = {_pos distance _x < REQUIRE_FOB_FOB_MIN_DISTANCE} count _respawPositions;
+		_check = {(_pos distance _x < REQUIRE_FOB_FOB_MIN_DISTANCE) &&
+				  !(_x isKindOf "man" || (toLower (_x getVariable ["type",""]) == "rally_point"))} count _respawPositions;
+
 		_check = _check + ({((_x getVariable ["MCC_conType",""])=="fob") && (playerside == _x getVariable ["MCC_side",sidelogic])} count (_pos nearObjects [ANCHOR_ITEM, REQUIRE_FOB_FOB_MIN_DISTANCE]));
 		if (_check > 0) then {_available = false; _errorMessegeIndex = 2};
 	} else {
@@ -102,7 +105,7 @@ if (_available) then {
 						case "at":	{if (playerSide == west) then {"B_static_AT_F"} else {"O_static_AT_F"}};
 						case "aa":	{if (playerSide == west) then {"B_static_AA_F"} else {"O_static_AA_F"}};
 						case "mortar":	{if (playerSide == west) then {"B_Mortar_01_F"} else {"O_Mortar_01_F"}};
-						case "fob": {"Land_TBox_F"};
+						case "fob": {MCC_FOB_BaseItem};
 					};
 
 	missionNamespace setVariable ["MCC_FOB_object_position",[[],0]];
@@ -111,21 +114,22 @@ if (_available) then {
 	MCC_FOB_object = _vehicleType createVehicleLocal [0,0,0];
 	MCC_FOB_object allowDamage false;
 	["MCC_placeFOBObject_ID", "onEachFrame", {
+		_object = _this select 0;
 		_ins = lineIntersectsSurfaces [
 		AGLToASL positionCameraToWorld [0,0,0],
 		AGLToASL positionCameraToWorld [0,0,10],
 		player,
-		_this,
+		_object,
 		true,
 		1,
 		"GEOM",
 		"NONE"
 		];
-		if (count _ins == 0) exitWith {_this setPosASL [0,0,0]};
-		_this setPosASL (_ins select 0 select 0);
-		_this setVectorUp (_ins select 0 select 1);
-		_this setDir getDir player;
-	}, MCC_FOB_object] call BIS_fnc_addStackedEventHandler;
+		if (count _ins == 0) exitWith {_object setPosASL [0,0,0]};
+		_object setPosASL (_ins select 0 select 0);
+		_object setVectorUp (_ins select 0 select 1);
+		_object setDir getDir player;
+	}, [MCC_FOB_object]] call BIS_fnc_addStackedEventHandler;
 
 	// Add secondary hold fire and place object to the action
 	_action =  player addAction ["Place Constuct", {missionNamespace setVariable ["MCC_FOB_object_position",[getPosASL MCC_FOB_object, getDir MCC_FOB_object]]; [publicVariableServer "MCC_FOB_object_position"]}, "", 0, false, true, "DefaultAction", "true"];
@@ -141,7 +145,6 @@ if (_available) then {
 	deleteVehicle (missionNamespace getVariable ["MCC_FOB_object",nil]);
 	player removeAction _action;
 	["MCC_placeFOBObject_ID", "onEachFrame"] call BIS_fnc_removeStackedEventHandler;
-
 
 	if (!_success ) exitWith {};
 	if (player distance2D _pos > 30) exitWith {};
@@ -164,10 +167,9 @@ if (_available) then {
 		_const setPosASL _pos;
 		sleep 0.01;
 		_const setPosASL _pos;
-		//_const = [_pos, _dir, [[_vehicleType,[0,0,0.0237527],0.216771,1,0,{},true]]] call MCC_fnc_objectMapper;
 		_const setVariable ["MCC_CONST_FORT",true, true];
 	} else {
-		[[_conType, ASLToATL (_pos), playerside, str _dir] ,"MCC_fnc_construction", false,false] call BIS_fnc_MP;
+		[[_conType, _pos, playerside, str _dir] ,"MCC_fnc_construction", false,false] call BIS_fnc_MP;
 	};
 
 	//broadcast

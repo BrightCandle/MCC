@@ -11,7 +11,7 @@ if (missionNamespace getVariable ["MCC_interactionKey_down",false]) exitWith {MC
 MCC_interactionKey_down = true;
 if (dialog ||  missionNamespace getvariable ["MCC_interactionKey_holding",false]) exitWith {};
 
-_array = [["closeDialog 0",format ["<t size='0.8' align='center' color='#ffffff'>%1</t>",if (name _suspect == "Error: No unit") then {"John Doe"} else {name _suspect}],""]];
+_array = [["closeDialog 0",format ["<t size='0.8' align='center' color='#ffffff'>%1</t>",if (name _suspect == "No unit") then {"John Doe"} else {name _suspect}],""]];
 
 //if not inside a vehicle
 if (vehicle player == player) then {
@@ -44,12 +44,48 @@ if (vehicle player == player) then {
 	};
 
 	//Attached gear
-	_array pushBack  ["[(_this select 0),'gear'] spawn MCC_fnc_interactSelfClicked","Attach",format ["%1mcc\roleSelection\data\ui\uniform_ca.paa", MCC_path]];
+	_array pushBack  ["[(_this select 0),'gear'] spawn MCC_fnc_interactSelfClicked","Equipment",format ["%1mcc\roleSelection\data\ui\uniform_ca.paa", MCC_path]];
 
 	//Drop Ammo
 	if ("MCC_ammoBoxMag" in items player) then {
 		_array pushBack  ["['MCC_ammoBoxMag','MCC_ammoBox'] spawn MCC_fnc_ACEdropAmmobox;","Drop Ammobox","\a3\ui_f\data\IGUI\Cfg\Actions\reload_ca.paa"];
 	};
+
+	//Place Explosives
+	private _mags = [];
+	{
+			if ((getnumber (configfile >> "CfgMagazines" >> _x >> "type")==512) && !(_x in _mags)) then {_mags pushback _x};
+	} foreach ((magazines player)+(items player));
+
+	if (count _mags > 0) then {
+		_array pushBack  ["[(_this select 0),'ordnance'] spawn MCC_fnc_interactSelfClicked","Place Explosives","\A3\ui_f\data\igui\cfg\simpleTasks\types\mine_ca.paa"];
+	};
+
+	//Detonate Explosives
+	if (count (player getVariable ["MCC_utilityActiveCharges",[]])>0) then {
+		_array pushBack  ["[(_this select 0),'ordnanceExplode'] spawn MCC_fnc_interactSelfClicked","Detonate","\A3\ui_f\data\igui\cfg\simpleTasks\types\destroy_ca.paa"];
+	};
+
+	/*
+	//FOB BOX
+	if ({player distance2d _x < 20 && (toLower (_x getVariable ["type",""]) != "rally_point") && !(_x isKindOf "man")} count ([player] call BIS_fnc_getRespawnPositions) > 0) then {
+
+		//rts main box
+		if (missionNamespace getVariable ["MCC_surviveMod",false]) then {
+				_array pushBack["['mainBox'] spawn MCC_fnc_vehicleMenuClicked","Open Vault",format ["%1mcc\interaction\data\safe.paa",MCC_path]];
+		};
+
+		//Change Kits
+		if (CP_activated && (missionNamespace getVariable ["MCC_allowChangingKits",true]) && !(missionNamespace getVariable ["MCC_surviveMod",false])) then {
+			_array pushBack["['kitSelect'] spawn MCC_fnc_vehicleMenuClicked","Change Kit",format ["%1data\IconPhysical.paa",MCC_path]];
+		};
+
+		//Resupply
+		if (!(missionNamespace getVariable ["MCC_surviveMod",false])) then {
+			_array pushBack["['resupply'] spawn MCC_fnc_vehicleMenuClicked","Resupply",format ["%1data\IconAmmo.paa",MCC_path]];
+		};
+	};
+	*/
 };
 
 //Commander Console

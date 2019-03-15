@@ -98,12 +98,12 @@ for "_i" from 1 to _counter do {
 	private ["_spawn"];
 	_spawn = true;
 	{
-		if (_x distance _pos < (_x getVariable ["radius",100])) exitWith {_spawn = false};
+		if (_x distance _pos < ((_x getVariable ["radius",100])*2)) exitWith {_spawn = false};
 	} forEach _deniedZones;
 
 	if (_spawn) then {
 		//Normal Civ
-		if !(_civRelations < 0.4 && random 1 < 0.1) then {
+		if (!(_civRelations < 0.4 && random 1 < 0.1) || (missionNamespace getVariable ["MCC_civRelationsIgnore",false])) then {
 
 			if (count _unitsArray > 6) then {_unitsArray resize 6};
 			_civClass = _unitsArray call bis_fnc_selectRandom;
@@ -128,7 +128,7 @@ for "_i" from 1 to _counter do {
 			_civArray pushBack _unit;
 
 			//Lets check the civilians reaction to the player and spawn an armed civilian
-			if (random 1 > _civRelations) then {
+			if ((random 1 > _civRelations) && !(missionNamespace getVariable ["MCC_civRelationsIgnore",false])) then {
 				//Rep is bad spawn suicide bomber
 				if (_civRelations < 0.4 && random 1 < 0.1) then {
 					[_unit,_sidePlayer,["small","medium","large"] call bis_fnc_selectRandom,[0,2] call bis_fnc_selectRandom] spawn MCC_fnc_manageSB;

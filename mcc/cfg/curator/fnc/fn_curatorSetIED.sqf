@@ -33,7 +33,8 @@ if (!(local _module) || isnull curatorcamera) exitWith {};
 _object = missionNamespace getVariable ["MCC_curatorMouseOver",[]];
 
 //if no object selected or not a vehicle
-if (count _object <2) exitWith {systemchat "No object selected";deleteVehicle _module};
+_str = "<t size='0.8' t font = 'puristaLight' color='#FFFFFF'>" + "No object selected" + "</t>";
+if (count _object <2) exitWith {[_str,0,1.1,2,0.1,0.0] spawn bis_fnc_dynamictext; deleteVehicle _module};
 _object = _object select 1;
 
 //if no empty positions
@@ -83,7 +84,8 @@ if (_object isKindOf "Man") then {
 	_iedside 			= (_resualt select 6) call BIS_fnc_sideType;
 
 
-	[[_object, _trapvolume, _IEDExplosionType, _IEDDisarmTime, _IEDJammable, _IEDTriggerType, _trapdistance, _iedside], "MCC_fnc_createIED", false, false] call BIS_fnc_MP;
+	_ok = [_object, _trapvolume, _IEDExplosionType, _IEDDisarmTime, _IEDJammable, _IEDTriggerType, _trapdistance, _iedside] execVM "mcc_sandbox_mod\mcc\fnc\ied\fn_createIED.sqf";
+	//[_object, _trapvolume, _IEDExplosionType, _IEDDisarmTime, _IEDJammable, _IEDTriggerType, _trapdistance, _iedside] remoteExec ["MCC_fnc_createIED",2];
 };
 
 

@@ -15,7 +15,7 @@ if (typeName (_module getVariable ["side",true]) == typeName 0) exitWith {
 	_campaign = (_module getVariable ["campaign",0]) == 1;
 
 	{
-		[[_x, _side, _gunners, _campaign], "MCC_fnc_setEvac", false, false] call BIS_fnc_MP;
+		[_x, _side, _gunners, _campaign] remoteExec ["MCC_fnc_setEvac",2];
 	} forEach (synchronizedObjects _module);
 };
 
@@ -25,7 +25,8 @@ if (!(local _module) || isnull curatorcamera) exitWith {};
 _object = missionNamespace getVariable ["MCC_curatorMouseOver",[]];
 
 //if no object selected or not a vehicle
-if (count _object <2) exitWith {systemchat "No vehicle selected"; deleteVehicle _module};
+_str = "<t size='0.8' t font = 'puristaLight' color='#FFFFFF'>" + "No vehicle selected" + "</t>";
+if (count _object <2) exitWith {[_str,0,1.1,2,0.1,0.0] spawn bis_fnc_dynamictext; deleteVehicle _module};
 _object = _object select 1;
 
 //if no empty positions
@@ -46,7 +47,7 @@ _campaign = _resualt select 2;
 
 if (count _resualt == 0) exitWith {deleteVehicle _module};
 
-[[_object, _side, _gunners, _campaign], "MCC_fnc_setEvac", false, false] call BIS_fnc_MP;
+[_object, _side, _gunners, _campaign] remoteExec ["MCC_fnc_setEvac",2];
 
 
 deleteVehicle _module;

@@ -158,7 +158,7 @@ for "_i" from 0 to ((count _types) - 1) do
 		}
 		else
 		{
-			_unit = ([_itemPos, _azimuth, _type, _grp] call BIS_fnc_spawnVehicle) select 0;
+			_unit = ([_itemPos, _azimuth, _type, _grp] call MCC_fnc_spawnVehicle) select 0;
 			_vehicles set [count _vehicles, _unit];
 		};
 

@@ -116,13 +116,7 @@ class mcc_consoleF1: MCC_RscButton
 	y = 0.829871 * safezoneH + safezoneY;
 	w = 0.0229167 * safezoneW;
 	h = 0.0329871 * safezoneH;
-	colorBackground[] = {0,0,0,0};
-	colorFocused[] = {1,1,1,0.2};
-	colorShadow[] = { 0, 0, 0, 0};
-	colorBorder[] = { 0, 0, 0, 0 };
-	colorBackgroundActive[] = {0,0,0,0};
-	colorDisabled[] = {0,0,0,0};
-	colorBackgroundDisabled[] = {0,0,0,0};
+	text = "F1";
 	onButtonClick = __EVAL("[1] execVM '"+MCCPATH+"mcc\general_scripts\console\conoleSwitchMenu.sqf'");
 	tooltip = "Main Menu";
 };
@@ -133,13 +127,7 @@ class mcc_consoleF2: MCC_RscButton
 	y = 0.829871 * safezoneH + safezoneY;
 	w = 0.0229167 * safezoneW;
 	h = 0.0329871 * safezoneH;
-	colorBackground[] = {0,0,0,0};
-	colorFocused[] = {1,1,1,0.2};
-	colorShadow[] = { 0, 0, 0, 0};
-	colorBorder[] = { 0, 0, 0, 0 };
-	colorBackgroundActive[] = {0,0,0,0};
-	colorDisabled[] = {0,0,0,0};
-	colorBackgroundDisabled[] = {0,0,0,0};
+	text = "F2";
 	onButtonClick = __EVAL("[2] execVM '"+MCCPATH+"mcc\general_scripts\console\conoleSwitchMenu.sqf'");
 	tooltip = "UAV Control";
 };
@@ -150,13 +138,7 @@ class mcc_consoleF3: MCC_RscButton
 	y = 0.829871 * safezoneH + safezoneY;
 	w = 0.0229167 * safezoneW;
 	h = 0.0329871 * safezoneH;
-	colorBackground[] = {0,0,0,0};
-	colorFocused[] = {1,1,1,0.2};
-	colorShadow[] = { 0, 0, 0, 0};
-	colorBorder[] = { 0, 0, 0, 0 };
-	colorBackgroundActive[] = {0,0,0,0};
-	colorDisabled[] = {0,0,0,0};
-	colorBackgroundDisabled[] = {0,0,0,0};
+	text = "F3";
 	onButtonClick = __EVAL("[3] execVM '"+MCCPATH+"mcc\general_scripts\console\conoleSwitchMenu.sqf'");
 	tooltip = "AC-130 Control";
 };
@@ -167,14 +149,8 @@ class mcc_consoleF4: MCC_RscButton
 	y = 0.829871 * safezoneH + safezoneY;
 	w = 0.0229167 * safezoneW;
 	h = 0.0329871 * safezoneH;
-	colorBackground[] = {0,0,0,0};
-	colorFocused[] = {1,1,1,0.2};
-	colorShadow[] = { 0, 0, 0, 0};
-	colorBorder[] = { 0, 0, 0, 0 };
-	colorBackgroundActive[] = {0,0,0,0};
-	colorDisabled[] = {0,0,0,0};
-	colorBackgroundDisabled[] = {0,0,0,0};
-	tooltip = "Forward observer artillery's interface";
+	text = "F4";
+	tooltip = "Forward Observer Artillery";
 	onButtonClick = __EVAL("[0,0,0,[1]] execVM '"+MCCPATH+"mcc\general_scripts\console\conoleOpenMenu.sqf'");
 };
 class mcc_consoleF5: MCC_RscButton
@@ -184,14 +160,8 @@ class mcc_consoleF5: MCC_RscButton
 	y = 0.829871 * safezoneH + safezoneY;
 	w = 0.0229167 * safezoneW;
 	h = 0.0329871 * safezoneH;
-	colorBackground[] = {0,0,0,0};
-	colorFocused[] = {1,1,1,0.2};
-	colorShadow[] = { 0, 0, 0, 0};
-	colorBorder[] = { 0, 0, 0, 0 };
-	colorBackgroundActive[] = {0,0,0,0};
-	colorDisabled[] = {0,0,0,0};
-	colorBackgroundDisabled[] = {0,0,0,0};
-	tooltip = "Open RTS interface";
+	text = "F5";
+	tooltip = "RTS interface";
 	onButtonClick ="while {dialog} do {closeDialog 0}; createDialog 'MCC_LOGISTICS_BASE_BUILD'";
 };
 class mcc_consoleF6: MCC_RscButton
@@ -201,13 +171,9 @@ class mcc_consoleF6: MCC_RscButton
 	y = 0.829871 * safezoneH + safezoneY;
 	w = 0.0229167 * safezoneW;
 	h = 0.0329871 * safezoneH;
-	colorBackground[] = {0,0,0,0};
-	colorFocused[] = {1,1,1,0.2};
-	colorShadow[] = { 0, 0, 0, 0};
-	colorBorder[] = { 0, 0, 0, 0 };
-	colorBackgroundActive[] = {0,0,0,0};
-	colorDisabled[] = {0,0,0,0};
-	colorBackgroundDisabled[] = {0,0,0,0};
+	text = "F6";
+	tooltip = "Fleet Management";
+	onButtonClick ="while {dialog} do {closeDialog 0}; [0,0,0] spawn MCC_fnc_LHDspawnMenuInit";
 };
  //===========================================Map==============================================
 	class MCC_mapBackground : MCC_RscPicture {
@@ -693,6 +659,7 @@ class mcc_consoleF6: MCC_RscButton
 				idc = 91;
 				tooltip = "Ammo";
 				text =  __EVAL(MCCPATH +"data\IconAmmo.paa");
+				colorText[] = { 0.9, 0, 0, 1 };
 
 				x = 0.0515627 * safezoneW;
 				y = 0.005 * safezoneH;
@@ -702,8 +669,9 @@ class mcc_consoleF6: MCC_RscButton
 			class MCC_Repair: MCC_RscPicture
 			{
 				idc = 92;
-				tooltip = "Repair";
+				tooltip = "Materials";
 				text = __EVAL(MCCPATH +"data\IconRepair.paa");
+				colorText[] = { 0, 0.5, 0.9, 1 };
 
 				x = 0.0928127 * safezoneW;
 				y = 0.005 * safezoneH;
@@ -715,6 +683,7 @@ class mcc_consoleF6: MCC_RscButton
 				idc = 93;
 				tooltip = "Fuel";
 				text = __EVAL(MCCPATH +"data\IconFuel.paa");
+				colorText[] = { 0, 0.9, 0.5, 1 };
 
 				x = 0.134063 * safezoneW;
 				y = 0.005 * safezoneH;
@@ -726,6 +695,7 @@ class mcc_consoleF6: MCC_RscButton
 				idc = 94;
 				tooltip = "Food";
 				text = __EVAL(MCCPATH +"data\IconFood.paa");
+				colorText[] = { 0.9, 0.5, 0, 1 };
 
 				x = 0.175313 * safezoneW;
 				y = 0.005 * safezoneH;
@@ -737,6 +707,7 @@ class mcc_consoleF6: MCC_RscButton
 				idc = 95;
 				tooltip = "Meds";
 				text = __EVAL(MCCPATH +"data\IconMed.paa");
+				colorText[] = { 0, 0.9, 0.9, 1 };
 
 				x = 0.216563 * safezoneW;
 				y = 0.005 * safezoneH;

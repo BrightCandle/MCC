@@ -1,8 +1,12 @@
-//=================================================================MCC_fnc_rtsRespawnUnits==============================================================================
+/*=================================================================MCC_fnc_rtsRespawnUnits==============================================================================
 //	Respawn dead units in a group
 //  Parameter(s):
 //     	_ctrl: CONTROL
-//==============================================================================================================================================================================
+//======================================================================================================================================================================*/
+
+#define	PARACHUTE	"NonSteerable_Parachute_F"
+#define	SOUNDJET	"BattlefieldJet1"
+
 private ["_ctrl","_res","_target","_unitsArray","_groupCfg","_groupArray","_unitClass","_parents","_ehID","_unit"];
 disableSerialization;
 _ctrl = _this select 0;
@@ -10,9 +14,6 @@ _res = param [1, [], [[]]];
 
 if (count MCC_ConsoleGroupSelected <=0) exitWith {};
 _target = MCC_ConsoleGroupSelected select 0;
-
-//Start building time
-//if !(_target call MCC_fnc_rtsBuildingProgress) exitWith {};
 
 //remove resources
 [_res] spawn MCC_fnc_baseResourceReduce;
@@ -37,8 +38,17 @@ if (count _unitsArray > 0) then {
 	_parents = [(configFile >> "cfgVehicles" >> _unitClass),true] call BIS_fnc_returnParents;
 
 	if ("Man" in _parents) then {
+
+		//Drop the unit
 		player globalRadio "CuratorWaypointPlaced";
-		_unit = _target createUnit [_unitClass, getpos leader _target, [], 0, "FORM"];
+		playsound SOUNDJET;
+		private _pos = position leader _target;
+		_pos set [2,(_pos select 2) + 50];
+		_unit = _target createUnit [_unitClass, _pos, [], 0, "FORM"];
+		_chute = createVehicle [PARACHUTE, position _unit, [], getdir (leader _target), 'NONE'];
+		_chute setPos (getPos _unit);
+		_unit moveindriver _chute;
+
 		_ehID = _unit addMPEventHandler ["mpkilled", {
 												_unit = name (_this select 0);
 												_killer = name (_this select 1);

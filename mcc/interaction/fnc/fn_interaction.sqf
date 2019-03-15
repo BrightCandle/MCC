@@ -1,7 +1,7 @@
 //==================================================================MCC_fnc_interaction=========================================================================================
 // Interaction perent
 //==============================================================================================================================================================================
-private ["_targets","_null","_selected","_objects","_dir","_target","_vehiclePlayer","_airports","_counter","_searchArray","_sides","_positionStart","_positionEnd","_pointIntersect","_break","_interactiveObjects","_objArray","_keyName","_key","_text","_objects","_headPos","_upFront","_closeObject"];
+private ["_targets","_null","_selected","_objects","_dir","_target","_vehiclePlayer","_airports","_counter","_searchArray","_sides","_positionStart","_positionEnd","_pointIntersect","_break","_interactiveObjects","_objArray","_keyName","_key","_text","_objects","_headPos","_upFront","_closeObject","_array"];
 disableSerialization;
 _break = false;
 _text = "";
@@ -38,6 +38,37 @@ player setVariable ["MCC_interactionActiveTime",time];
 //Get objects for survival
 _objArray = missionNamespace getVariable ["MCC_SurvivalPlaceHoldersObjects",[] call MCC_fnc_getSurvivalPlaceHolders];
 
+//if ACE is on use it only to halt AI and open doors
+if (missionNamespace getVariable ["MCC_isACE",false]) exitWith {
+
+	if (vehicle player == player) then {
+		_target = cursorTarget;
+		player reveal _target;
+
+		//Try to halt AI
+		if (_target isKindof "CAManBase" && (player distance _target < 30)) then {
+
+			//Cant neturalize friendly units
+			if ([_target] call MCC_fnc_canHaltAI) then {
+
+				[_target] call MCC_fnc_doHaltAI;
+			};
+		};
+
+		//Handle house
+		if (_target isKindof "house" || _target isKindof "wall") then {
+			private ["_door","_animation","_phase","_tempArray"];
+
+			_tempArray = [_target]  call MCC_fnc_isDoor;
+			_door = _tempArray select 0;
+			_animation = _tempArray select 1;
+			_phase = _tempArray select 2;
+
+			[_target,_door,_phase,_animation] call MCC_fnc_doorHandle;
+		};
+	};
+};
+
 //Outside of vehicle
 if (vehicle player == player) then {
 	_target = cursorTarget;
@@ -52,6 +83,23 @@ if (vehicle player == player) then {
 			_target = _objects select 0;
 		};
 	};
+
+	_objects = player nearObjects [MCC_dummy,10];
+
+	//Handle IED
+	if (count _objects > 0) then {
+		_selected = ([_objects,[],{player distance _x},"ASCEND"] call BIS_fnc_sortBy) select 0;
+		_dir	  = [player, _selected] call BIS_fnc_relativeDirTo;
+		if (_dir>340 || _dir < 20) exitWith {
+			//IED
+			if (((_selected getVariable ["MCC_IEDtype",""]) == "ied") && !(_selected getVariable ["MCC_isInteracted",false])) then {
+				_null= [player,_selected] call MCC_fnc_interactIED;
+				_break = true;
+			};
+		};
+	};
+
+	if (_break) exitWith {};
 
 	if (_target isKindof "weaponHolderSimulated") then {
 		_objects = _target nearObjects ["man", 5];
@@ -69,14 +117,14 @@ if (vehicle player == player) then {
 	};
 
 	//Handle supply crate
-	if (typeof _target in ["MCC_ammoBox","MCC_crateAmmo","MCC_crateAmmoBigWest","MCC_crateAmmoBigEast","Box_NATO_AmmoVeh_F","B_Slingload_01_Ammo_F","Land_Pod_Heli_Transport_04_ammo_F","MCC_crateSupply","MCC_crateFuel"]) exitWith {
-
+	if (typeof _target in (missionNamespace getVariable ["MCC_logisticsCrates_TypesWest",[]]) ||
+	    typeof _target in (missionNamespace getVariable ["MCC_logisticsCrates_TypesEast",[]])) exitWith {
 		_null= [_target] call MCC_fnc_interactUtility;
 		_break = true;
 	};
 
 	//Handle house
-	if ((_target isKindof "house" || _target isKindof "wall" || _target isKindof "AllVehicles" || _target isKindof "ReammoBox_F") && !(_target isKindof "CAManBase")) exitWith
+	if ((_target isKindof "house" || _target isKindof "wall" || _target isKindof "AllVehicles" || _target isKindof "ReammoBox_F" || _target isKindOf "Thing") && !(_target isKindof "CAManBase")) exitWith
 	{
 		_null= [_target] call MCC_fnc_interactDoor
 	};
@@ -86,23 +134,6 @@ if (vehicle player == player) then {
 		_null= [_target, player,_keyName] call MCC_fnc_interactMan;
 		player setVariable ["MCC_interactionActive",false];
 		_break = true;
-	};
-
-	if (_break) exitWith {};
-
-	_objects = player nearObjects [MCC_dummy,10];
-
-	//Handle IED
-	if (count _objects > 0) then {
-		_selected = ([_objects,[],{player distance _x},"ASCEND"] call BIS_fnc_sortBy) select 0;
-		_dir	  = [player, _selected] call BIS_fnc_relativeDirTo;
-		if (_dir>340 || _dir < 20) exitWith {
-			//IED
-			if (((_selected getVariable ["MCC_IEDtype",""]) == "ied") && !(_selected getVariable ["MCC_isInteracted",false])) then {
-				_null= [player,_selected] call MCC_fnc_interactIED;
-				_break = true;
-			};
-		};
 	};
 
 	if (_break) exitWith {};
@@ -152,6 +183,16 @@ if (vehicle player == player) then {
 			case (_ctrlData == "reel") : {_object call MCC_fnc_attachPod};
 			case (_ctrlData == "releasepod") : {_object call MCC_fnc_releasePod};
 			case (_ctrlData == "artillery") : {_object call MCC_fnc_openArtillery};
+			case (_ctrlData == "components") : {
+				_array = [["[(missionNamespace getVariable ['MCC_interactionLayer_0',[]]),1] spawn MCC_fnc_interactionsBuildInteractionUI","Back",format ["%1mcc\interaction\data\iconBack.paa",MCC_path]]];
+				private _cfgAnimationSources = "getText (_x >> 'source') == 'user' && getText (_x >> 'displayName') != ''" configClasses (configFile >> "CfgVehicles" >> typeof vehicle player >> "AnimationSources");
+
+				{
+					_array pushBack ([format ["vehicle player animateSource [%1,%2]",str configName _x, 1-((vehicle player) animationPhase configName _x) ],getText (_x >> "displayName"),getText (configfile >> "CfgVehicles" >> typeOf vehicle player >> "Icon")]);
+				} forEach _cfgAnimationSources;
+
+				[_array,1] call MCC_fnc_interactionsBuildInteractionUI;
+			};
 		};
 	};
 
@@ -227,12 +268,14 @@ if (vehicle player == player) then {
 
 		{
 			_sides = _x getVariable ["MCC_runwaySide",-1];
-			_sides = if (_sides == -1) then {[east,west,resistance,civilian]} else {[_sides call bis_fnc_sideType]};
+			_sides = if (_sides isEqualTo -1) then {[east,west,resistance,civilian]} else {[_sides call bis_fnc_sideType]};
 
-			if (((_x getVariable ["MCC_runwayDis",0])>0) && (playerside in _sides)) then
-			{
-				_airports set [_counter,[_x,(_x getVariable ["MCC_runwayName","Runway"]),(_x getVariable ["MCC_runwayDis",0]),(_x getVariable ["MCC_runwayAG",false]),(_x getVariable ["MCC_runwayCircles",true])]];
-				_counter = _counter +1;
+			if (typeName (_x getVariable ["MCC_runwayDis",0]) isEqualTo typeName 0) then {
+				if (((_x getVariable ["MCC_runwayDis",0])>0) && (playerside in _sides)) then
+				{
+					_airports set [_counter,[_x,(_x getVariable ["MCC_runwayName","Runway"]),(_x getVariable ["MCC_runwayDis",0]),(_x getVariable ["MCC_runwayAG",objNull]),(_x getVariable ["MCC_runwayCircles",true])]];
+					_counter = _counter +1;
+				};
 			};
 		} foreach _searchArray;
 
@@ -248,6 +291,22 @@ if (vehicle player == player) then {
 		};
 
 		player setVariable ["interactWith",_airports];
+	};
+
+	//Pylon change
+	if ((player == leader _vehiclePlayer) &&
+	    (speed _vehiclePlayer <= 0) &&
+	    ({_x getVariable ["MCC_fnc_pylonsChangeSource",false]} count (position player nearObjects 100) > 0)
+	   ) then {
+	   	_array pushBack ["[false,vehicle player] spawn MCC_fnc_pylonsChange","Rearm",format ["%1data\IconAmmo.paa",MCC_path]];
+	};
+
+	//Components
+	if ((player == leader _vehiclePlayer) &&
+	    (speed _vehiclePlayer <= 10) &&
+	    count ("getText (_x >> 'source') == 'user' && getText (_x >> 'displayName') != ''" configClasses (configFile >> "CfgVehicles" >> typeof _vehiclePlayer >> "AnimationSources")) > 0
+	   ) then {
+	   	_array pushBack ["['components'] spawn MCC_fnc_vehicleCargoMenuClicked","Components",format ["%1data\IconRepair.paa",MCC_path]];
 	};
 
 	//Taru pods

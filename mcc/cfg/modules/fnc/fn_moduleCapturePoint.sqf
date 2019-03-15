@@ -85,7 +85,7 @@ switch _mode do {
 		/////////////////////////////////////////////////////////////////////////////////////
 
 		//--- Load params
-		_name = _logic getvariable ["Name",""];
+		_name = _logic getvariable ["sectorName",""];
 		_designation = _logic getvariable ["Designation",""];
 		_onOwnerChange = compile (_logic getvariable ["OnOwnerChange","true"]);
 		_scoreReward = (_logic getvariable ["ScoreReward",0]) call bis_fnc_parsenumber;
@@ -93,6 +93,7 @@ switch _mode do {
 		_radius = (_logic getvariable ["radius",50]) call bis_fnc_parsenumber;
 		_flag = _logic getvariable ["flag",false];
 		_enableHUD = _logic getvariable ["enableHUD",true];
+		_addRespawn = _logic getvariable ["respawn",false];
 
 		if (typeName _flag == typeName 0) then {_flag = _flag == 0};
 
@@ -319,6 +320,21 @@ switch _mode do {
 				//--- Broadcast
 				_logic setvariable ["owner",_owner,true];
 
+				//---- Respawn
+				if (_addRespawn) then {
+					private ["_respawnId"];
+					_respawnId = _logic getvariable ["respawnID",-1];
+
+					//Remove previous respawn
+					if (_respawnId != -1) then {
+						[_ownerOld, _respawnId] call BIS_fnc_removeRespawnPosition;
+					};
+
+					//Add new respawn
+					_respawnId = [_owner, _designation] call BIS_fnc_addRespawnPosition;
+					_logic setVariable ["respawnID",_respawnId,true];
+				};
+
 				//--- Reward
 				_owner addscoreside _scoreReward;
 
@@ -383,11 +399,18 @@ switch _mode do {
 
 			//Add resources
 			if (_step mod 5 == 0 && _owner != sideUnknown && _type <3) then {
-				private ["_array","_res"];
+				private ["_array","_res","_resources"];
 				_array = call compile format ["MCC_res%1",_owner];
+
+				//get number of storage
+				_resources = ["resources",_owner] call MCC_fnc_rtsCalculateResourceTreshold;
 				_res = (_array select _type)+5;
-				_array set [_type,_res];
-				publicvariable format ["MCC_res%1",_owner];
+
+				//Don't add more resources then can handle
+				if (_res <= _resources) then {
+					_array set [_type,_res];
+					publicvariable format ["MCC_res%1",_owner];
+				};
 			};
 
 			_step =_step + 1;
@@ -442,19 +465,33 @@ switch _mode do {
 
 		//_progress = _progress/100;
 
-		//Close the capture UI
-		if (!(_this select 4) || _progress == 1) exitWith {(["MCC_captureProgressRsc"] call BIS_fnc_rscLayer) cutText ["", "PLAIN"];};
-
-
-
 		//Create progress bar
-		if (isnull (uiNamespace getVariable ["MCC_captureProgressRsc",objNull])) then {
-			(["MCC_captureProgressRsc"] call BIS_fnc_rscLayer) cutRsc ["MCC_captureProgressRsc", "PLAIN"];
+		if (isnull (uiNamespace getVariable ["MCC_hud",objNull])) then {
+			(["MCC_hud"] call BIS_fnc_rscLayer) cutRsc ["MCC_hud", "PLAIN"];
+			_ctrl = ((uiNameSpace getVariable "MCC_hud") displayCtrl 20);
+			_ctrl ctrlSetPosition  [(0.5 * safezoneW + safezoneX), (0.1 * safezoneH + safezoneY), 0, (0.033 * safezoneH)];
+			_ctrl ctrlCommit 0;
 		};
 
-		_ctrl = ((uiNameSpace getVariable "MCC_captureProgressRsc") displayCtrl 2);
+		_ctrl = ((uiNameSpace getVariable "MCC_hud") displayCtrl 20);
+
+		//Close the capture UI
+		if ((!(_this select 4) || _progress == 1 || !(alive player) || (player getvariable ["MCC_medicUnconscious",false])) && (((ctrlPosition _ctrl) select 2) > 0)) exitWith {
+			_ctrl ctrlSetPosition  [(0.5 * safezoneW + safezoneX), (0.1 * safezoneH + safezoneY), 0, (0.033 * safezoneH)];
+			_ctrl ctrlCommit 0.2;
+			playSound "MCC_pop";
+		};
+
+		//Open ctrl
+		if (((ctrlPosition _ctrl) select 2) == 0 && _progress < 1) then {
+			_ctrl ctrlSetPosition  [(0.298906 * safezoneW + safezoneX), (0.1 * safezoneH + safezoneY), (0.4125 * safezoneW), (0.033 * safezoneH)];
+			_ctrl ctrlCommit 0.2;
+			playSound "MCC_pop"
+		};
+
+		_ctrl = ((uiNameSpace getVariable "MCC_hud") displayCtrl 22);
 		_ctrl ctrlSetText (_logic getvariable ["name",""]);
-		_ctrl = ((uiNameSpace getVariable "MCC_captureProgressRsc") displayCtrl 1);
+		_ctrl = ((uiNameSpace getVariable "MCC_hud") displayCtrl 21);
 
 		_ctrl progressSetPosition _progress;
 	};

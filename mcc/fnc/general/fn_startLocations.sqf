@@ -1,24 +1,16 @@
-//===================================================================MCC_fnc_startLocations=========================================================================================
+//===================================================================MCC_fnc_startLocations===============================================================================
 // Teleport the player when start location has been found
 // Example: []  call MCC_fnc_startLocations;
-// <IN>	side : integer - side number to take effect
+// <IN>	Nothing
 //<OUT>	Nothing
-//==============================================================================================================================================================================
-private ["_playerClass","_playerSideNr","_safePos","_null","_side","_startLocationName","_teleportAtStart","_helo","_cpActivated","_respawnDialog","_markerName","_pos","_respawnName","_starLoc","_openDialog"];
-_side = _this select 0;
+//=================================================================================================================================================================
+private ["_playerSideNr","_safePos","_null","_side","_startLocationName","_teleportAtStart","_helo","_cpActivated","_respawnDialog","_markerName","_pos","_respawnName","_starLoc","_openDialog"];
+
 if (!local player || missionNameSpace getVariable ["MCC_startLocationsRuning", false]) exitWith {};
 
 waituntil {alive player && !(IsNull (findDisplay 46))};
 
-_playerClass = typeOf player;
-_playerSideNr =  getNumber (configFile >> "CfgVehicles" >> _playerClass >> "side");
-
-if (isnil "_side") then {
-	_side = _playerSideNr;
-};
-
-if (_side !=  _playerSideNr) exitWith {};
-
+_playerSideNr =  [playerSide] call BIS_fnc_sideID;
 missionNameSpace setVariable ["MCC_startLocationsRuning", true];
 
 //Player side
@@ -26,13 +18,13 @@ switch (_playerSideNr) do {
     case 0: {
     	_startLocationName = "MCC_START_EAST";
     	_markerName = "MCC_StartMarkerE";
-       	_respawnName = "RESPAWN_EAST";
+      _respawnName = "RESPAWN_EAST";
     };
 
     case 1: {
     	_startLocationName = "MCC_START_WEST";
     	_markerName = "MCC_StartMarkerW";
-      	_respawnName = "RESPAWN_WEST";
+      _respawnName = "RESPAWN_WEST";
     };
 
    case 2: {
@@ -44,12 +36,12 @@ switch (_playerSideNr) do {
     default {
      	_startLocationName = "MCC_START_CIV";
     	_markerName = "MCC_StartMarkerC";
-       	_respawnName = "RESPAWN_CIVILIANS";
+      _respawnName = "RESPAWN_CIVILIANS";
     };
 };
 
 
-while {str (missionNamespace getVariable [_startLocationName,[]]) == "[]"} do {sleep 3};
+while {str (missionNamespace getVariable [_startLocationName,[]]) == "[]"} do {sleep 1};
 missionNameSpace setVariable ["MCC_startLocationsRuning", false];
 
 //Is role selection on
@@ -61,12 +53,15 @@ _respawnDialog = missionNamespace getVariable ["MCC_openRespawnMenu",true];
 //Black Screen on mission startup
 if (!_cpActivated && _respawnDialog) then {
 
-	cutText ["","BLACK",0.1];
-	sleep 3;
 	_startLocations = [player] call BIS_fnc_getRespawnPositions;
 	_openDialog = {(_x getVariable ["teleport",0]) != 0} count _startLocations > 0;
 
 	if (_openDialog) then {
+    waituntil {!dialog};
+
+		cutText ["","BLACK",0.1];
+		sleep 3;
+
 		player setVariable ["cpReady",false,true];
 		playerDeploy = false;
 		sleep 0.1;
@@ -83,13 +78,12 @@ if (!_cpActivated && _respawnDialog) then {
 	};
 };
 
-_pos = missionNamespace getVariable [_startLocationName,position player];
-
-/*
-if (!_cpActivated && !_respawnDialog) then	{
-	player setpos _pos;
+if (_cpActivated) then {
+    0 spawn {
+        _null=[] execVM MCC_path + "mcc\roleSelection\scripts\player_init.sqf"
+    };
 };
-*/
+_pos = missionNamespace getVariable [_startLocationName,position player];
 
 if (!isnil _markerName) then {deleteMarkerLocal _markerName};
 missionNamespace setVariable [_markerName,createMarkerLocal [_markerName, _pos]];
@@ -105,13 +99,3 @@ createMarkerLocal [_respawnName, _pos];
 _respawnName setMarkerShapeLocal "ICON";
 _respawnName setMarkerTypeLocal  "mil_objective";
 _respawnName setMarkerColorLocal "ColorRed";
-
-//BTC - Revive
-if (!isnil "BTC_respawn_marker") then {
-	BTC_respawn_marker = format ["respawn_%1",playerSide];
-	if (BTC_respawn_marker == "respawn_guer") then {BTC_respawn_marker = "respawn_guerrila"};
-
-	if (!isNil "BTC_r_base_spawn") then {deletevehicle BTC_r_base_spawn};
-
-	BTC_r_base_spawn = "Land_HelipadEmpty_F" createVehicleLocal getMarkerPos BTC_respawn_marker;
-};

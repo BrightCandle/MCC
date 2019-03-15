@@ -12,20 +12,170 @@
 //=================================================================================================================================================================
 
 //Made by Shay_Gman (c) 06.14
-private ["_pos", "_trapvolume", "_IEDExplosionType", "_IEDDisarmTime", "_IEDJammable", "_IEDTriggerType", "_IEDAmbushGroup",
- "_trapdistance", "_iedside", "_fakeIed", "_dummy","_ok","_iedDir","_init","_helper"];
+private ["_pos", "_IEDJammable", "_IEDTriggerType", "_IEDAmbushGroup", "_trapdistance", "_iedside", "_dummy","_ok","_iedDir","_init","_helper","_fnc_iedHandle","_time"];
 disableSerialization;
 
 if (!isServer) exitWIth {};
 
-_fakeIed			= [_this, 0, objNull, [objNull]] call BIS_fnc_param;
-_trapvolume 		= [_this, 1, "medium", [""]] call BIS_fnc_param;
-_IEDExplosionType 	= [_this, 2, 0, [0]] call BIS_fnc_param;
-_IEDDisarmTime 		= [_this, 3, 10, [0]] call BIS_fnc_param;
-_IEDJammable 		= [_this, 4, true, [true]] call BIS_fnc_param;
-_IEDTriggerType 	= [_this, 5, 0, [0]] call BIS_fnc_param;
-_trapdistance 		= [_this, 6, 10, [0]] call BIS_fnc_param;
-_iedside 			= [_this, 7, west] call BIS_fnc_param;
+params [
+		["_fakeIed",objNull,[objNull]],
+		["_trapvolume","medium",["",[]]],
+		["_IEDExplosionType",0,[0]],
+		["_IEDDisarmTime",10,[0]],
+		["_IEDJammable",true,[true]],
+		["_IEDTriggerType",0,[0]],
+		["_trapdistance",10,[0]],
+		["_iedside",[west],[sideLogic,"",[]]]
+	];
+
+if (isNull _fakeIed) exitWith {diag_log "MCC Sandbox Error: MCC_fnc_createIED object null "};
+
+_fnc_iedHandle = {
+	private ["_nearObjects","_dummyMarker","_armed", "_triggered","_pos","_IedExplosion","_explode","_effect","_hidden","_fakeIed","_arrayTargets","_arrayECM"];
+
+	params [
+		["_dummy",objNull,[objNull]],
+		["_trapvolume","medium",["",[]]],
+		["_IEDExplosionType",0,[0]],
+		["_IEDJammable",true,[true]],
+		["_IEDTriggerType",0,[0]],
+		["_trapdistance",10,[0]],
+		["_iedside",[west],[[]]]
+	];
+
+
+	// Target classes that will triger the IED
+	_armed 			= _dummy getvariable ["armed",true];		//Did the IED armed?
+	_triggered 		= _dummy getvariable ["iedTrigered",false];	//Did the IED triggered?
+	_fakeIed 		= _dummy getvariable ["fakeIed",objNull]; 	//The name of the fake IED object
+	_explode 		= false; 									//Did the IED explode?
+
+	_hidden = ["IEDLandSmall_Remote_Ammo","IEDLandBig_Remote_Ammo","IEDUrbanSmall_Remote_Ammo","IEDUrbanBig_Remote_Ammo"];
+
+	//Proximity or radio
+	while {alive _fakeIed
+		   && (_dummy getvariable ["armed",true])
+		   && !(_dummy getvariable ["iedTrigered",false])} do {
+		sleep 0.4;
+
+		//if not manual detonation
+		if !(_IEDTriggerType in [2,4]) then	{
+			_pos = getPos _dummy;
+			_nearObjects = [];
+			_nearObjects = (vehicles inAreaArray [_pos,_trapdistance,_trapdistance,0,false,1]);
+			_nearObjects = +_nearObjects + (allUnits inAreaArray [_pos,_trapdistance,_trapdistance,0,false,1]);
+			_arrayTargets = _nearObjects select {(speed _x > 5) && (side _x in _iedside)};
+
+			_arrayECM = _pos nearObjects (missionNamespace getVariable ["MCC_iedJammeDistance",80]);
+			_arrayECM = _arrayECM select {(_x getvariable ["MCC_ECM",false])};
+
+			{
+				if (isEngineOn _x) then {
+					[["a3\missions_f_beta\data\sounds\firing_drills\drill_start.wss", _x]] remoteExec ["playSound3D", _x];
+				};
+			} forEach _arrayECM;
+
+			if (count _arrayTargets > 0) then {
+				if (!_IEDJammable) then {
+					_dummy setvariable ["iedTrigered",true,true]
+				} else {
+					if (count _arrayECM <= 0) then {
+						_dummy setvariable ["iedTrigered",true,true];
+					};
+				};
+			};
+		};
+	};
+
+
+	//delete IED marker
+	_dummyMarker = _dummy getvariable "iedMarkerName";
+	if (!isnil "_dummyMarker") then {
+		[2,compile format ["deletemarkerlocal '%1';",_dummyMarker]] remoteExec ["MCC_fnc_globalExecute",0];
+	};
+
+	_armed 		= _dummy getvariable ["armed",false];
+	_triggered 	= _dummy getvariable ["iedTrigered",false];
+
+	//Broadcast to fakeIED
+	_fakeIed setvariable ["armed",_armed,true];
+	_fakeIed setvariable ["iedTrigered",_triggered,true];
+
+	//position of the IED
+	_pos=[((getposATL _fakeIed) select 0),(getposATL _fakeIed) select 1,((getPosATL _fakeIed) select 2)];
+
+	switch (_IEDExplosionType) do {
+		case 0:	{
+			_IedExplosion = MCC_fnc_IedDeadlyExplosion;
+		};
+
+		case 1: {
+		   _IedExplosion = MCC_fnc_IedDisablingExplosion;
+		};
+
+		case 2: {
+		   _IedExplosion = MCC_fnc_IedFakeExplosion;
+		};
+
+		case 3: {
+		   _IedExplosion = {};
+		};
+	};
+
+	//If triger epxplosion or destroyed
+	if ((_armed && _triggered) || (!alive _fakeIed && _armed )) then{
+		[_pos,_trapvolume] spawn _IedExplosion;
+		_explode = true;
+	};
+
+	if (!_armed ) then {
+		//If IED critical fail while trying to disarm it
+		if (_triggered) then {
+			_time = time + 30 ;
+
+			waituntil {(_dummy getvariable ["iedTrigered",false]) || time > _time};
+
+			if (_dummy getvariable ["iedTrigered",false]) then {
+				[_pos,_trapvolume] spawn _IedExplosion;
+				_explode = true;
+			};
+		} else {
+			if (typeOf _fakeIed in _hidden) then {deleteVehicle _fakeIed};
+		};
+	};
+
+	sleep 0.2;
+	if (_explode) then {
+		//If IED is a car lets make it burn
+		if (_fakeIed isKindOf "Car" || _fakeIed isKindOf "Wreck_Base") then {
+			_fakeIed setdamage 1;
+			_effect = "test_EmptyObjectForFireBig" createVehicle (getpos _fakeIed);
+			_effect attachto [_fakeIed,[0,0,0]];
+			_effect spawn
+			{
+				sleep 180 + random 360;
+				while {!isnull (attachedTo _this)} do {detach _this};
+				_nearObjects =  (getpos _this) nearObjects 3;
+				{
+					if (typeOf _x in ["test_EmptyObjectForFireBig","#particlesource","#lightpoint"]) then {deletevehicle _x};
+				} foreach _nearObjects;
+			};
+		} else {
+			if (str _IedExplosion != str {}) then {deletevehicle _fakeIed};
+		};
+	};
+
+	//Delete helper
+	sleep 2;
+	[_dummy] spawn MCC_fnc_deleteHelper;
+
+	//fail safe give the game enough time to read the variable from it before deleting it.
+	sleep 1;
+	if (typeOf _fakeIed in _hidden) then {deletevehicle _fakeIed};
+
+	//Delete the dummyIED
+	deletevehicle _dummy;
+};
 
 if (typeName _iedside == "STRING") then {
 	_iedside = switch (tolower _iedside) do
@@ -95,6 +245,6 @@ if (str (_fakeIed getVariable ["syncedObject", [0,0,0]]) != "[0,0,0]") then
 };
 
 //Spawn the IED script
-_ok = [_dummy,_trapvolume,_IEDExplosionType,_IEDJammable,_IEDTriggerType,_trapdistance,_iedside] execVM MCC_path +"mcc\general_scripts\traps\IED.sqf";
+_ok = [_dummy,_trapvolume,_IEDExplosionType,_IEDJammable,_IEDTriggerType,_trapdistance,_iedside] spawn _fnc_iedHandle;
 
 [_dummy,_fakeIed];

@@ -18,7 +18,7 @@ switch (true) do {
 				[_suspect, true] call ACE_captives_fnc_setHandcuffed;
 			} else {
 				sleep 1.5;
-				[[_suspect, "AmovPercMstpSnonWnonDnon_Ease", false, -1],"MCC_fnc_setUnitAnim", _suspect, false] spawn BIS_fnc_MP;
+				[[_suspect, "Acts_ExecutionVictim_Loop", false, 0],"MCC_fnc_setUnitAnim", _suspect, false] spawn BIS_fnc_MP;
 			};
 
 			_suspect setVariable ["MCC_disarmed",false,true];
@@ -74,7 +74,9 @@ switch (true) do {
 		_remaineBlood = _suspect getvariable ["MCC_medicRemainBlood",_maxBleeding];
 		_fatigueEffect = floor (30*(getFatigue _suspect));
 
-		_isMedic = if (((getNumber(configFile >> "CfgVehicles" >> typeOf vehicle player >> "attendant")) == 1) || ((player getvariable ["CP_role",""]) == "Corpsman")) then {true} else {false};
+		_isMedic = (((getNumber(configFile >> "CfgVehicles" >> typeOf vehicle player >> "attendant")) == 1) ||
+		            ((player getvariable ["CP_role",""]) == "Corpsman") ||
+		            !(missionNamespace getVariable ["MCC_medicOnlyMedicHeals",false]));
 
 		//Blood loss
 		switch (true) do {
@@ -114,10 +116,10 @@ switch (true) do {
 		_hitPoints = ["HitHead","HitBody","hitLegs","hitHands"];
 		_partName = ["Head: ","Body: ","Legs: ","Hands: "];
 		_partPic = [
-					MCC_path + "mcc\dialogs\medic\data\soldier_head.paa",
-					MCC_path + "mcc\dialogs\medic\data\soldier_body.paa",
-					MCC_path + "mcc\dialogs\medic\data\soldier_legs.paa",
-					MCC_path + "mcc\dialogs\medic\data\soldier_hands.paa"
+					MCC_path + "mcc\medic\dialogs\data\soldier_head.paa",
+					MCC_path + "mcc\medic\dialogs\data\soldier_body.paa",
+					MCC_path + "mcc\medic\dialogs\data\soldier_legs.paa",
+					MCC_path + "mcc\medic\dialogs\data\soldier_hands.paa"
 					];
 		_array = [["[(missionNamespace getVariable ['MCC_interactionLayer_1',[]]),2] spawn MCC_fnc_interactionsBuildInteractionUI","Back",format ["%1mcc\interaction\data\iconBack.paa",MCC_path]]];
 		_bleeding = _suspect getVariable ["MCC_medicBleeding",0];
@@ -166,6 +168,6 @@ switch (true) do {
 
 	case (["load",_ctrlData] call bis_fnc_inString): {
 		closeDialog 0;
-		[[_suspect,_ctrlData,true], "MCC_fnc_loadWounded", _suspect, false] spawn BIS_fnc_MP;
+		[_suspect,_ctrlData,true] remoteExec ["MCC_fnc_loadWounded",_suspect];
 	};
 };

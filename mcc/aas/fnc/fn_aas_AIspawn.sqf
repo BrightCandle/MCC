@@ -184,7 +184,7 @@ _sectors = [];
 {_sectors pushBack _x} foreach (allMissionObjects "moduleSector_f");
 {_sectors pushBack _x} foreach (allMissionObjects "moduleSectorDummy_f");
 {
-	if ((_x getvariable ["ScoreReward",-1])>0) then {_sectors pushBack _x}
+	if (((_x getvariable ["ScoreReward",0]) call bis_fnc_parsenumber)>0) then {_sectors pushBack _x}
 } foreach (allMissionObjects "logic");
 
 while {true} do {
@@ -255,7 +255,7 @@ while {true} do {
 				_vehicle = ((_vehiclesArray call bis_fnc_selectRandom) select 0) createVehicle _startPos;
 
 				//workaround to delete turrets that somehow simulate as tanks WTF?!
-				if !(_vehicle isKindOf "StaticMGWeapon") then {
+				if (!(_vehicle isKindOf "StaticWeapon") && canMove _vehicle) then {
 					_vehicleGear = if (_vehicle isKindOf "air") then {[["pilot"],[1]]} else {[["crew"],[1]]};
 					_group = [_groupSize,_groupSize,_vehicleGear,_vehicle,_side,_unitsArray,_spawnPos] call MCC_fnc_AASgroupSpawn;
 					_counter =( _counter - count crew _vehicle) max 0;

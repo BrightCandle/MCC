@@ -29,7 +29,7 @@ for "_i" from 1 to _noModules do {
 };
 
 if !([_difficulty,_modules,_disarmTime] call MCC_fnc_initBombDefuse) then {
-  _realIED setvariable ["armed",false,true];
+  _realIED setvariable ["armed",true,true];
   "SmallSecondary" createVehicle _pos;
   sleep 0.5;
   _realIED setvariable ["iedTrigered",true,true];

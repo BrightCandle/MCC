@@ -68,7 +68,7 @@ while {_counter <=_limit} do
 	{
 		_isFlat = _startPosDir findEmptyPosition [10, 100];
 		if (count _isFlat == 0) then {_isFlat = _startPosDir};
-		_vehicle = [_isFlat , ([_isFlat, _endPos] call BIS_fnc_dirTo), _vehicleClass, _groupVehicles] call BIS_fnc_spawnVehicle;
+		_vehicle = [_isFlat , ([_isFlat, _endPos] call BIS_fnc_dirTo), _vehicleClass, _groupVehicles] call MCC_fnc_spawnVehicle;
 		_vehiclesArray set [count _vehiclesArray, (_vehicle select 0)];
 		_counter = _counter + 1;
 

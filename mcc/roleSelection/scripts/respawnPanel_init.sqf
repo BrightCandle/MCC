@@ -124,18 +124,18 @@ MCC_fnc_CPMapOpen_draw =
 			_title = 	if (_x == leader player) then {
 							format ["%1- %2",(_foreachIndex +1), "Leader"];
 						} else {
-							format ["%1- %2",(_foreachIndex +1), _x getvariable ["type","FOB"]];
+							format ["%1- %2",(_foreachIndex +1), if (_x getVariable ["MCC_isLHD",false]) then {_x getVariable ["MCC_LHDDisplayName","Ship"]} else {_x getvariable ["type","FOB"]}];
 						};
 
 			//Mobile respawn
-			if (_x isKindOf "air" || _x isKindOf "vehicle" || _x isKindOf "tank" || _x isKindOf "ship") then {
+			if (_x isKindOf "air" || _x isKindOf "car" || _x isKindOf "tank" || _x isKindOf "ship") then {
  				_title = format ["%1- %2",(_foreachIndex +1), getText (configfile >> "CfgVehicles" >> typeof _x >> "displayName")];
 			};
 
 			_texture = format ["\A3\Ui_f\data\Map\GroupIcons\badge_rotate_%1_gs.paa",_textureAnimPhase];
 
 			//--- Icon is under cursor
-			if ((_pos distance _mousePos) < (_mouseLimit * _size * (ctrlMapScale (uiNamespace getVariable "CP_deployPanelMiniMap") *7))) then {
+			if ((_pos distance2d _mousePos) < (_mouseLimit * _size * (ctrlMapScale (uiNamespace getVariable "CP_deployPanelMiniMap") *7))) then {
 				_size = _size * 1.6;
 				_alpha = 1;
 				missionNamespace setVariable ["MCCSpawnPosSelected",_x];
@@ -287,10 +287,10 @@ if (missionNamespace getvariable ["CP_activated",false]) then {
 
 		//Load available resources
 		_array = call compile format ["MCC_res%1",playerside];
-		{_disp displayCtrl _x ctrlSetText str floor (_array select _forEachIndex)} foreach [81,82,83,84,85];
+		{_disp displayCtrl _x ctrlSetText ([(_array select _forEachIndex)] call MCC_fnc_formatNumber)} foreach [81,82,83,84,85];
 
 		//Load available valor
-		_disp displayCtrl 86 ctrlSetText str floor (player getVariable ["MCC_valorPoints",50]);
+		_disp displayCtrl 86 ctrlSetText ([(player getVariable ["MCC_valorPoints",50])] call MCC_fnc_formatNumber);
 
 		//Clear unavailable spawn points
 		/*

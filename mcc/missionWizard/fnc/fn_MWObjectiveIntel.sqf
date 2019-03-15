@@ -1,86 +1,101 @@
-//======================================================MCC_fnc_MWObjectiveIntel=========================================================================================================
-// Create a pick intel objective
+/*======================================================MCC_fnc_MWObjectiveIntel==========================================================================================Create a pick intel objective
 // Example:[_objPos,_isCQB,_side,_faction] call MCC_fnc_MWObjectiveIntel;
 // _objPos = position, objectice position
 //_isCQB = Boolean, true - for CQB areay false if it doesn't matters.
 //_side = enemy side
 //_faction = enemy Faction
 // Return - nothing
-//========================================================================================================================================================================================
-private ["_objPos","_isCQB","_side","_faction","_preciseMarkers","_objType","_spawnPos","_time","_sidePlayer","_object","_dummyObject","_spawndir","_unitsArray","_group","_init","_range","_array","_building","_buildingPos","_unitPlaced"];
+//===============================================================================================================================================================*/
+private ["_objPos","_isCQB","_side","_faction","_preciseMarkers","_objType","_spawnPos","_time","_sidePlayer","_object","_dummyObject","_spawndir","_unitsArray","_group","_init","_range","_selectedBuilding","_building","_buildingPos","_isDownloadIntel","_taskType","_foundBuilding"];
 
 _objPos = _this select 0;
 _isCQB = _this select 1;
 _side = _this select 2;
 _faction = _this select 3;
 _preciseMarkers = _this select 4;
-_sidePlayer =  [_this, 5, west] call BIS_fnc_param;
+_sidePlayer =  param [5, west,[sideLogic,""]];
+_isDownloadIntel = param [6,false,[false]];
+_taskType = if (_isDownloadIntel) then {"downloadIntel"} else {"pick_intel"};
+_foundBuilding = false;
 
-_objType = MCC_MWIntelObjects call BIS_fnc_selectRandom;
+_objType = if (_isDownloadIntel) then {"Land_DataTerminal_01_F"} else {
+	 (missionNamespace getVariable ["MCC_MWIntelObjects",["Land_File2_F","Land_FilePhotos_F","Land_Laptop_unfolded_F","Land_SatellitePhone_F","Land_Suitcase_F"]]) call BIS_fnc_selectRandom
+};
 
-if (_isCQB) then {
-	_array = [_objPos, 50] call MCC_fnc_MWFindbuildingPos;
-	_building = _array select 0;
-	_buildingPos = _array select 1;
 
-	 if (isnil "_buildingPos") exitWith {debuglog "MCC MW - MWObjectivePickIntel - No building pos foudn"};
+//If not CQB spawn some POI
+if !(_isCQB) then {
 
-	_unitPlaced = false;
+	//Clear area
+	[_objPos,50,true] call MCC_fnc_hideTerrainObjectsArea;
+
+	_objPos = [_objPos] call MCC_fnc_buildRandomComposition;
+};
+
+//Lets spawn some body guards
+_range = if (_isCQB) then {30} else {60};
+[_objPos,_range,0,4,_faction, _side] remoteExec ["MCC_fnc_garrison",2];
+
+//Lets find out if we have a building close by
+_selectedBuilding = ([_objPos, 100] call MCC_fnc_MWFindbuildingPos) call BIS_fnc_selectRandom;
+_building = _selectedBuilding select 0;
+_buildingPos = _selectedBuilding select 1;
+
+_spawnPos = _objPos;
+
+if (!(isnil "_buildingPos") &&
+    (_isCQB || (! _isCQB && (_building distance2D _objPos) <= 50))
+    ) then {
+
 	_time = time;
-	 while {!_unitPlaced && (time <= (_time + 5))} do
-	{
+	_spawnPos	= _building buildingPos (floor random _buildingPos);
+
+	//No other unit in the spawn position?
+	while {((count (nearestObjects [_spawnPos, ["Man"], 1])) > 0)} do {
 		_spawnPos	= _building buildingPos (floor random _buildingPos);
-		if (count (nearestObjects [_spawnPos, ["Man"], 1])<1) then		//No other unit in the spawn position?
-		{
-			//Spawn the intel
-			_dummyObject = "Land_WoodenTable_small_F" createvehicle _spawnPos;
-			_dummyObject setPos _spawnPos;
-			_object = _objType createvehicle _spawnPos;
-			_object setPos (_dummyObject modelToWorld [0,0,0.43]);
-			_object setdir (getdir _dummyObject);
-			_object enablesimulation false;
-			_unitPlaced = true;
-
-			//Lets spawn some body guards
-			[[getpos _object,30,0,2,_faction, _side],"MCC_fnc_garrison",false,false] spawn BIS_fnc_MP;
-		};
+		sleep 0.1;
 	};
+
+	_foundBuilding = true;
+};
+
+
+if (_isDownloadIntel) then {
+	_object = _objType createvehicle _spawnPos;
+	if !(_foundBuilding) then {
+		_spawnPos = _spawnPos findEmptyPosition [2,40,_objType];
+	};
+
+	_object setPos _spawnPos;
+	_object setVariable ["MCC_intelItem",true,true];
+
 } else {
-	//Not CQB
-	//Find an empry spot
-	_range = 50;
-	_spawnPos = [_objPos,1,_range,10,0,100,0,[],[[-500,-500,0],[-500,-500,0]]] call BIS_fnc_findSafePos;
+	//Spawn the intel
+	_dummyObject = "Land_WoodenTable_small_F" createvehicle _spawnPos;
+	_dummyObject enablesimulation false;
 
-	//If we haven't find it in first time increase by 50;
-	while {str _spawnPos == "[-500,-500,0]"} do
-	{
-		_range = _range+ 50;
-		_spawnPos = [_objPos,1,_range,10,0,100,0,[],[[-500,-500,0],[-500,-500,0]]] call BIS_fnc_findSafePos;
+	{_x addCuratorEditableObjects [[_dummyObject],false]} forEach allCurators;
+
+	if !(_foundBuilding) then {
+		_spawnPos = _spawnPos findEmptyPosition [2,40,"Land_WoodenTable_small_F"];
 	};
 
+	_dummyObject setPos _spawnPos;
 
-	//find the table
-	_dummyObject =[_spawnPos, random 360, "c_slums"] call MCC_fnc_objectMapper;
-	waituntil {alive _dummyObject};
-	_spawnPos = getpos _dummyObject;
-	_spawndir = getdir _dummyObject;
-
-	 if (isnil "_spawndir") then {_spawndir = random 360};
-
-	 //Create the object
 	_object = _objType createvehicle _spawnPos;
 	_object setPos (_dummyObject modelToWorld [0,0,0.43]);
-	_object setdir _spawndir;
+	_object setdir (getdir _dummyObject);
 	_object enablesimulation false;
 };
 
 //Pick Item
 _init = '_this call MCC_fnc_pickItem';
-[[[netID _object,_object], _init], "MCC_fnc_setVehicleInit", true, true] spawn BIS_fnc_MP;
+[[netID _object,_object], _init] remoteExec ["MCC_fnc_setVehicleInit",0];
+
 {_x addCuratorEditableObjects [[_object],false]} forEach allCurators;
 
 //Start Briefings
-[_object,"pick_intel",_preciseMarkers,_side,400,_sidePlayer] call MCC_fnc_MWCreateTask;
+[_object, getpos _object,_taskType,_preciseMarkers,_side,400,_sidePlayer] call MCC_fnc_MWCreateTask;
 
 
 

@@ -51,7 +51,6 @@ class general
 	class dirToString	{description = "Get direction integer and return it as a strin North, east exc";};
 	class startLocations	{description = "Teleport the player when start location has been found";};
 	class spawnGroup	{description = "MCC Custom group spawning";};
-	class createTask	{description = "create a simple task with trigger assigned to a specific object";};
 	class keyToName		{description = "get idkKey and return string with his name";};
 	class makeBriefing	{description = "Server Only - create a Logic based briefing";};
 	class handleAddaction	{description = "Handle addactions after respawn - init";};
@@ -60,40 +59,9 @@ class general
 	class openArtillery {};
 	class deleteBrush{};
 	class crewCount {description = "return empty seats of a specific vehicle with or without FFV (firing From Vehicles)";};
-};
-
-class ui
-{
-	#ifdef MCCMODE
-	file = "\mcc_sandbox_mod\mcc\fnc\ui";
-	#else
-	file = "mcc\fnc\ui";
-	#endif
-
-	class countDownLine	{description = "Create a filling waiting bar - made by BIS all credits to them.";};
-	class drawLine	{description = " Draw an arrow on the map localy between two points.";};
-	class drawArrow	{description = " Expand:Draw a line on the map localy between two points.";};
-	class drawBox	{description = "Draw a box on the map localy between two points.";};
-	class trackUnits	{description = "Track units on the given map display";};
-	class camp_showOSD	{description = "Show player OSD";};
-	class curatorInitLine	{description = "Handle MCC's curator init line";};
-	class initDispaly		{description = "Handle MCC's displays init";};
-	class makeMarker		{description = "Create a marker";};
-	class createMCCZones	{description = "Create MCC zones localy";};
-	class initCuratorAttribute	{description = "Init MCC's curato Attribute";};
-	class interactProgress	{description = "Create a progress bar and anim for the player";};
-	class keyDown			{description = "Handle keydown/keyUp EH";};
-	class help				{description = "Display tooltip";};
-	class playerStats		{description = "Show player stats in RS";};
-	class getKeyFromAction 	{description = "Get the keys name from an action defined in CfgActions";};
-	class setIDCText 		{description = "Set text to the current IDC";};
-	class CBAInteractionKeybind {description = "Handle CBA keybinds for interactions";};
-	class CBAKeybinds {description = "Handle CBA keybinds";};
-	class getKeyFromCBA {description = "Get a pretty name from CBA key binds";};
-	class getGroupIconData {description = "get group icon depends on the group type and size";};
-	class 3Dcredits	{};
-	class musicTrigger {description = "Execute music or sound on all clients triggers";};
-	class tagSystem {description = "Init MCC 3d markers - tagging system. Adds 3D markers when tagging an enemy";};
+	class addVelocity {description = "adds velocity to object depends on its current velocity";};
+	class makeTask {description = "Handles tasks on the server using BI setTask fnc";};
+	class halt {description = "halt all function in game";};
 };
 
 class ied
@@ -133,6 +101,7 @@ class cas
 	class deletePlane		{description = "set a plane to move to a location and delete it once it come closer then 800 meters.";};
 	class airDrop		{description = "Handles CAS and airdrop requests on the server";};
 	class uavDetect {};
+	class cas {description = "Simulate Zeus CAS with moded vehicles";};
 };
 
 class artillery
@@ -253,38 +222,6 @@ class actions
 	class resupply {description = "Resupply ammo from an ammo box";};
 	class breakdown {description = "Breakdown MCC crate into supplies";};
 	class ACEdropAmmobox {description = "Drop MCC ammbox in ACE";};
-};
-
-class medic
-{
-	#ifdef MCCMODE
-	file = "\mcc_sandbox_mod\mcc\fnc\medic";
-	#else
-	file = "mcc\fnc\medic";
-	#endif
-
-	class initMedic		{description = "Init Medic System";};
-	class handleDamage	{description = "Handle damage on players and AI";};
-	class unconscious	{description = "Handle unconscious behavior";};
-	class medicEffects	{description = "Handle clients medic effects";};
-	class medicProgressBar	{description = "Handle medic progress";};
-	class medicUseItem	{description = "Handle medic uses item";};
-	class medicDragCarry {description = "Handle drag and carry units";};
-	class loadWounded 	{description = "Unload wounded from a vehicle";};
-	class medicArea		{description = "create a building as a medic area";};
-};
-
-class logistics
-{
-	#ifdef MCCMODE
-	file = "\mcc_sandbox_mod\mcc\fnc\logistics";
-	#else
-	file = "mcc\fnc\logistics";
-	#endif
-
-	class loadTruckUI		{description = "Open logistic truck UI";};
-	class logTruckRefresh 	{description = "Refresh the logistics dialog";};
-	class logTruckAdd		{description = "Add or remove crates from a log truck";};
 };
 
 class evac

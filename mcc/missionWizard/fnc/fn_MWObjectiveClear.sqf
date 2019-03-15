@@ -15,22 +15,23 @@ _side 			= _this select 2;
 _faction 		= _this select 3;
 _sidePlayer 	= _this select 4;
 _preciseMarkers = _this select 5;
-_campaignMission = param [ 6, false, [false]];
-_maxObjectivesDistance = param [ 7, 400, [0]];
+_campaignMission = param [6, false, [false]];
+_maxObjectivesDistance = param [7, 400, [0]];
 
 if (_isCQB) then {
 	_range = if (_campaignMission) then {100} else {50};
+	_objPos = getpos ((([_objPos, 100] call MCC_fnc_MWFindbuildingPos) call BIS_fnc_selectRandom) select 0);
 
-	_array = [_objPos, 100] call MCC_fnc_MWFindbuildingPos;
-	_objPos = getpos (([_objPos, 100] call MCC_fnc_MWFindbuildingPos) select 0);
 } else {
 	_range = if (_campaignMission) then {200} else {100};
 
 	//Lets spawn an FOB
 	if (!_campaignMission || (random 1 > 0.7)) then {
-		_doc = ["o_fobSmall","o_fobLarge"] call BIS_fnc_selectRandom;
-		_dummyObject =[_objPos, random 360,_doc] call MCC_fnc_objectMapper;
-		waituntil {alive _dummyObject};
+
+		//Clear area
+		[_objPos,50,true] call MCC_fnc_hideTerrainObjectsArea;
+
+		_objPos = [_objPos,"military"] call MCC_fnc_buildRandomComposition;
 	};
 };
 
@@ -40,4 +41,4 @@ if (_isCQB) then {
 sleep 2;
 
 //Create Task
-[_objPos,"clear_area",_preciseMarkers,_side,_maxObjectivesDistance,_sidePlayer] call MCC_fnc_MWCreateTask;
+[objnull, _objPos,"clear_area",_preciseMarkers,_side,_maxObjectivesDistance*.5,_sidePlayer] call MCC_fnc_MWCreateTask;

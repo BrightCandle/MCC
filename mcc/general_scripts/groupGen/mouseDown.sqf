@@ -180,7 +180,7 @@ if (mcc_missionmaker == (name player)) then {
 		else
 		{
 			hint "Artillery inbound.";
-			[[_ctrl ctrlMapScreenToWorld [_posX,_posY], shelltype, shellspread, nshell,MCCSimulate,MCC_artyDelay],'MCC_fnc_artillery',true,false] spawn BIS_fnc_MP;
+			[_ctrl ctrlMapScreenToWorld [_posX,_posY], shelltype, shellspread, nshell,MCCSimulate,MCC_artyDelay] remoteExec ["MCC_fnc_artillery",2];
 		};
 		sleep 0.5;
 		deleteMarkerLocal "mcc_arty";
@@ -322,8 +322,8 @@ if (mcc_missionmaker == (name player)) then {
 		// set plane spawn and away position
 		_markerPos 	= getmarkerpos _marker;
 		_markerDir 	= markerDir _marker;
-		_spawn 		= [_markerPos,3000,(_markerDir -180)] call BIS_fnc_relpos;
-		_away 		= [_markerPos,3500,_markerDir] call BIS_fnc_relpos;
+		_spawn 		= [_markerPos,2000,(_markerDir -180)] call BIS_fnc_relpos;
+		_away 		= [_markerPos,2000,_markerDir] call BIS_fnc_relpos;
 		_ammount	=  floor (((getMarkerSize _marker) select 1)/50) + 1; 		//Ammount of drop min 0 max 6
 
 		if (MCC_capture_state) then {
@@ -339,7 +339,7 @@ if (mcc_missionmaker == (name player)) then {
 				,_away];
 		} else {
 			hint "Air support incomming.";
-			[[_ammount, MCC_spawnkind , getmarkerpos _marker, MCC_planeType, _spawn,_away,(missionNamespace getVariable ["MCC_airdropIsParachute",0])],"MCC_fnc_airDrop",false,false] spawn BIS_fnc_MP;
+			[_ammount, MCC_spawnkind , getmarkerpos _marker, MCC_planeType, _spawn,_away,(missionNamespace getVariable ["MCC_airdropIsParachute",0])] spawn MCC_fnc_airDrop;
 		};
 
 		MCC_CASrequestMarker = false;			//Wait and delete the marker
@@ -365,8 +365,8 @@ if (mcc_missionmaker == (name player)) then {
 		// set plane spawn and away position
 		_markerPos 	= getmarkerpos _marker;
 		_markerDir 	= markerDir _marker;
-		_spawn 		= [_markerPos,4500,(_markerDir -180)] call BIS_fnc_relpos;
-		_away 		= [_markerPos,4500,_markerDir] call BIS_fnc_relpos;
+		_spawn 		= [_markerPos,2000,(_markerDir -180)] call BIS_fnc_relpos;
+		_away 		= [_markerPos,2000,_markerDir] call BIS_fnc_relpos;
 
 		//[getmarkerpos _marker, MCC_selectedUnits, MCC_UMUnit, MCC_UMparadropIsHalo,_spawn,_away] execVM "mcc\fnc\general\fn_realParadrop.sqf";
 
@@ -487,12 +487,12 @@ if (mcc_missionmaker == (name player)) then {
 		MCC_delete_drawing = false;
 
 		mcc_safe=mcc_safe + FORMAT ['
-								[[%1, %2 select 0, %3],"MCC_fnc_deleteBrush",true,false] spawn BIS_fnc_MP;
+								[%1, %2, %3] remoteExec ["MCC_fnc_deleteBrush",2];
 								sleep 1;'
 								, _pos
 								, _size
 								, _type
 								];
-		[[_pos, _size select 0, _type],"MCC_fnc_deleteBrush",true,false] spawn BIS_fnc_MP;
+		[_pos, _size select 0, _type] remoteExec ["MCC_fnc_deleteBrush",2];
 	};
 };

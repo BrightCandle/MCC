@@ -1,9 +1,9 @@
-//======================================================MCC_fnc_enemyCAS=====================================================================================================
+//======================================================MCC_fnc_enemyCAS================================================================================================
 // Create CAS in zone while radio tower is available
 // Example:[_tower] spawn MCC_fnc_enemyCAS;
 // _tower 	OBJECT  while object alive
 // Return - nothing
-//=============================================================================================================================================================================
+//=======================================================================================================================================================================
 private ["_tower","_sideEnemy","_factionEnemy","_sidePlayer","_casArray","_heliArray","_spawnPos","_casGroup","_IsCAS","_vehicleClass","_casType","_cas","_casVehicle","_casPilot","_ClosestZone","_totalCASActive","_tempArray"];
 _tower = [_this, 0, objNull, [objNull]] call BIS_fnc_param;
 _sideEnemy = [_this, 1, east] call BIS_fnc_param;
@@ -26,14 +26,15 @@ _heliArray = [];
 } foreach MCC_MWunitsArrayHeli;
 
 //No CAS to this faction
-if (count _casArray == 0 && count _heliArray == 0) exitWith {};
+_IsCAS = (random 1 > 0.5 && (count _casArray > 0 || count _heliArray == 0));
 
-_IsCAS = (random 1 > 0.5 && count _casArray > 0);
+if ((count _casArray == 0 && _IsCAS) || (count _heliArray == 0 && !_IsCAS)) exitWith {};
+
 _spawnPos = [_tower, 5000, random 360] call BIS_fnc_relPos;
 _casType = if (_IsCAS) then {(_casArray call bis_fnc_selectRandom)} else {(_heliArray call bis_fnc_selectRandom)};
 _vehicleClass = _casType select 1;
 
-_cas = [_spawnPos,([_spawnPos, _tower] call BIS_fnc_dirTo), _vehicleClass, _sideEnemy] call BIS_fnc_spawnVehicle;
+_cas = [_spawnPos,([_spawnPos, _tower] call BIS_fnc_dirTo), _vehicleClass, _sideEnemy] call MCC_fnc_spawnVehicle;
 
 _casVehicle = _cas select 0;
 _casPilot = driver _casVehicle;

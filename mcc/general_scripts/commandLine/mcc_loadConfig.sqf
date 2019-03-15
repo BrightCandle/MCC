@@ -144,7 +144,7 @@ switch (_type) do {
 	{
 		_array = (((profileNamespace getVariable "MCC_saveFiles") select MCC_saveIndex) select 1);
 		_string = _array select 7;
-
+		MCC_safe = MCC_safe + _string;
 		//Do we have saved objects?
 		if ((count (_array select 0))>0 || (count (_array select 1))>0 || (count (_array select 2))>0 || (count (_array select 3))>0 || (count (_array select 4))>0 || (count (_array select 5))>0 || (count (_array select 6))>0 || _string != "") then
 		{
@@ -155,10 +155,9 @@ switch (_type) do {
 			[(_array select 6)] spawn MCC_fn_loadZones;
 			_command = 'mcc_isloading=true;closedialog 0;titleText ["Loading Mission","BLACK FADED",5];' + _string + 'mcc_isloading=false;titleText ["Mission Loaded","BLACK IN",5];';
 
-		[] spawn compile _command;
-		}
-		else
-		{
+			[] spawn compile _command;
+
+		} else {
 			hint "Mission load failed! : No MCC Mission configuration pasted from namespace";
 		};
 	};
@@ -192,10 +191,10 @@ switch (_type) do {
 		sleep 20;
 
 		//Save server
-		["MCC_campaign",10,false,true,true,true,true,true,true,true,true] remoteExec ["MCC_fnc_saveServer", 2];
+		["MCC_campaign",600,false,true,true,true,true,true,true,true,true] remoteExec ["MCC_fnc_saveServer", 2];
 
 		//save players
-		[10,true,true,true] remoteExec ["MCC_fnc_savePlayer", 2];
+		[300,true,true,true] remoteExec ["MCC_fnc_savePlayer", 2];
 
 		systemChat "DB Activated";
 	};
@@ -203,7 +202,7 @@ switch (_type) do {
 	//Delete data
 	case 9:
 	{
-		0 spawn MCC_fnc_clearPersistentData;
+		[] remoteExec ["MCC_fnc_clearPersistentData",2];
 		systemChat "DB cleared";
 	};
 };

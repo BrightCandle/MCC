@@ -13,7 +13,7 @@ Starts fire at the given position
 ==============================================================================================================================================================*/
 #define	FIRE_OBJECTSMALL	"IncinerateShell"
 #define	FIRE_OBJECTBIG	"test_EmptyObjectForFireBig"
-#define	MAX_FIRES	20
+#define	MAX_FIRES	15
 
 
 params [

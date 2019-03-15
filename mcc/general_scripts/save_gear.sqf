@@ -3,23 +3,9 @@ private ["_unit","_goggles","_headgear","_uniform","_uniformItems","_vest","_mag
 _unit 	= _this select 0;
 _killer = if (count _this > 1) then {_this select 1} else {objnull};
 
-//Reduce tickets if any
-_side = _unit getVariable ["CP_side", playerside];
-if ([_side] call BIS_fnc_respawnTickets > 0) then {
-	private ["_sideTickets","_tickets"];
 
-	_tickets = [_side] call BIS_fnc_respawnTickets;
-
-	//Delete utility placed by the player
-	{deleteVehicle _x} foreach (player getVariable ["MCC_utilityActiveCharges",[]]);
-
-	if (_tickets > 1) then {
-		_tickets = -1;
-		[_side, _tickets] call BIS_fnc_respawnTickets;
-	} else {
-		[["sidetickets"], "BIS_fnc_endMissionServer", false, false] spawn BIS_fnc_MP;
-	};
-};
+//Delete utility placed by the player
+{deleteVehicle _x} foreach (player getVariable ["MCC_utilityActiveCharges",[]]);
 
 if (missionNamespace getvariable ["MCC_saveGear",false]) then {
 	_goggles = goggles _unit; 			//Can't  save gear after killed EH
@@ -45,12 +31,16 @@ if (missionNamespace getvariable ["MCC_saveGear",false]) then {
 
 WaitUntil {alive player};
 
+//Reduce tickets
+if (([playerSide] call BIS_fnc_respawnTickets > 0) && (missionNamespace getVariable ["MCC_reduceTicketsOnDeath",true])) then {
+	[playerSide,-1] call BIS_fnc_respawnTickets
+};
+
 //Mark it zero again
 player addRating (-1 * (rating player));
 
 //handle MCC medic stuff
 player setVariable ["MCC_medicUnconscious",false,true];
-player setVariable ["MCC_medicSeverInjury",false,true];
 player setVariable ["MCC_medicBleeding",0,true];
 player setvariable ["MCC_medicRemainBlood",(missionNamespace getvariable ["MCC_medicBleedingTime",200])];
 player setCaptive false;
@@ -95,10 +85,9 @@ if (((missionNamespace getvariable ["mcc_missionmaker",""])== name player) && (p
 	[player, "MCC_fnc_assignCurator", false, false] spawn BIS_fnc_MP;
 };
 
-
 if (isnil "MCC_TRAINING") then {
 	//------------T2T---------------------------------
-	if (MCC_t2tIndex == 2) then {MCC_teleportToTeam = true};
+	if ((missionNamespace getVariable ["MCC_t2tIndex",0]) > 1) then {MCC_teleportToTeam = true};
 
 	//-------------------Role selection -------------------------------------------
 	if (CP_activated) then	{

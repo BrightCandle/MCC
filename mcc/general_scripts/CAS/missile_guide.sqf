@@ -1,5 +1,4 @@
-private ["_primaryTarget","_missileStart","_missileType","_missileSpeed","_perSecondChecks","_target","_missile","_travelTime",
-		"_steps","_relDirHor","_relDirVer","_fireLight","_velocityForCheck","_targetIsHeliEmpty","_light","_code"];
+private ["_primaryTarget","_missileStart","_missileType","_missileSpeed","_perSecondChecks","_target","_missile","_travelTime","_steps","_relDirHor","_relDirVer","_fireLight","_velocityForCheck","_targetIsHeliEmpty","_light","_code"];
 _primaryTarget = _this select 0; //target for the missile
 _missileStart = _this select 1; //position where te missile will be spawned
 _missileType = _this select 2; //type of the missile
@@ -26,6 +25,9 @@ if (typeName _missileType == typeName "") then {
 };
 
 _missile setPos [_missileStart select 0, _missileStart select 1,(_missileStart select 2)-5];
+
+//broadcast onwership
+[_missile,(owner player)] remoteExec ["setOwner", 2];
 
 //procedure for guiding the missile
 _homeMissile = {

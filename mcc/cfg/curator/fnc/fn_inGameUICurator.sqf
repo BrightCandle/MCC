@@ -6,7 +6,7 @@ _module = param [0, objNull, [objNull]];
 if (isNull _module) exitWith {deleteVehicle _module};
 
 //Not curator exit
-if (!(local _module) || isnull curatorcamera) exitWith {};
+if !(local _module) exitWith {};
 
 _pos = getpos _module;
 
@@ -19,7 +19,9 @@ _pos = getpos _module;
  						["Name Tags",true],
  						["Name Tags Only When Pointing",true],
  						["Suppression Effects",true],
- 						["Hit Radar",true]
+ 						["Fire Direction indicator",["Realistics","Arcade","Off"]],
+ 						["Tickets",true],
+ 						["Tutorials",true]
  					  ]] call MCC_fnc_initDynamicDialog;
 
 if (count _resualt == 0) exitWith {deleteVehicle _module};

@@ -5,11 +5,12 @@
 // 	vehicleClass: string, vehicleClass to spawn
 // 	position: array, spawn position
 //==============================================================================================================================================================================
-private ["_heliType","_pos", "_evac_p_type","_side","_evac","_campaignEvac"];
+private ["_heliType","_pos", "_evac_p_type","_side","_evac","_campaignEvac","_dir"];
 
 _heliType 	= _this select 0; 	//Type of heli
 _pos 		= _this select 1;
-_campaignEvac = [_this, 2, false, [false]] call BIS_fnc_param;
+_campaignEvac = param [2, false, [false]];
+_dir	= param [3,0,[0]];
 
 //wait for mission start
 waitUntil {time >0};
@@ -23,5 +24,7 @@ if (surfaceIsWater _pos) then {
 } else {
 	_evac setposatl _pos;
 };
+
+_evac setDir _dir;
 
 [_evac, _side, true,_campaignEvac] call MCC_fnc_setEvac;

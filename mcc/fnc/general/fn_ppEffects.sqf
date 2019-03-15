@@ -499,7 +499,10 @@ if (_news) then {
 		_velocity = [0,7,0];
 
 		_pos = getpos player;
-		_newsParams = [["A3\Structures_F_EPB\Items\Documents\Leaflet_01_F.p3d", 1, 0, 1], "", "SpaceObject", 1, 5, [0, 0, 1], _velocity, 1, 1.25, 1, 0.2, [0,1,1,1,0], [[1,1,1,1]], [0.7], 1, 0, "", "", player];
+
+		_newsType = ["A3\Structures_F_EPB\Items\Documents\Leaflet_01_F.p3d","A3\Structures_F_EPB\Items\Documents\Leaflet_02_F.p3d","A3\Structures_F_EPB\Items\Documents\Leaflet_03_F.p3d"] call BIS_fnc_selectRandom;
+
+		_newsParams = [[_newsType, 1, 0, 1], "", "SpaceObject", 1, 5, [0, 0, 1], _velocity, 1, 1.25, 1, 0.2, [0,1,1,1,0], [[1,1,1,1]], [0.7], 1, 0, "", "", player];
 		_newsRandom = [0, [30, 30, 0], [5, 5, 0], 2, 0.3, [0, 0, 0, 0], 10, 0];
 		_newsCircle = [0.1, [1, 1, 0]];
 		_newsInterval = 1;
@@ -510,14 +513,18 @@ if (_news) then {
 		_times setParticleCircle _newsCircle;
 		_times setDropInterval _newsInterval;
 
-		_newsParams set [0,["A3\Structures_F_EPB\Items\Documents\Leaflet_02_F.p3d", 1, 0, 1]];
+		_newsType = ["\A3\Plants_F\_Leafs\leaf_damage_small_green.p3d","\A3\Plants_F\_Leafs\leaf_NeriumOleander_D.p3d","\A3\Plants_F\_Leafs\leaf_damage_big_green.p3d","\A3\Plants_F\_Leafs\leaf_damage_bigLong_green_01.p3d","\A3\Plants_F\_Leafs\leaf_Pines.p3d"] call BIS_fnc_selectRandom;
+
+		_newsParams set [0,[_newsType, 1, 0, 1]];
 		_herald = "#particlesource" createVehicleLocal _pos;
 		_herald setParticleParams _newsParams;
 		_herald setParticleRandom _newsRandom;
 		_herald setParticleCircle _newsCircle;
 		_herald setDropInterval _newsInterval;
 
-		_newsParams set [0,["A3\Structures_F_EPB\Items\Documents\Leaflet_03_F.p3d", 1, 0, 1]];
+		_newsType = ["\A3\Plants_F\_Leafs\leaf_damage_small_green.p3d","\A3\Plants_F\_Leafs\leaf_NeriumOleander_D.p3d","\A3\Plants_F\_Leafs\leaf_damage_big_green.p3d","\A3\Plants_F\_Leafs\leaf_damage_bigLong_green_01.p3d","\A3\Plants_F\_Leafs\leaf_Pines.p3d"] call BIS_fnc_selectRandom;
+
+		_newsParams set [0,[_newsType, 1, 0, 1]];
 		_tribune = "#particlesource" createVehicleLocal _pos;
 		_tribune setParticleParams _newsParams;
 		_tribune setParticleRandom _newsRandom;

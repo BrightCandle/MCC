@@ -25,15 +25,21 @@ _pos = ASLToATL (_ins select 0 select 0);
 
 switch (true) do {
 	case (_ctrlData == "medic"): {
-		private ["_bandage","_medkit","_maxBleeding","_complex","_isMedic","_itemsPlayer","_itemsSuspect","_bandagePic","_medkitPic","_string","_remaineBlood","_color","_fatigueEffect"];
+		private ["_bandage","_medkit","_maxBleeding","_complex","_isMedic","_itemsPlayer","_itemsSuspect","_bandagePic","_medkitPic","_string","_remaineBlood","_color","_fatigueEffect","_saline","_salinePic"];
 		//_child =  MCC_interactionMenu1;
 		_complex = missionNamespace getVariable ["MCC_medicComplex",false];
 		if (_complex) then {
 			_bandage = "MCC_bandage";
 			_medkit = "MCC_firstAidKit";
+
+			_saline = "MCC_salineBag";
+			_salinePic = getText (configFile >> "cfgWeapons" >> _saline >> "picture");
 		} else {
 			_bandage = "FirstAidKit";
 			_medkit = "Medikit";
+
+			_saline = "Medikit";
+			_salinePic = format ["%1data\items\saline.paa",MCC_path];
 		};
 		_bandagePic = getText (configFile >> "cfgWeapons" >> _bandage >> "picture");
 		_medkitPic = getText (configFile >> "cfgWeapons" >> _medkit >> "picture");
@@ -42,7 +48,9 @@ switch (true) do {
 		_maxBleeding = missionNamespace getvariable ["MCC_medicBleedingTime",200];
 		_remaineBlood = _suspect getvariable ["MCC_medicRemainBlood",_maxBleeding];
 		_fatigueEffect = floor (30*(getFatigue _suspect));
-		_isMedic = if (((getNumber(configFile >> "CfgVehicles" >> typeOf vehicle player >> "attendant")) == 1) || ((player getvariable ["CP_role",""]) == "Corpsman")) then {true} else {false};
+		_isMedic = (((getNumber(configFile >> "CfgVehicles" >> typeOf vehicle player >> "attendant")) == 1) ||
+		            ((player getvariable ["CP_role",""]) == "Corpsman") ||
+		            !(missionNamespace getVariable ["MCC_medicOnlyMedicHeals",false]));
 
 		//Blood loss
 		switch (true) do {
@@ -58,12 +66,14 @@ switch (true) do {
 				   ["",_string,format ["%1data\IconPulse.paa",MCC_path],_color],
 				   ["[(_this select 0),'physical'] spawn MCC_fnc_interactSelfClicked","Physical Check",format ["%1data\IconPhysical.paa",MCC_path]],
 				   [format ["['bandage','%1'] spawn MCC_fnc_medicUseItem",netid _suspect],format ["Bandages X %1", {_x == _bandage} count (_itemsPlayer)],_bandagePic],
+				   [format ["['saline','%1'] spawn MCC_fnc_medicUseItem",netid _suspect],format ["IV Bag X %1", {_x == _saline} count (_itemsPlayer)],_salinePic],
 				   [format ["['heal','%1'] spawn MCC_fnc_medicUseItem",netid _suspect],"Heal",_medkitPic]
 				 ];
 
 		if ( !alive _suspect) then {_array set [2,-1]};
 		if (!(_bandage in (_itemsPlayer)) || !alive _suspect) then {_array set [3,-1]};
-		if (!(_medkit in _itemsPlayer) || !_isMedic || !alive _suspect || (_suspect getVariable ["MCC_medicUnconscious",false]) || ((_suspect getVariable ["MCC_medicBleeding",0])> 0.2)) then {_array set [4,-1]};
+		if (!(_saline in (_itemsPlayer)) || !alive _suspect || !_isMedic) then {_array set [4,-1]};
+		if (!(_medkit in _itemsPlayer) || !_isMedic || !alive _suspect || (_suspect getVariable ["MCC_medicUnconscious",false]) || ((_suspect getVariable ["MCC_medicBleeding",0])> 0.2)) then {_array set [5,-1]};
 		_array = _array - [-1];
 		_layer = 1;
 	};
@@ -73,10 +83,10 @@ switch (true) do {
 		_hitPoints = ["HitHead","HitBody","hitLegs","hitHands"];
 		_partName = ["Head: ","Body: ","Legs: ","Hands: "];
 		_partPic = [
-					MCC_path + "mcc\dialogs\medic\data\soldier_head.paa",
-					MCC_path + "mcc\dialogs\medic\data\soldier_body.paa",
-					MCC_path + "mcc\dialogs\medic\data\soldier_legs.paa",
-					MCC_path + "mcc\dialogs\medic\data\soldier_hands.paa"
+					MCC_path + "mcc\medic\dialogs\data\soldier_head.paa",
+					MCC_path + "mcc\medic\dialogs\data\soldier_body.paa",
+					MCC_path + "mcc\medic\dialogs\data\soldier_legs.paa",
+					MCC_path + "mcc\medic\dialogs\data\soldier_hands.paa"
 					];
 		_array = [["[(missionNamespace getVariable ['MCC_interactionLayer_1',[]]),2] spawn MCC_fnc_interactionsBuildInteractionUI","Back",format ["%1mcc\interaction\data\iconBack.paa",MCC_path]]];
 		_bleeding = _suspect getVariable ["MCC_medicBleeding",0];
@@ -178,8 +188,9 @@ switch (true) do {
 	case (_ctrlData in ["gear"]): {
 		_array = [
 					 ["[(missionNamespace getVariable ['MCC_interactionLayer_0',[]]),1] spawn MCC_fnc_interactionsBuildInteractionUI","Back",format ["%1mcc\interaction\data\iconBack.paa",MCC_path]],
-					 ["[(_this select 0),'uniform'] spawn MCC_fnc_interactSelfClicked","Uniform",format ["%1mcc\roleSelection\data\ui\uniform_ca.paa", MCC_path]],
-					 ["[(_this select 0),'weapon'] spawn MCC_fnc_interactSelfClicked","Weapon",format ["%1mcc\roleSelection\data\ui\primaryweapon_ca.paa", MCC_path]]
+					 ["[(_this select 0),'uniform'] spawn MCC_fnc_interactSelfClicked","Uniforms Attachments",format ["%1mcc\roleSelection\data\ui\uniform_ca.paa", MCC_path]],
+					 ["[(_this select 0),'weapon'] spawn MCC_fnc_interactSelfClicked","Weapons Attachments",format ["%1mcc\roleSelection\data\ui\primaryweapon_ca.paa", MCC_path]],
+					 ["[] spawn MCC_fnc_magazineRepack","Repack Magazines","\a3\ui_f\data\IGUI\Cfg\Actions\reload_ca.paa"]
 				 ];
 
 		_layer = 1;
@@ -213,6 +224,47 @@ switch (true) do {
 				 ];
 
 		_layer = 2;
+	};
+
+	//Explosive place
+	case (_ctrlData isEqualTo "ordnance"): {
+		private _mags = [];
+		{
+			if ((getnumber (configfile >> "CfgMagazines" >> _x >> "type")==512) && !(_x in _mags)) then {_mags pushback _x};
+		} foreach ((magazines player)+(items player));
+
+		_array = [["[(missionNamespace getVariable ['MCC_interactionLayer_0',[]]),1] spawn MCC_fnc_interactionsBuildInteractionUI","Back",format ["%1mcc\interaction\data\iconBack.paa",MCC_path]]];
+		{
+			_array pushBack [format ["player setVariable ['MCC_utilityItem',['%1','']];[true,true] spawn MCC_fnc_utilityUse", _x], format ["%1",getText(configFile >> "CfgMagazines" >> _x >> "displayname")], getText(configFile >> "CfgMagazines" >> _x >> "picture")];
+		} forEach _mags;
+
+		_layer = 1;
+	};
+
+	//Explosive detonate
+	case (_ctrlData isEqualTo "ordnanceExplode"): {
+
+		//Detonate explosive function
+		MCC_fnc_ordnanceDetonatePlayer = {
+			private ["_charges","_utility"];
+			params ["_index"];
+			_charges = player getVariable ["MCC_utilityActiveCharges",[]];
+			if (count _charges > 0 ) then {
+				_utility = _charges select _index;
+				_charges set [_index,-1];
+				_charges = _charges - [-1];
+				_utility setdamage 1;
+				player setVariable ["MCC_utilityActiveCharges",_charges];
+			};
+		};
+
+		_array = [["[(missionNamespace getVariable ['MCC_interactionLayer_0',[]]),1] spawn MCC_fnc_interactionsBuildInteractionUI","Back",format ["%1mcc\interaction\data\iconBack.paa",MCC_path]]];
+		{
+			_mag = getText (configfile >> "CfgAmmo" >> typeof _x >> "defaultMagazine");
+			_array pushBack [format ["[%1] spawn MCC_fnc_ordnanceDetonatePlayer", _foreachIndex], format ["Exp%1 %2",_foreachIndex, getText(configFile >> "CfgMagazines" >> _mag >> "displayname")], getText(configFile >> "CfgMagazines" >> _mag >> "picture")];
+		} forEach (player getVariable ["MCC_utilityActiveCharges",[]]);
+
+		_layer = 1;
 	};
 
 	case (_ctrlData in ["CowsSlot","PointerSlot","MuzzleSlot","UnderBarrelSlot"]): {
@@ -276,7 +328,7 @@ switch (true) do {
 		};
 
 		//Global
-		if (serverCommandAvailable "#logout" || isServer) then {
+		if (serverCommandAvailable "#kick" || isServer) then {
 			_array pushback (["setCurrentChannel 0","Global","\A3\Ui_f\data\GUI\Cfg\Ranks\general_gs.paa"]);
 		};
 

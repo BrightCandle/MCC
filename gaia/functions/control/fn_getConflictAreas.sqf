@@ -47,7 +47,7 @@ switch (_HQ_side) do
 		if (count(_TargetInfo)>0) then
 			{
 				_TargetPos = _TargetInfo select 1;
-				if ((_SelectedCA distance _TargetPos)<100) exitwith {_delete = false;}
+				if ((_SelectedCA distance _TargetPos)<MCC_GAIA_CA_SIZE) exitwith {_delete = false;}
 			};
 	}forEach (_Targets /*+_Spots*/);
 	if (_delete) then {_ca=_ca - [_x]};
@@ -56,16 +56,15 @@ switch (_HQ_side) do
 // Do create a CA on each position of a target that is not in range of 200 within the next the CA
 {
 	_TargetInfo = _x getVariable ["GAIA_TargetInfo",[]];
-	if !((count([_ca, {((_x distance (_TargetInfo select 1))<200)}] call BIS_fnc_conditionalSelect))>0)
+	if !((count([_ca, {((_x distance (_TargetInfo select 1))<(MCC_GAIA_CA_SIZE*2))}] call BIS_fnc_conditionalSelect))>0)
 	then
 		{_ca  = _ca + [(_TargetInfo select 1)];	};
 }forEach _Targets;
 
 // Order the CA's. The one who is the closest to any zone wins
-//_ca=[_ca,[],{[_HQ_side,_x] CALL GAIA_fnc_getDistanceToClosestZone;},"ASCEND"] call BIS_fnc_sortBy;
 if (count(_ca)>0) then
 	{
-		_CA=[_CA,[],{[_HQ_side,_x] CALL GAIA_fnc_getDistanceToClosestZone;}] call BIS_fnc_sortBy;
+		_CA=[_CA,[_HQ_side],{[_input0,_x] CALL GAIA_fnc_getDistanceToClosestZone;}] call BIS_fnc_sortBy;
 	};
 
 
@@ -83,7 +82,7 @@ if (MCC_GAIA_DEBUG and _HQ_side==(Side player)) then
 			_marker = createMarkerLocal  [str(_x), _x ];
 			MCC_GAIA_CA_DEBUG = MCC_GAIA_CA_DEBUG + [str(_x)];
 			_marker setMarkerShapeLocal  "ELLIPSE";
-			 _marker setMarkerSizeLocal [100, 100]
+			 _marker setMarkerSizeLocal [MCC_GAIA_CA_SIZE, MCC_GAIA_CA_SIZE]
 		}forEach _CA;
 
 };

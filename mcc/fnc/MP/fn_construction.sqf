@@ -9,8 +9,8 @@ _pos	 	=_this select 1;
 _side	 	=_this select 2;
 _dir	 	=call compile (_this select 3);
 
-#define REQUIRE_MEMBERS 2
-#define ANCHOR_ITEM "Land_Bricks_V3_F"
+#define REQUIRE_MEMBERS 0
+#define ANCHOR_ITEM "Land_TreeBin_F"
 #define TIME_BEFORE_DELETE 1200
 
 switch (_conType) do {
@@ -81,9 +81,9 @@ if (_conType in ["bunker","wall"]) then {
 	_const setPosASL _pos;
 	sleep 0.01;
 	_const setPosASL _pos;
-	//_const = [_pos, _dir, [[_vehicleType,[0,0,0.0237527],0.216771,1,0,{},true]]] call MCC_fnc_objectMapper;
 	_const setVariable ["MCC_CONST_FORT",true, true];
 } else {
+	/*
 	_bagFence = [
 					[_vehicleType,[0,0,0.0237527],0.216771,1,0,"_this disableTIEquipment true;",true],
 					["Land_BagFence_Long_F",[1.55859,-0.130859,-0.00100017],269.77,1,0,{}],
@@ -92,6 +92,7 @@ if (_conType in ["bunker","wall"]) then {
 					["Land_Mound02_8m_F",[-2.03711,1.26367,0],0,1,0,{}],
 					["Land_BagFence_Corner_F",[-1.96875,-2.44336,-0.000999928],182.161,1,0,{}]
 				];
+	*/
 
 	//Create the base item
 	_time = time;
@@ -167,7 +168,7 @@ if (_conType in ["bunker","wall"]) then {
 		};
 	};
 
-	sleep 5;
+	sleep 2;
 	//Update marker
 	[compile format ['deleteMarker %1;',str _markerName],"BIS_fnc_spawn", _side ,false] call BIS_fnc_MP;
 

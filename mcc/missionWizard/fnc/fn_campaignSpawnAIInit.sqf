@@ -1,4 +1,4 @@
-/*======================================================MCC_fnc_campaignSpawnAIInit=====================================================================================================
+/*======================================================MCC_fnc_campaignSpawnAIInit=======================================================================================
 // Spawn selected units around the player
 // Example: [_spawnDistance,_maxSpawn,_faction] spawn MCC_fnc_campaignSpawnAIInit;
 // _spawnDistance		INTEGER - Spawn distance around the players
@@ -107,7 +107,7 @@ while {true} do {
 					};
 					_grp = [_spawnPos, _enemySide, _units] call BIS_fnc_spawnGroup;
 				} else {
-					_grp = ([_spawnPos, 200, ((_unitsArray call BIS_fnc_selectRandom) select 0), _enemySide] call bis_fnc_spawnvehicle) select 2;
+					_grp = ([_spawnPos, 200, ((_unitsArray call BIS_fnc_selectRandom) select 0), _enemySide] call MCC_fnc_spawnVehicle) select 2;
 				};
 
 				_grp setVariable ["GAIA_ZONE_INTEND",[([_spawnPos,1500] call MCC_fnc_campaignGetNearestTile) select 0, ["MOVE","NOFOLLOW"]call BIS_fnc_selectRandom], true];
@@ -117,6 +117,7 @@ while {true} do {
 	};
 
 
+	sleep 600;
 
 	//Delete stuff
 	{
@@ -136,7 +137,5 @@ while {true} do {
 			};
 		};
 	} forEach allgroups;
-
-	sleep 5;
 };
 

@@ -54,7 +54,7 @@ MCC_fnc_ambientCivilianFiredNearEH = {
 		};
 
 		//Give WP
-		[1,_runAwayPos,[0,"RED","NO CHANGE","FULL","COMBAT","", {},0],[group _civ]] spawn MCC_fnc_manageWp;
+		[1,_runAwayPos,[0,"RED","NO CHANGE","FULL","COMBAT","true", "",0],[group _civ]] spawn MCC_fnc_manageWp;
 	};
 };
 

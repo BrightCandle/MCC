@@ -1,4 +1,4 @@
-/*=================================================================MCC_fnc_initNameTags================================================================================
+/*=================================================================MCC_fnc_initHUD================================================================================
   Init HUD Name Tags
   IN <>
     Nothing
@@ -62,7 +62,7 @@
                             _pos = _x modelToWorld _pos;
                         } else {
 
-                             if (_x isKindOf "Car" || _x isKindOf "Tank" || _x isKindOf "Air" || _x isKindOf "ship") then {
+                            //if (_x isKindOf "Car" || _x isKindOf "Tank" || _x isKindOf "Air" || _x isKindOf "ship") then {
                                 _pic = getText (configFile >> "cfgVehicles" >> (typeOf _x) >> "picture");
                                 _leader = leader _X;
                                 _name = if (alive _leader) then {name _leader} else {"Unknown"};
@@ -70,23 +70,33 @@
                                 _color = if (_leader in units player) then {[0,1,0,1]} else {[1,1,1,1]};
                                 _pos = visiblePosition _X;
                                 _pos = _pos vectorAdd [0,0,3];
-                            };
+                           // };
                         };
 
                         drawIcon3D ["", [1,1,1,_alpha],  _pos, 0, 0, 0, name _x, 2, _textSize,"PuristaSemiBold"];
                         drawIcon3D [_pic, _color,  _pos, 0.8, 0.8, 0, "", 2, 0,"PuristaSemiBold"];
                     };
+                };
 
-                    //Add wounded icon
-                    if ((_x isKindOf "Man") && damage _x > 0.3 && (missionNamespace getvariable ["MCC_medicShowWounded",true])) then {
-                        _pos = _x modelToWorld (_x selectionPosition "pelvis");
-                        drawIcon3D [MCC_path + "mcc\interaction\data\IconBleeding.paa", [1,0,0,_alpha], _pos, 0.8, 0.8, 0, "", 2, 0,"PuristaSemiBold"];
-                    };
-               };
+                //Add wounded icon
+                if ((_x isKindOf "Man") &&
+                    damage _x > 0.3 &&
+                    ((player getVariable ["CP_side",  playerside]) == (_x getVariable ["CP_side",  side _x]) || (captiveNum _x in [_captiveSideId,50])) &&
+                    (missionNamespace getvariable ["MCC_medicShowWounded",true])
+                    ) then {
+
+                    _pos = _x modelToWorld (_x selectionPosition "pelvis");
+                    _alpha = linearConversion [0,_radius,player distance _x,1,0.4];
+
+                    drawIcon3D [MCC_path + "mcc\interaction\data\IconBleeding.paa", [1,0,0,_alpha], _pos, 0.8, 0.8, 0, "", 2, 0,"PuristaSemiBold"];
+                };
+
            } forEach _units;
 
 
-           if (player != vehicle player) then {
+
+           //Show vehicle crew
+           if (player != vehicle player && (missionNamespace getvariable ["MCC_nameTags",false])) then {
                 private ["_nameVehicle","_driver","_gunner","_commander","_emptyPos","_string"];
                 _nameVehicle    = getText (configFile >> "CfgVehicles" >> (typeOf vehicle player) >> "displayName");
                 _pic            = getText (configFile >> "cfgVehicles" >> (typeOf vehicle player) >> "picture");

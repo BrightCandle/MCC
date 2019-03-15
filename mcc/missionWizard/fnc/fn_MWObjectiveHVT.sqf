@@ -1,17 +1,18 @@
-//======================================================MCC_fnc_MWObjectiveHVT=========================================================================================================
+//=====================================MCC_fnc_MWObjectiveHVT=========================================================================================================
 // Create an HVT objective
-// Example:[_objPos,_isCQB,_alive] call MCC_fnc_MWObjectiveHVT;
+// Example:[_objPos,_isCQB,_hostageRescue] call MCC_fnc_MWObjectiveHVT;
 // _objPos = position, objectice position
 //_isCQB = Boolean, true - for CQB areay false if it doesn't matters.
-//_alive = Boolean, true - catch him alive, False - kill him
+//_hostageRescue = Boolean, true - catch him alive, False - kill him
 // Return - nothing
-//========================================================================================================================================================================================
-private ["_objPos","_isCQB","_alive","_buildingPos","_spawnPos","_unitsArray","_faction","_type","_group","_side","_unit",
-         "_building","_unitPlaced","_time","_array","_sidePlayer","_factionPlayer","_walking","_preciseMarkers"];
+//===============================================================================================================================================================
+#define	MCC_UNTIE_ICON "\a3\ui_f\data\IGUI\Cfg\holdactions\holdAction_unbind_ca.paa"
+
+private ["_objPos","_isCQB","_hostageRescue","_buildingPos","_spawnPos","_unitsArray","_faction","_type","_group","_side","_unit","_building","_unitPlaced","_time","_array","_sidePlayer","_factionPlayer","_walking","_preciseMarkers","_selectedBuilding","_fnc_findHVTClass"];
 
 _objPos = _this select 0;
 _isCQB = _this select 1;
-_alive = _this select 2;
+_hostageRescue = _this select 2;
 _side = _this select 3;
 _faction = _this select 4;
 _sidePlayer = _this select 5;
@@ -27,209 +28,167 @@ MCC_MWcreateHostage =
 
 	_group = creategroup _side;
 	_rank = ["PRIVATE","CORPORAL","SERGEANT","LIEUTENANT"] select (floor random 3);
-	_unit = _group createUnit [_type select 0,_spawnPos,[],0.5,"NONE"];
+	_unit = _group createUnit [_type, _spawnPos,[],0.5,"NONE"];
 	waituntil {alive _unit};
 	_unit setrank _rank;
 	MCC_tempName = format ["MCC_objectUnits_%1", ["MCC_objectUnitsCounter",1] call bis_fnc_counter];
 
-	if (MCC_isACE) then {
-	 	[_unit, true] call ACE_captives_fnc_setHandcuffed;
-	} else {
-		_unit setBehaviour "SAFE";
-		_unit setUnitPos "UP";
-		_unit setpos _spawnPos;
-		_unit setpos _spawnPos;
-		removeallweapons _unit;
-		_unit setVariable ["MCC_disarmed",true,true];
-		_init = format [";%2 = _this;_this setcaptive true; _this allowFleeing 0;_this disableAI 'MOVE'; removeallweapons _this; _this switchmove 'AmovPercMstpSsurWnonDnon'; dostop _this;"
-					,MCC_path
-					,MCC_tempName
-					];
-		[[[netID _unit,_unit], _init], "MCC_fnc_setVehicleInit", true, true] spawn BIS_fnc_MP;
-	};
-
-	//Add action
-	[
-		_unit,
-		format ["Untie %1",name _unit],
-		"\a3\Data_f\clear_empty.paa",
-		"\a3\Data_f\clear_empty.paa",
-		"(alive _target) && (_target distance _this < 5)",
-		"(alive _target) && (_target distance _this < 5)",
-		{
-			[name _target,"Hurry up!"] remoteExec ["BIS_fnc_showSubtitle", _caller];
-		},
-		{},
-		{
-			[name _target,"Thank you!"] remoteExec ["BIS_fnc_showSubtitle", _caller];
-			_target setVariable ["MCC_neutralize",true,true];
-			_init = "
-					_this setcaptive false;
-					_this allowFleeing 1;
-					_this enableAI 'MOVE';
-					_this setUnitPos 'AUTO';
-					_this switchmove '';
-					_this playmoveNow 'amovpercmstpsnonwnondnon';
-					";
-
-			sleep 1;
-			[_target] join _caller;
-			_nul = _caller addaction [format ["Disband %1", name _target],MCC_path + "mcc\general_scripts\hostages\hostage.sqf",[1,_target],6,false,true,"","_target == _this"];
-			[[[netID _target,_target], _init], "MCC_fnc_setVehicleInit", true, true] spawn BIS_fnc_MP;
-			[_target] spawn MCC_fnc_deleteHelper;
-		},
-		{
-			[name _target,"What are you doing?"] remoteExec ["BIS_fnc_showSubtitle", _caller];
-		},
-		[],
-		3,
-		0,
-		true,
-		false
-	] remoteExec ["bis_fnc_holdActionAdd", 0];
-
+	//Spawn Hostage
+	_null = _unit execVM format ["%1mcc\general_scripts\hostages\create_hostage.sqf", MCC_path];
+	_unit setvariable ["vehicleinit",(_unit getvariable ["vehicleinit",""]) + format ["_this execVM ""%1mcc\general_scripts\hostages\create_hostage.sqf"";", MCC_path]];
 	{_x addCuratorEditableObjects [[_unit],false]} forEach allCurators;
 	_unit;
 };
 
+_fnc_findHVTClass = {
+	params ["_faction","_side","_random"];
 
+	private ["_unitsArray","_HVTClasses","_hvtClass"];
 
-if (_isCQB) then
-	{
-		 _array = [_objPos, 100] call MCC_fnc_MWFindbuildingPos;
-		 _building = _array select 0;
-		 _buildingPos = _array select 1;
+	_hvtClass = "";
 
-		 if (isnil "_buildingPos") exitWith {debuglog "MCC MW - MWObjectiveHVT - No building pos foudn"};
+	//Random unit or from MCC_MWHVT variable
+	if (_random) then {
+		_unitsArray	= [_faction ,"soldier"] call MCC_fnc_makeUnitsArray;
+		while {_hvtClass == ""} do {_hvtClass = (_unitsArray call BIS_fnc_selectRandom) select 0};
 
-		_unitPlaced = false;
-		_time = time;
-		 while {!_unitPlaced && (time <= (_time + 5))} do
+	} else {
+		_HVTClasses = missionNamespace getVariable ["MCC_MWHVT",["B_officer_F","O_officer_F","I_officer_F","C_Nikos"]];
+
+		//Find the right side HVT
 		{
-			_spawnPos	= _building buildingPos (floor random _buildingPos);
-			if (count (nearestObjects [_spawnPos, ["Man"], 1])<1) then		//No other unit in the spawn position?
-			{
-				if (_alive) then
-				{
-					//Hostage
-					_unitsArray	= [_factionPlayer ,"soldier"] call MCC_fnc_makeUnitsArray;		//Let's build the faction unit's array
-					_type = [""];
-
-					//Karts again?!
-					while {(_type select 0) in ["C_Driver_1_F"] || (_type select 0) == ""} do
-					{
-						_type = _unitsArray call BIS_fnc_selectRandom;
-					};
-
-					_unit = [_sidePlayer,_spawnPos,_type] call MCC_MWcreateHostage;
-					waituntil {alive _unit};
-
-					[_unit,"Secure_HVT",_preciseMarkers,_side,400,_sidePlayer] call MCC_fnc_MWCreateTask;
-				}
-				else
-				{
-					//HVT
-					switch _side do
-						{
-							case west: {_type =   MCC_MWHVT select 0};
-							case east: {_type =   MCC_MWHVT select 1};
-							case resistance:  {_type =   MCC_MWHVT select 2};
-							default {_type =   MCC_MWHVT select 3};
-						};
-					_unit = [_spawnPos, _type, _sidePlayer,"Armed Civilian",random 360,true] call MCC_fnc_ACSingle;
-					waituntil {alive _unit};
-
-					[_unit,"Kill_HVT",_preciseMarkers,_side,400,_sidePlayer] call MCC_fnc_MWCreateTask;
-				};
-
-				_unitPlaced = true;
-
-				//Lets spawn some body guards
-				[[getpos _unit,30,0,2,_faction, _side],"MCC_fnc_garrison",false,false] spawn BIS_fnc_MP;
+			if (([(getNumber(configFile >> "cfgVehicles" >> _x >> "side"))] call BIS_fnc_sideType) == _side) exitWith {
+				_hvtClass = _x;
 			};
-		};
-	}
-	else
-	{
-		//Open area
-		[_objPos, random 360, (MCC_MWHVTCamps call BIS_fnc_selectRandom)] call MCC_fnc_objectMapper;
-		_group = creategroup _side;
+		} forEach _HVTClasses;
 
-		if (_alive) then
-		{
-			//Hostage
-
-			//Let's build the faction unit's array
-			_unitsArray	= [_factionPlayer ,"soldier"] call MCC_fnc_makeUnitsArray;
-			_type = _unitsArray call BIS_fnc_selectRandom;
-
-			//Find an empry spot
-			_spawnPos = _objPos findEmptyPosition [0,100,(_type select 0)];
-			_unit = [_sidePlayer,_spawnPos,_type] call MCC_MWcreateHostage;
-
-			//Start Briefings
-			waituntil {alive _unit};
-
-			[_unit,"Secure_HVT",_preciseMarkers,_side,400,_sidePlayer] call MCC_fnc_MWCreateTask;
-			//Static Patrol
-			_walking = false;
-		}
-		else
-		{
-			//HVT
-			switch _side do
-				{
-					case west: {_type =   MCC_MWHVT select 0};
-					case east: {_type =   MCC_MWHVT select 1};
-					case resistance:  {_type =   MCC_MWHVT select 2};
-					default {_type =   MCC_MWHVT select 3};
-				};
-
-			//Find an empry spot
-			_spawnPos = _objPos findEmptyPosition [0,100,_type];
-
-			//walking HVT?
-			_walking = if (random 1 < 0.5) then {true} else {false};
-
-			if (_walking) then
-			{
-				_unit = _group createUnit [_type ,_spawnPos,[],0.5,"NONE"];
-				waituntil {alive _unit};
-
-				MCC_tempName = format ["MCC_objectUnits_%1", ["MCC_objectUnitsCounter",1] call bis_fnc_counter];
-				_init = FORMAT [";%1 = _this;",MCC_tempName];
-
-				[[[netid _unit,_unit], _init], "MCC_fnc_setVehicleInit", true, true] spawn BIS_fnc_MP;
-
-			}
-			else
-			{
-				_unit = [_spawnPos, _type, _sidePlayer,"Armed Civilian",random 360,true] call MCC_fnc_ACSingle;
-			};
-
-			[_unit,"Kill_HVT",_preciseMarkers,_side,400,_sidePlayer] call MCC_fnc_MWCreateTask;
-		};
-
-		//Lets spawn some body guards
-		_unitsArray 	= [_faction ,"soldier"] call MCC_fnc_makeUnitsArray;		//Let's build the faction unit's array
-
-		for [{_i=0},{_i<3},{_i=_i+1}] do
-		{
-			_type = _unitsArray select round (random 4);
-			_spawnPos = (getpos _unit) findEmptyPosition [0,100,(_type select 0)];
-			_unit = _group createUnit [_type select 0,_spawnPos,[],0.5,"NONE"];
-			waituntil {alive _unit};
-			{_x addCuratorEditableObjects [[_unit],false]} forEach allCurators;
-		};
-
-		_group setFormDir (round(random 360));
-
-		if (_walking) then
-		{
-			[_group, _spawnPos, 150] call BIS_fnc_taskPatrol;
-		}
-		else
-		{
-			[_group, _spawnPos] call bis_fnc_taskDefend;
+		//Can't find - select random
+		if (_hvtClass == "") then {
+			_unitsArray	= [_faction ,"soldier"] call MCC_fnc_makeUnitsArray;
+			while {_hvtClass == ""} do {_hvtClass = (_unitsArray call BIS_fnc_selectRandom) select 0};
 		};
 	};
+
+	_hvtClass
+};
+
+if (_isCQB) then {
+
+	_selectedBuilding = ([_objPos, 100] call MCC_fnc_MWFindbuildingPos) call BIS_fnc_selectRandom;
+	_building = _selectedBuilding select 0;
+	_buildingPos = _selectedBuilding select 1;
+ 	if (isnil "_buildingPos") exitWith {debuglog "MCC MW - MWObjectiveHVT - No building pos foudn"};
+
+	_unitPlaced = false;
+	_time = time;
+
+	 while {!_unitPlaced && (time <= (_time + 5))} do {
+		_spawnPos	= _building buildingPos (floor random _buildingPos);
+
+		//No other unit in the spawn position?
+		if (count (nearestObjects [_spawnPos, ["Man"], 1])<1) then {
+			if (_hostageRescue) then {
+
+				//find Hostage class
+				_type = [_factionPlayer, _sidePlayer, false] call _fnc_findHVTClass;
+
+				_unit = [_sidePlayer,_spawnPos,_type] call MCC_MWcreateHostage;
+				waituntil {alive _unit};
+
+				[_unit, getpos _unit,"Secure_HVT",_preciseMarkers,_side,400,_sidePlayer] call MCC_fnc_MWCreateTask;
+
+			} else {
+
+				//find HVT class
+				_type = [_faction, _side, false] call _fnc_findHVTClass;
+				_unit = [_spawnPos, _type, _sidePlayer,"Armed Civilian",random 360,true] call MCC_fnc_ACSingle;
+				waituntil {alive _unit};
+
+				[_unit, getpos _unit,"Kill_HVT",_preciseMarkers,_side,400,_sidePlayer] call MCC_fnc_MWCreateTask;
+			};
+
+			_unitPlaced = true;
+
+			//Lets spawn some body guards
+			[[getpos _unit,30,0,2,_faction, _side],"MCC_fnc_garrison",false,false] spawn BIS_fnc_MP;
+		};
+	};
+} else {
+
+	//Clear area
+	[_objPos,50,true] call MCC_fnc_hideTerrainObjectsArea;
+
+	//Open area
+	_objPos = [_objPos] call MCC_fnc_buildRandomComposition;
+	[_objPos,30,0,4,_faction, _side] remoteExec ["MCC_fnc_garrison",2];
+
+	_group = creategroup _side;
+
+	if (_hostageRescue) then {
+		//find Hostage class
+		_type = [_factionPlayer, _sidePlayer, false] call _fnc_findHVTClass;
+
+		//Find an empry spot
+		_spawnPos = _objPos findEmptyPosition [0,100,_type];
+		_unit = [_sidePlayer,_spawnPos,_type] call MCC_MWcreateHostage;
+
+		//Start Briefings
+		waituntil {alive _unit};
+
+		[_unit, getpos _unit,"Secure_HVT",_preciseMarkers,_side,400,_sidePlayer] call MCC_fnc_MWCreateTask;
+		//Static Patrol
+		_walking = false;
+
+	} else {
+
+		//find HVT class
+		_type = [_faction, _side, false] call _fnc_findHVTClass;
+
+		//Find an empry spot
+		_spawnPos = _objPos findEmptyPosition [0,100,_type];
+
+		//walking HVT?
+		_walking = if (random 1 < 0.5) then {true} else {false};
+
+		if (_walking) then {
+			_unit = _group createUnit [_type ,_spawnPos,[],0.5,"NONE"];
+			waituntil {alive _unit};
+
+			//Add to zeus
+			{[[_x,_unit],{(_this select 0) addCuratorEditableObjects [[_this select 1],true];}] remoteExec ["BIS_fnc_spawn",_x]} forEach allCurators;
+
+			MCC_tempName = format ["MCC_objectUnits_%1", ["MCC_objectUnitsCounter",1] call bis_fnc_counter];
+			_init = FORMAT [";%1 = _this;",MCC_tempName];
+
+			[[[netid _unit,_unit], _init], "MCC_fnc_setVehicleInit", true, true] spawn BIS_fnc_MP;
+
+		} else {
+			_unit = [_spawnPos, _type, _sidePlayer,"Armed Civilian",random 360,true] call MCC_fnc_ACSingle;
+		};
+
+		[_unit, getpos _unit,"Kill_HVT",_preciseMarkers,_side,400,_sidePlayer] call MCC_fnc_MWCreateTask;
+	};
+
+	//Lets spawn some body guards
+	_unitsArray 	= [_faction ,"soldier"] call MCC_fnc_makeUnitsArray;
+	private _guardsNumber = floor random 5;
+
+	for [{_i=0},{_i< _guardsNumber},{_i=_i+1}] do {
+
+		_type = _unitsArray select floor (random 4);
+		_spawnPos = (getpos _unit) findEmptyPosition [0,100,(_type select 0)];
+		_unit = _group createUnit [_type select 0,_spawnPos,[],0.5,"NONE"];
+		waituntil {alive _unit};
+
+		//Add to zeus
+		{[[_x,_unit],{(_this select 0) addCuratorEditableObjects [[_this select 1],true];}] remoteExec ["BIS_fnc_spawn",_x]} forEach allCurators;
+	};
+
+	_group setFormDir (round(random 360));
+
+	if (_walking) then {
+		[_group, _spawnPos, 150] call BIS_fnc_taskPatrol;
+	} else {
+		[_group, _spawnPos] call bis_fnc_taskDefend;
+	};
+};

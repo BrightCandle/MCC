@@ -16,7 +16,7 @@ if (count _key > 4) then {
 _screen = missionNamespace getvariable ["MCC_mcc_screen",0];
 
 if (_index == 0) exitWith {
-	if !((getplayerUID player in (missionNamespace getvariable ["MCC_allowedPlayers",[]]) || "all" in  (missionNamespace getvariable ["MCC_allowedPlayers",["all"]]) || (serverCommandAvailable "#logout" && missionNamespace getvariable ["MCC_allowAdmin",true]) || (isServer && missionNamespace getvariable ["MCC_allowAdmin",true]) || (player getvariable ["MCC_allowed",false]))) exitWith {};
+	if !((getplayerUID player in (missionNamespace getvariable ["MCC_allowedPlayers",[]]) || "all" in  (missionNamespace getvariable ["MCC_allowedPlayers",["all"]]) || (serverCommandAvailable "#kick" && missionNamespace getvariable ["MCC_allowAdmin",true]) || (isServer && missionNamespace getvariable ["MCC_allowAdmin",true]) || (player getvariable ["MCC_allowed",false]))) exitWith {};
 
 	if (str findDisplay 2994 != "No display") then {
 		while {dialog} do {closeDialog 0};
@@ -59,6 +59,11 @@ if (_index == 0) exitWith {
 	};
 };
 
+//Close dialog if it open
+if (dialog) exitWith {
+		while {dialog} do {closeDialog 0};
+};
+
 //Console
 _commander = ((MCC_server getVariable [format ["CP_commander%1",side player],""]) == getPlayerUID player) or ("MCC_itemConsole" in (assignedItems player));
 if ((_index == 1) && _commander && (missionNamespace getVariable ["MCC_allowConsole",true])) exitWith {
@@ -70,7 +75,7 @@ if ((_index == 1) && _commander && (missionNamespace getVariable ["MCC_allowCons
 };
 
 //Squad Dialog
-if (_index == 2 && (missionNamespace getVariable ["MCC_allowSquadDialog",true])) exitWith {
+if (_index == 2) exitWith {
 	while {dialog} do {closeDialog 0; sleep 0.01};
 	createDialog "CP_RESPAWNPANEL";
 };

@@ -42,7 +42,7 @@ class MCC_rts_scanResourcesBasic
 
 	displayName = "Basic Mission Scan";
 	descriptionShort = "Order HQ to look for basic resources missions";
-	condition = "!(missionNamespace getVariable [format ['MCC_rtsMissionOn_%1', playerSide],false]) && (missionNamespace getVariable ['MCC_isCampaignRuning',false]);";
+	condition = "!(missionNamespace getVariable [format ['MCC_rtsMissionOn_%1', playerSide],false]);";
 	requiredBuildings[] = {{"hq",1}};
 	needelectricity = 1;
 	actionFNC = "MCC_fnc_rtsScanResourcesBasic";
@@ -59,12 +59,54 @@ class MCC_rts_scanResourcesAdvanced
 
 	displayName = "Advanced Mission Scan";
 	descriptionShort = "Order HQ to look for advanced resources missions";
-	condition = "!(missionNamespace getVariable [format ['MCC_rtsMissionOn_%1', playerSide],false]) && (missionNamespace getVariable ['MCC_isCampaignRuning',false]);";
+	condition = "!(missionNamespace getVariable [format ['MCC_rtsMissionOn_%1', playerSide],false]);";
 	requiredBuildings[] = {{"hq",1}};
 	needelectricity = 1;
 	actionFNC = "MCC_fnc_rtsScanResourcesAdvanced";
 	resources[] = {{"time",60}};
 };
+
+/*
+
+//Maybe when i'll have time i'll expend it more then it is today
+
+class MCC_rts_scanResourcesBasic
+{
+	#ifdef MCCMODE
+	picture = "\mcc_sandbox_mod\mcc\rts\data\hq.paa";
+	#else
+	picture = "mcc\rts\data\hq.paa";
+	#endif
+
+	displayName = "Basic Mission Scan";
+	descriptionShort = "Order HQ to look for a basic missions";
+	condition = "!(missionNamespace getVariable [format ['MCC_rtsMissionOn_%1', playerSide],false]);";
+	requiredBuildings[] = {{"hq",1}};
+	needelectricity = 1;
+	actionFNC = "MCC_fnc_rtsBuildUIContainer";
+	variables[] = {"cfgRtsBuildings","missionsBasic","cfgRtsMissions"};
+	resources[] = {};
+};
+
+class MCC_rts_scanResourcesAdvanced
+{
+	#ifdef MCCMODE
+	picture = "\mcc_sandbox_mod\mcc\rts\data\satcom.paa";
+	#else
+	picture = "mcc\rts\data\satcom.paa";
+	#endif
+
+	displayName = "Advanced Mission Scan";
+	descriptionShort = "Order HQ to look for advanced resources missions";
+	condition = "!(missionNamespace getVariable [format ['MCC_rtsMissionOn_%1', playerSide],false]);";
+	requiredBuildings[] = {{"hq",1}};
+	needelectricity = 1;
+	actionFNC = "MCC_fnc_rtsBuildUIContainer";
+	variables[] = {"cfgRtsBuildings","missionsAdvanced","cfgRtsMissions"};
+	resources[] = {};
+};
+*/
+
 
 class MCC_rts_scanResourcesCancel
 {
@@ -76,7 +118,7 @@ class MCC_rts_scanResourcesCancel
 
 	displayName = "Abort Mission";
 	descriptionShort = "Abort the mission and delete all units and crates";
-	condition = "(missionNamespace getVariable [format ['MCC_rtsMissionOn_%1', playerSide],false]) && (missionNamespace getVariable ['MCC_isCampaignRuning',false]);";
+	condition = "(missionNamespace getVariable [format ['MCC_rtsMissionOn_%1', playerSide],false]);";
 	requiredBuildings[] = {{"hq",1}};
 	needelectricity = 0;
 	actionFNC = "MCC_fnc_rtsScanResourcesCancel";
@@ -159,7 +201,7 @@ class MCC_rts_repair2Food
 	picture = "mcc\rts\data\repair2Food.paa";
 	#endif
 
-	displayName = "Trade Supplies";
+	displayName = "Trade Materials";
 	descriptionShort = "Trade supplies with the locals for food";
 	condition = "";
 	requiredBuildings[] = {{"tradePost",1}};
@@ -198,7 +240,8 @@ class MCC_rts_rtsFortUIContainer
 	condition = "";
 	requiredBuildings[] = {};
 	needelectricity = 0;
-	actionFNC = "MCC_fnc_rtsFortUIContainer";
+	actionFNC = "MCC_fnc_rtsBuildUIContainer";
+	variables[] = {"cfgRtsBuildings","fortifications","cfgRtsActions"};
 	resources[] = {};
 };
 
@@ -215,7 +258,8 @@ class MCC_rts_rtsUnitsUIContainer
 	condition = "";
 	requiredBuildings[] = {};
 	needelectricity = 0;
-	actionFNC = "MCC_fnc_rtsUnitsUIContainer";
+	actionFNC = "MCC_fnc_rtsBuildUIContainer";
+	variables[] = {"cfgRtsBuildings","groups","cfgMCCRtsGroups"};
 	resources[] = {};
 };
 
@@ -233,6 +277,7 @@ class MCC_rts_rtsBuildUIContainer
 	requiredBuildings[] = {};
 	needelectricity = 0;
 	actionFNC = "MCC_fnc_rtsBuildUIContainer";
+	variables[] = {"cfgRtsBuildings","buildings","cfgRtsBuildings"};
 	resources[] = {};
 };
 
@@ -269,4 +314,39 @@ class MCC_rts_rtsbuyVehicle
 	actionFNC = "MCC_fnc_rtsbuyVehicle";
 	resources[] = {};
 };
+
+class MCC_rts_addArtilleryAmmo
+{
+	#ifdef MCCMODE
+	picture = "\mcc_sandbox_mod\mcc\rts\data\RTS_buttonArtillery.paa";
+	#else
+	picture = "mcc\rts\data\RTS_buttonArtillery.paa";
+	#endif
+
+	displayName = "Buy Artillery Shells";
+	descriptionShort = "Buy 10 Artillery Shells - Use the commander console to call artillery";
+	condition = "";
+	requiredBuildings[] = {};
+	needelectricity = 1;
+	actionFNC = "MCC_fnc_rtsaddArtilleryAmmo";
+	resources[] = {{"ammo",50}};
+};
+
+class MCC_rts_evacHelicopterBuy
+{
+	#ifdef MCCMODE
+	picture = "\mcc_sandbox_mod\mcc\rts\data\RTS_evacHelicopter.paa";
+	#else
+	picture = "mcc\rts\data\RTS_evacHelicopter.paa";
+	#endif
+
+	displayName = "Buy Evac Helicopter";
+	descriptionShort = "Respawn downed evac helicopter";
+	condition = "count (missionNamespace getVariable [format ['MCC_campaignEvac_%1', playerSide],[]]) > 0;";
+	requiredBuildings[] = {{"hq",1}};
+	needelectricity = 0;
+	actionFNC = "MCC_fnc_rtsEvacHelicopterBuy";
+	resources[] = {{"repair",200},{"time",10}};
+};
+
 #include "forts\forts.hpp"

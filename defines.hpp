@@ -1,5 +1,5 @@
 #define MCCPATH ""
-#define MCCVersion "(r20)"
+#define MCCVersion "(r29)"
 
 
 //--------------------------Dialogs----------------------------------------------------
@@ -28,9 +28,6 @@
 #include "mcc\Dialogs\mcc_curatorInitDefines.hpp"
 #include "mcc\Dialogs\mcc_curatorInit.hpp"
 
-//----Logistics-----------------
-#include "mcc\Dialogs\mcc_logisticsLoadTruck.hpp"
-
 //----Key Settings-----------------
 #include "mcc\Dialogs\mcc_rscKeyBinds.hpp"
 
@@ -51,7 +48,6 @@
 
 //--------------------------Others----------------------------------------------------
 #include "bon_artillery\dialog\Artillery.hpp"
-#include "VAS\menu.hpp"
 #include "spectator\spectating.hpp"
 
 //--------------------------features----------------------------------------------------
@@ -60,12 +56,14 @@
 #include "mcc\bombDefuse\cfg.hpp"
 #include "mcc\survive\cfg.hpp"
 #include "mcc\interaction\cfg.hpp"
+#include "mcc\LHD\cfg.hpp"
+#include "mcc\vehicles\cfg.hpp"
+#include "mcc\logistics\cfg.hpp"
 
 //--------------------------Cfg----------------------------------------------------
 class CfgFunctions
 {
 	#include "gaia\cfgFunctions.hpp"
-	#include "VAS\cfgFunctions.hpp"
 
 	class MCC
 	{
@@ -87,6 +85,11 @@ class CfgFunctions
 		#include "mcc\helpers\cfgFunctions.hpp"
 		#include "mcc\helicopters\cfgFunctions.hpp"
 		#include "mcc\ambient\cfgFunctions.hpp"
+		#include "mcc\LHD\cfgFunctions.hpp"
+		#include "mcc\vehicles\cfgFunctions.hpp"
+		#include "mcc\logistics\cfgFunctions.hpp"
+		#include "mcc\UI\cfgFunctions.hpp"
+		#include "mcc\roads\cfgFunctions.hpp"
 	};
 };
 
@@ -116,6 +119,7 @@ class CfgSounds
 {
 	#include "mcc\cfg\CfgSounds.hpp"
 	#include "mcc\ambient\CfgSounds.hpp"
+	#include "mcc\radio\CfgSounds.hpp"
 };
 
 class CfgNotifications
@@ -156,7 +160,6 @@ class RscTitles
         };
 	};
 
-	#include "mcc\cfg\modules\dialogs\mcc_captureProgressRsc.hpp"
 	#include "mcc\dialogs\mcc_InteractionRsc.hpp"
 	#include "mcc\dialogs\compass.hpp"
 	#include "mcc\dialogs\mcc_3dObject.hpp"
@@ -165,7 +168,7 @@ class RscTitles
 	#include "mcc\HUD\cfg.hpp"
 
 	//----medic-----------------
-	#include "mcc\Dialogs\medic\mcc_uncMain.hpp"
+	#include "mcc\medic\dialogs\mcc_uncMain.hpp"
 };
 
 class CfgDebriefing

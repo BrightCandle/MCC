@@ -476,7 +476,7 @@ _StartTimeIssueOrders = time;
 		 };
 		 //Next CA
 		 sleep 0.1;
-	}forEach 	([AllGroups,[],{_SelectCA distance (leader _x)},"ASCEND",{alive (leader _x)}] call BIS_fnc_sortBy);
+	}forEach 	([AllGroups,[_SelectCA],{_input0 distance (leader _x)},"ASCEND",{alive (leader _x)}] call BIS_fnc_sortBy);
 
 
 
@@ -528,7 +528,7 @@ _StartTimeIssueOrders = time;
 						_SpotIsBeingCleared				= [_SpotPos,_side] call GAIA_fnc_isBlacklisted;
 
 						//The dude should be hiding outside a CA (or we will already attack it)
-						_SpotIsOutsideCA					= !((count([_CA, {(_x distance (_SpotPos)<100)}] call BIS_fnc_conditionalSelect))>0);
+						_SpotIsOutsideCA					= !((count([_CA, {(_x distance (_SpotPos)<MCC_GAIA_CA_SIZE)}] call BIS_fnc_conditionalSelect))>0);
 
 						//He cannot be to far out (only one range as only footmobiles can clear)
 						//Or the spot is in the zone from the group, we clear it, no matter how far we need to go!
@@ -566,7 +566,7 @@ _StartTimeIssueOrders = time;
 
 										};
 					};
-				}forEach ([AllGroups,[],{_SpotPos distance (leader _x)},"ASCEND",{alive (leader _x)}] call BIS_fnc_sortBy);
+				}forEach ([AllGroups,[_SpotPos],{_input0 distance (leader _x)},"ASCEND",{alive (leader _x)}] call BIS_fnc_sortBy);
 		};
 
 }forEach _tbc;
@@ -661,6 +661,7 @@ _StartTimeIssueOrders = time;
 
 
 		   	 				};
+		   	 		  if (isNil "_MortarFired") then {_MortarFired = false};
 		   	 		  if (_MortarFired) exitwith {true;};
 		   	 		} forEach _CA;
 		   	 };
@@ -787,7 +788,7 @@ _StartTimeIssueOrders = time;
 // = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 {
 
-			if (MCC_GAIA_AMBIANT)
+			if (missionNamespace getVariable ["MCC_GAIA_AMBIANT",true])
 			then
 			{
 				 if (
@@ -813,7 +814,7 @@ _StartTimeIssueOrders = time;
 		   	 {
 
 		   	 		 _IsNight			= (((selectBestPlaces [position (leader _x),2, "night", 1, 1]) select 0 select 1)>0.8);
-		   	 		 _LetsDoSome	= ((round(random(MCC_GAIA_AMBIANT_CHANCE)))==1);
+		   	 		 _LetsDoSome	= ((round(random(missionNamespace getVariable ["MCC_GAIA_AMBIANT_CHANCE",20])))==1);
 		   	 		 _ClosestCA		= ([_CA,leader _x] call BIS_fnc_nearestPosition);
 		   	 		 _PosLead			= position leader _x;
 

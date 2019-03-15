@@ -10,7 +10,7 @@ _channelID = -1;
 
 _fncKeyDown =
 {
-	if (!(player getVariable ["MCC_radioBroadcasting",false])) then	{
+	if (!(player getVariable ["MCC_radioBroadcasting",false]) && (missionNamespace getVariable ["MCC_VonRadio",false])) then	{
 		if (!isNull findDisplay 55 && !isNull findDisplay 63) then {
 			player setVariable ["MCC_radioBroadcasting",true];
 			(ctrlText (findDisplay 63 displayCtrl 101)) call MCC_fnc_VONRadioPressed;
@@ -31,7 +31,7 @@ _fncKeyUp =
 		{_x enableChannel true} forEach [3,4,5];
 
 		//enable Global
-		if (serverCommandAvailable "#logout" || isServer) then {
+		if (serverCommandAvailable "#kick" || isServer) then {
 			0 enableChannel true;
 		} else {
 			if (currentChannel ==0) then {setCurrentChannel 5};

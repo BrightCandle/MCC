@@ -59,15 +59,6 @@ if (_addGunners) then {
 _object setVariable ["MCC_evacStartPos", getposATL _object, true];
 
 _evacVehicles = missionNamespace getvariable [format ["MCC_evacVehicles_%1",_side],[]];
-
-//remove dead evac
-{
-	if (!(alive _x) || !(alive driver _x) || isNull _x) then {
-		_evacVehicles set [_foreachIndex, -1];
-	};
-} forEach _evacVehicles;
-
-_evacVehicles = _evacVehicles - [-1];
 _evacVehicles pushBack _object;
 
 missionNamespace setvariable ([format ["MCC_evacVehicles_%1",_side],_evacVehicles]);
@@ -75,22 +66,38 @@ publicvariable (format ["MCC_evacVehicles_%1",_side]);
 
 {_x addCuratorEditableObjects [[_object],true]} forEach allCurators;
 
-//If campaignEvac then spawn evac every day
+//If campaignEvac
 if (_campaignEvac) then {
 	private ["_varName"];
 	_varName = format ["MCC_campaignEvac_%1", _side];
-	_evacVehicles = missionNamespace getVariable [_varName,[]];
-	_evacVehicles pushBack [_object,_type,_pos];
-	missionNamespace setVariable [_varName,_evacVehicles];
-
-	[_object] spawn {
-	private ["_evac","_side","_displayName"];
-		_evac = [_this, 0, objNull, [objNull]] call BIS_fnc_param;
-		_side = [_this, 1, west] call BIS_fnc_param;
-		_displayName = getText(configFile >> "CfgVehicles">> typeof _evac >> "displayname");
-		while {(alive _evac && (alive driver _evac))} do {sleep 10};
-
-		[["MCCNotificationBad",["Evac",format ["%1 Evac is down",_displayName],""]], "bis_fnc_showNotification", _side, false] spawn BIS_fnc_MP;
-	};
+	missionNamespace setVariable [_varName,[_object,_type,(if (surfaceIsWater _pos) then {getPosASL _object} else { getposATL _object}), direction _object]];
+	publicvariable _varName;
 };
 
+//Wait until the evac is dead
+[_object,_side] spawn {
+	params [
+		["_object",objNull,[objNull]],
+		["_side",sideLogic,[sideLogic]]
+	];
+
+
+	waitUntil {!(alive _object) || !(alive driver _object)};
+
+	private ["_displayName","_evacVehicles"];
+	_evacVehicles = missionNamespace getvariable [format ["MCC_evacVehicles_%1",_side],[]];
+	_displayName = getText(configFile >> "CfgVehicles">> typeof _object >> "displayname");
+
+	//remove dead evac
+	{
+		if (!(alive _x) || !(alive driver _x) || isNull _x) then {
+			_evacVehicles set [_foreachIndex, -1];
+		};
+	} forEach _evacVehicles;
+
+	_evacVehicles = _evacVehicles - [-1];
+	["MCCNotificationBad",["Evac",format ["%1 Evac is down",_displayName],""]] remoteExec ["bis_fnc_showNotification", _side];
+
+	missionNamespace setvariable ([format ["MCC_evacVehicles_%1",_side],_evacVehicles]);
+	publicvariable (format ["MCC_evacVehicles_%1",_side]);
+};

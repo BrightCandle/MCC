@@ -21,7 +21,8 @@ if (typeName (_module getVariable ["removeGear",true]) == typeName 0) exitWith {
 _object = missionNamespace getVariable ["MCC_curatorMouseOver",[]];
 
 //if no object selected or not a vehicle
-if (count _object <2) exitWith {systemchat "No vehicle selected"; deleteVehicle _module};
+_str = "<t size='0.8' t font = 'puristaLight' color='#FFFFFF'>" + "No vehicle selected" + "</t>";
+if (count _object <2) exitWith {[_str,0,1.1,2,0.1,0.0] spawn bis_fnc_dynamictext; deleteVehicle _module};
 _object = _object select 1;
 
 //Not curator exit
@@ -34,6 +35,6 @@ _resualt = ["Undercover Agents",[
 if (count _resualt == 0) exitWith {deleteVehicle _module};
 _removeGear = _resualt select 0;
 
-[[_object,_removeGear], "MCC_fnc_undercoverInit", _object, false] call BIS_fnc_MP;
+[_object,_removeGear] remoteExec ["MCC_fnc_undercoverInit",_object];
 
 deleteVehicle _module;

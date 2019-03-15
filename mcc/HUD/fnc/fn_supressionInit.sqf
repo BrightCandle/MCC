@@ -27,7 +27,7 @@ missionNamespace setVariable ["MCC_initSupression",true];
         _pDistance = player distance _projectile;
         _dir = [player,_unit] call BIS_fnc_relativeDirTo;
         if (_pDistance <= _distance) then {
-           [(1 -(_pDistance/_distance)) max 0.3,_dir] spawn MCC_fnc_supressionEffects;
+           [(1 -(_pDistance/_distance)) max 0.5,_dir] spawn MCC_fnc_supressionEffects;
             _array set [_foreachindex,-1];
         } else {
             if (isNull _projectile) then {
@@ -42,13 +42,13 @@ missionNamespace setVariable ["MCC_initSupression",true];
 
 //Init fired EH on each unit
 0 spawn {
-    while {true} do {
+    while {(missionNamespace getVariable ["MCC_initSupression",false])} do {
         {
             if !((vehicle _x) getVariable ["MCC_initSupression",false]) then {
                 (vehicle _x) addEventHandler ["fired",{_this call MCC_fnc_supressionFiredEH}];
                 (vehicle _x) setVariable ["MCC_initSupression",true];
             };
         } forEach allUnits;
-        sleep 1;
+        sleep 30;
     };
 };

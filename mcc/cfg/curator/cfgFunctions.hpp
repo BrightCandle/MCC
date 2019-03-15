@@ -24,5 +24,10 @@ class curator
 	class curatorunderCover {description = "Sets player as undercover unit";};
 	class curatorModuleCapturePoint {};
 	class ambientDenied {};
-	class inGameUICurator {description = "setting MCC's UI"};
+	class inGameUICurator {description = "setting MCC's UI";};
+	class curatorSetIntel {description = "set an item as pickable intel";};
+	class curatorLHDSpawn {description = "Spawn LHD";};
+	class curatorGAIARespawn {description = "Sets a group or unit to respawns certain number of times";};
+	class curatorRTSBuilding {description = "Instantly construct RTS Building";};
+	class curatorAddValor {description = "Add Valor/Credit to the selected units";};
 };

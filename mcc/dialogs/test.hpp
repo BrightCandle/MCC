@@ -14,120 +14,93 @@ class mcc_test
 	{ 	//(0.671875 * safezoneW + safezoneX) / safezoneW -X
 	};	//(0.478009 * safezoneH + safezoneY) / safezoneH - Y
 
-	class controls
-	{
+	class Controls
+			{
+				class bckground: MCC_RscText
+				{
+					idc = -1;
+					x = 0 * safezoneW;
+					y = 0 * safezoneH;
+					w = 0.273281 * safezoneW;
+					h = 0.154 * safezoneH;
+					colorBackground[] = {0,0,0,0.7};
+				};
 
-		class MCC_timeDialogframe: MCC_RscText
-		{
-			idc = -1;
+				class bckframe: MCC_RscFrame
+				{
+					idc = -1;
+					x = 0 * safezoneW;
+					y = 0 * safezoneH;
+					w = 0.273281 * safezoneW;
+					h = 0.154 * safezoneH;
+				};
 
-			w = 0.189063 * safezoneW;
-			h = 0.197923 * safezoneH;
-			colorBackground[] = {0,0,0,0.9};
-		};
-		class MCC_timeDialogTittle: MCC_RscText
-		{
-			idc = -1;
-			text = "Time:"; //--- ToDo: Localize;
-			colorText[] = {0,1,1,1};
+				class factionText: MCC_RscText
+				{
+					idc = -1;
+					text = "Faction:"; //--- ToDo: Localize;
+					sizeEx = "(((((safezoneW / safezoneH) min 1.2) / 1.2) / 25) * 0.8)";
+					x = 0.00515648 * safezoneW;
+					y = 0.011 * safezoneH;
+					w = 0.04125 * safezoneW;
+					h = 0.022 * safezoneH;
+				};
+				class factionListbox: MCC_RscCombo
+				{
+					idc = 8008;
+					sizeEx = "(((((safezoneW / safezoneH) min 1.2) / 1.2) / 25) * 0.8)";
+					onLBSelChanged = "['faction'] spawn MCC_fnc_LHDspawnVehicle;";
 
-			x = 0.0630206 * safezoneW;
-			y = 0.0109958 * safezoneH;
-			w = 0.06875 * safezoneW;
-			h = 0.0329871 * safezoneH;
-			sizeEx = "(((((safezoneW / safezoneH) min 1.2) / 1.2) / 25) * 1.5)";
-		};
-		class MCC_timeS1Tittle: MCC_RscText
-		{
-			idc = -1;
+					x = 0.046406 * safezoneW;
+					y = 0.011 * safezoneH;
+					w = 0.12375 * safezoneW;
+					h = 0.022 * safezoneH;
+				};
+				class typeListBox: MCC_RscCombo
+				{
+					idc = 1501;
+					sizeEx = "(((((safezoneW / safezoneH) min 1.2) / 1.2) / 25) * 0.8)";
 
-			text = "/"; //--- ToDo: Localize;
-			x = 0.0572916 * safezoneW;
-			y = 0.0549788 * safezoneH;
-			w = 0.0114583 * safezoneW;
-			h = 0.0329871 * safezoneH;
-		};
-		class MCC_timeDialogConfirm: MCC_RscButton
-		{
-			idc = -1;
-			onButtonClick = __EVAL("[3] execVM '"+MCCPATH+"mcc\pop_menu\mission_settings.sqf'");
-			text = "Confirm"; //--- ToDo: Localize;
-
-			x = 0.120313 * safezoneW;
-			y = 0.15394 * safezoneH;
-			w = 0.0630208 * safezoneW;
-			h = 0.0329871 * safezoneH;
-		};
-		class MCC_timeDialogClose: MCC_RscButtonMenu
-		{
-			idc = -1;
-			onButtonClick = "((uiNamespace getVariable 'MCC_groupGen_Dialog') displayCtrl 502) ctrlShow false";
-			text = "Close"; //--- ToDo: Localize;
-
-			x = 0.00572965 * safezoneW;
-			y = 0.15394 * safezoneH;
-			w = 0.0572917 * safezoneW;
-			h = 0.0329871 * safezoneH;
-		};
-		class MCC_timeMonthCombo: MCC_RscCombo
-		{
-			idc = 15;
-			x = 0.00572965 * safezoneW;
-			y = 0.0549788 * safezoneH;
-			w = 0.0515625 * safezoneW;
-			h = 0.0329871 * safezoneH;
-		};
-		class MCC_timeDayCombo: MCC_RscCombo
-		{
-			idc = 16;
-			x = 0.0687497 * safezoneW;
-			y = 0.0549788 * safezoneH;
-			w = 0.0515625 * safezoneW;
-			h = 0.0329871 * safezoneH;
-		};
-		class MCC_timeYearCombo: MCC_RscCombo
-		{
-			idc = 17;
-			x = 0.131771 * safezoneW;
-			y = 0.0549788 * safezoneH;
-			w = 0.0515625 * safezoneW;
-			h = 0.0329871 * safezoneH;
-		};
-		class MCC_timeHourCombo: MCC_RscCombo
-		{
-			idc = 18;
-			x = 0.0343746 * safezoneW;
-			y = 0.0989618 * safezoneH;
-			w = 0.0515625 * safezoneW;
-			h = 0.0329871 * safezoneH;
-		};
-		class MCC_timeMinuteCombo: MCC_RscCombo
-		{
-			idc = 19;
-			x = 0.0973957 * safezoneW;
-			y = 0.0989618 * safezoneH;
-			w = 0.0515625 * safezoneW;
-			h = 0.0329871 * safezoneH;
-		};
-		class MCC_timeS2Tittle: MCC_RscText
-		{
-			idc = -1;
-
-			text = "/"; //--- ToDo: Localize;
-			x = 0.120313 * safezoneW;
-			y = 0.0549788 * safezoneH;
-			w = 0.0114583 * safezoneW;
-			h = 0.0329871 * safezoneH;
-		};
-		class MCC_timeS3Tittle: MCC_RscText
-		{
-			idc = -1;
-
-			text = ":"; //--- ToDo: Localize;
-			x = 0.0859376 * safezoneW;
-			y = 0.0989618 * safezoneH;
-			w = 0.0114583 * safezoneW;
-			h = 0.0329871 * safezoneH;
-		};
-	};
+					x = 0.005156 * safezoneW;
+					y = 0.044 * safezoneH;
+					w = 0.04125 * safezoneW;
+					h = 0.022 * safezoneH;
+				};
+				class classListBox: MCC_RscCombo
+				{
+					idc = 1502;
+					sizeEx = "(((((safezoneW / safezoneH) min 1.2) / 1.2) / 25) * 0.8)";
+					x = 0.046406 * safezoneW;
+					y = 0.044 * safezoneH;
+					w = 0.12375 * safezoneW;
+					h = 0.022 * safezoneH;
+				};
+				class infoText: MCC_RscPicture
+				{
+					idc = 1100;
+					x = 0.175313 * safezoneW;
+					y = 0.011 * safezoneH;
+					w = 0.0928125 * safezoneW;
+					h = 0.132 * safezoneH;
+				};
+				class spawnButton: MCC_RscButton
+				{
+					idc = 2400;
+					text = "Spawn"; //--- ToDo: Localize;
+					x = 0.051563 * safezoneW;
+					y = 0.077 * safezoneH;
+					w = 0.0773437 * safezoneW;
+					h = 0.055 * safezoneH;
+				};
+				class closeButton: MCC_RscButtonMenu
+				{
+					idc = 2401;
+					text = "X"; //--- ToDo: Localize;
+					action = "['close'] spawn MCC_fnc_LHDspawnVehicle;";
+					x = 0.252656 * safezoneW;
+					y = 0.011 * safezoneH;
+					w = 0.0154688 * safezoneW;
+					h = 0.033 * safezoneH;
+				};
+			};
 };

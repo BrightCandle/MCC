@@ -1,4 +1,4 @@
-//================================================================MCC_fnc_buildSpawnPoint======================================================================================
+//================================================================MCC_fnc_buildSpawnPoint=============================================================================
 //Create a spawn point to the given side - SERVER ONLY
 // Example: [[pos, dir, side,size,destructable], "MCC_fnc_buildSpawnPoint", false, false] spawn BIS_fnc_MP;
 // pos: Array, position
@@ -8,8 +8,11 @@
 // destructable: Boolean
 // animate: Boolean
 // construct: Boolean
-//==============================================================================================================================================================================
+//======================================================================================================================================================================
 private ["_side","_size","_destructable","_building","_dummy","_sphere","_dir","_animate","_flag","_flagTex","_name","_logic","_pos","_construct","_teleport","_enableHud","_mode"];
+
+#define	MCC_ANCHOR	"Box_FIA_Support_F"
+
 if ((typeName (_this select 0)) == "OBJECT") then {
 	_logic			= _this select 0;
 	_pos			= getpos _logic;
@@ -20,7 +23,7 @@ if ((typeName (_this select 0)) == "OBJECT") then {
 	_destructable	= _logic getvariable ["distractable",true];
 	_animate		= false;
 	_construct 		= (_logic getvariable ["construct",0]) ==1;
-	_teleport 		= _logic getVariable ["teleportAtStart",0];
+	_teleport 		= _logic getVariable ["teleportAtStart",1];
 	_enableHud		= _logic getVariable ["hud",false];
 	_mode			= _logic getVariable ["mode","init"];
 
@@ -32,7 +35,7 @@ if ((typeName (_this select 0)) == "OBJECT") then {
 	_destructable	= _this select 4;
 	_animate		= param [5,false,[false]];
 	_construct 		= param [6, false, [false]];
-	_teleport 		= param [7, 0, [0]];
+	_teleport 		= param [7, 1, [0]];
 	_enableHud		= param [8, false, [false]];
 	_mode			= param [9, "init", [""]];
 };
@@ -43,6 +46,9 @@ if (isnil "CP_flagEast") then {CP_flagEast = "\a3\Data_f\Flags\flag_CSAT_co.paa"
 if (isnil "CP_flagGUER") then {CP_flagGUER = "\a3\Data_f\Flags\flag_AAF_co.paa"};
 
 #define REQUIRE_MEMBERS 3
+#define	MCC_HQ_BaseItem	"UserTexture10m_F"
+#define	MCC_FOB_BaseItem	"Land_TBox_F"
+
 
 if (typeName _side == "STRING") then {
 	_side = switch (toupper _side) do
@@ -160,7 +166,7 @@ switch (_mode) do
 			_null = [_pos, _dir , "MCC_rts_hq1", 0, _side] spawn MCC_fnc_construct_base;
 		};
 
-		_building = if (_size == "FOB") then {"Land_TBox_F"} else {"ProtectionZone_Invisible_F"};
+		_building = if (_size == "FOB") then {MCC_FOB_BaseItem} else {MCC_HQ_BaseItem};
 		_flagTex = switch (_side) do {
 			case west:	{CP_flagWest};
 			case east:	{CP_flagEast};
@@ -170,11 +176,22 @@ switch (_mode) do
 
 		_dummy = _building createvehicle _pos;
 		_dummy setdir _dir;
+
+		//For LHD
+		if (surfaceIsWater _pos) then {
+			_dummy setPosASL _pos;
+		};
+
 		_dummy setVariable ["mcc_delete",false,true];
 
 		_flag = "FlagPole_F" createvehicle _pos;
 		sleep 0.5;
 		_flag setFlagTexture _flagTex;
+
+		//For LHD
+		if (surfaceIsWater _pos) then {
+			_flag setPosASL _pos;
+		};
 
 		_dummy setvariable ["type",_size,true];
 		_dummy setvariable ["side",_side,true];
@@ -188,9 +205,11 @@ switch (_mode) do
 		if (_size == "FOB") then {
 			//Attach flag
 			_flag attachto [_dummy,[2.5,0,2]];
-			_box = "Box_FIA_Support_F" createvehicle _pos;
+			_box = MCC_ANCHOR createvehicle _pos;
 			_box setdir _dir;
 			_box setVariable ["mcc_delete",false,true];
+			_box setVariable ["mcc_mainBoxSide",_side,true];
+			_box setVariable ["MCC_kitSelect",["all"],true];
 			_box attachto [_dummy,[-3.5,0,-0.8]];
 			[_side, _box] call MCC_fnc_makeObjectVirtualBox;
 
@@ -232,7 +251,7 @@ switch (_mode) do
 		};
 
 		if (!_destructable) then {
-			_sphere = "ProtectionZone_Invisible_F" createvehicle (getpos _dummy);
+			_sphere = MCC_HQ_BaseItem createvehicle (getpos _dummy);
 			_sphere setpos (getpos _dummy);
 			_sphere setVariable ["mcc_delete",false,true];
 		};

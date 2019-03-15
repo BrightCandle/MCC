@@ -2,13 +2,14 @@
 // module
 // Example: [] call MCC_fnc_missionSettingsRS;
 //================================================================================================================================================================
-private ["_module","_var","_pos"];
+private ["_module"];
 
 _module = param [0, objNull, [objNull]];
-if (isNull _module) exitWith {deleteVehicle _module};
 
 
 if (typeName (_module getVariable ["rsAllWeapons",true]) == typeName 0) exitWith {
+
+	private _path = missionNamespace getVariable ["MCC_path",""];
 
 	//(RS)Role Selection
 	CP_activated = true;
@@ -27,18 +28,23 @@ if (typeName (_module getVariable ["rsAllWeapons",true]) == typeName 0) exitWith
 
 	//(RS)Drivers/Pilots
 	MCC_rsEnableDriversPilots = ((_module getvariable ["rsEnableDriversPilots",0])==1);
+
+	if (hasInterface) then {
+		_null=[] execVM _path + "mcc\roleSelection\scripts\player_init.sqf";
+	};
 };
 
 //Not curator exit
-if (!(local _module) || isnull curatorcamera) exitWith {};
+if !(local _module) exitWith {};
+private _path = missionNamespace getVariable ["MCC_path",""];
 
 _resualt = ["Settings Role Selection",[
- 						["(RS)Role Selection",true],
- 						["(RS)All Weapons",true],
- 						["(RS)Kit Change",true],
- 						["(RS)XP Gain",true],
- 						["(RS)Limit Weapons",true],
- 						["(RS)Restrict Drivers/Pilots",true]
+ 						["(RS)Role Selection",(missionNamespace getVariable ["CP_activated",true])],
+ 						["(RS)All Weapons",(missionNamespace getVariable ["MCC_rsAllWeapons",true])],
+ 						["(RS)Kit Change",(missionNamespace getVariable ["MCC_allowChangingKits",true])],
+ 						["(RS)XP Gain",(missionNamespace getVariable ["CP_gainXP",true])],
+ 						["(RS)Limit Weapons",(missionNamespace getVariable ["MCC_rsEnableRoleWeapons",true])],
+ 						["(RS)Restrict Drivers/Pilots",(missionNamespace getVariable ["MCC_rsEnableDriversPilots",true])]
  					  ]] call MCC_fnc_initDynamicDialog;
 
 if (count _resualt == 0) exitWith {deleteVehicle _module};
@@ -55,7 +61,7 @@ if (count _resualt == 0) exitWith {deleteVehicle _module};
            ];
 
 if (missionNamespace getVariable ["CP_activated",false]) then {
-	_null=[] execVM MCC_path + "mcc\roleSelection\scripts\player_init.sqf";
+	_null=[] execVM _path + "mcc\roleSelection\scripts\player_init.sqf";
 
 	{
 		_sideTickets = format ["MCC_tickets%1", _x];

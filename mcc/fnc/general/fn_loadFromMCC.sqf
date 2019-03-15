@@ -55,12 +55,12 @@ if (count _arrayGroups > 0) then
 				}
 				else
 				{
-					_vehicle = ([(_objectData select 1), (_objectData select 2),(_objectData select 0), _group] call bis_fnc_spawnvehicle) select 0;
+					_vehicle = ([(_objectData select 1), (_objectData select 2),(_objectData select 0), _group] call MCC_fnc_spawnVehicle) select 0;
 					{_x addCuratorEditableObjects [[_vehicle],true]} forEach allCurators;
 				};
 			};
 
-			//TempArray [class, pos, dir, rank, skill, damage, fuel, init,leader, locked,  fly];
+			//TempArray [class, pos, dir, rank, skill, damage, fuel, init,leader, locked,  fly, weaponCargo, itemCargo, magazineCargo];
 
 			_vehicle setposATL (_objectData select 1);
 			_vehicle setDir (_objectData select 2);
@@ -72,7 +72,7 @@ if (count _arrayGroups > 0) then
 			if (_objectData select 7 != "") then
 			{
 				_vehicle setVariable ["vehicleinit",(_objectData select 7),true];
-				[[[netID _vehicle,_vehicle], _objectData select 7], "MCC_fnc_setVehicleInit", true, false] spawn BIS_fnc_MP;
+				[[netID _vehicle,_vehicle], _objectData select 7] remoteExec ["MCC_fnc_setVehicleInit",0];
 			};
 
 			if (_objectData select 8) then
@@ -85,6 +85,14 @@ if (count _arrayGroups > 0) then
 			{
 				_vehicle lock 2;
 			};
+
+			if (count (_objectData select 11) > 0) then {clearWeaponCargoGlobal _vehicle};
+			if (count (_objectData select 12) > 0) then {clearItemCargoGlobal _vehicle};
+			if (count (_objectData select 13) > 0) then {clearMagazineCargoGlobal _vehicle};
+
+			{_vehicle addWeaponCargoGlobal[_x,1]} forEach (_objectData select 11);
+			{_vehicle addItemCargoGlobal [_x,1]} forEach (_objectData select 12);
+			{_vehicle addMagazineCargoGlobal [_x,1]} forEach (_objectData select 13);
 		} foreach (_indecator select 2);
 
 
@@ -152,6 +160,14 @@ if ((count _arrayVehicles) > 0) then
 			[[[netID _vehicle,_vehicle], (_objectData select 4)], "MCC_fnc_setVehicleInit", true, false] spawn BIS_fnc_MP;
 		};
 
+		clearWeaponCargoGlobal _vehicle;
+		clearItemCargoGlobal _vehicle;
+		clearMagazineCargoGlobal _vehicle;
+
+		{_vehicle addWeaponCargoGlobal[_x,1]} forEach (_objectData select 5);
+		{_vehicle addItemCargoGlobal [_x,1]} forEach (_objectData select 6);
+		{_vehicle addMagazineCargoGlobal [_x,1]} forEach (_objectData select 7);
+
 	} forEach _arrayVehicles;
 };
 
@@ -202,34 +218,81 @@ if ((count _allCuratorObjectives) > 0) then
 			case (_class in ["ModuleObjective_F"]):
 			{
 				_attachedUnit = _objectData select 2;
-				if (typeName (_attachedUnit) == "STRING" ) then {while {isnil _attachedUnit} do {sleep 0.2}};
+				if (typeName (_attachedUnit) == "STRING" ) then {waituntil {!(isnil _attachedUnit)}};
 
 				_vehicle =  _group createunit ["ModuleObjective_F", _pos,[],0.5,"NONE"];
 				_vehicle setvariable ["RscAttributeOwners",call compile _side];
 
-				if (typeName _attachedUnit == "STRING" ) then {_vehicle setvariable ["bis_fnc_curatorAttachObject_object",call compile _attachedUnit]};
+				if (typeName _attachedUnit == "STRING" ) then {
+					_vehicle setvariable ["bis_fnc_curatorAttachObject_object",call compile _attachedUnit];
+					_vehicle setvariable ["AttachObject_object",_attachedUnit];
+				};
 
 				_vehicle setvariable ["RscAttributeTaskState",_objectData select 4];
 				_vehicle setvariable ["RscAttributeTaskDestination",_objectData select 5];
 				_vehicle setvariable ["customTask",_objectData select 7,true];
 				[_vehicle,"RscAttributeTaskDescription",_objectData select 6] call bis_fnc_setServerVariable;
-				[_vehicle] spawn MCC_fnc_customTasks;
+			};
+
+			case (_class in ["MCC_ModuleObjective_FCurator"]):
+			{
+				_attachedUnit = _objectData select 2;
+				if (typeName (_attachedUnit) == "STRING" ) then {waituntil {!(isnil _attachedUnit)}};
+
+				_vehicle =  _group createunit ["MCC_ModuleObjective_FCurator", _pos,[],0.5,"NONE"];
+				_vehicle setvariable ["RscAttributeOwners",call compile _side];
+
+				if (typeName _attachedUnit == "STRING" ) then {
+					_vehicle setvariable ["bis_fnc_curatorAttachObject_object",call compile _attachedUnit];
+					_vehicle setvariable ["AttachObject_object",call compile _attachedUnit];
+				};
+
+				_vehicle setvariable ["RscAttributeTaskDescription",(_objectData select 4)];
+				//_x getvariable ["showMarker",nil],
+				_vehicle setvariable ["RscAttributeTaskState",(_objectData select 5)];
+				_vehicle setvariable ["proiority",(_objectData select 6)];
+				_vehicle setvariable ["notification",(_objectData select 7)];
+				_vehicle setvariable ["taskType",(_objectData select 8)];
+				_vehicle setvariable ["show3d",(_objectData select 9)];
+
+				//If we have a parent task wait for it to catch up
+				if (typeName (_objectData select 10) == typeName []) then {
+					[_vehicle,(_objectData select 10)] spawn {
+						params [
+							["_vehicle",objNull,[objNull]],
+							["_task","",["",[]]]
+						];
+
+						waituntil {(_task select 1) call bis_fnc_taskExists};
+						_vehicle setvariable ["taskName",_task];
+						{_x addCuratorEditableObjects [[_vehicle],false]} forEach allCurators;
+						_vehicle setvariable ["updated",true];
+					};
+				} else {
+					_vehicle setvariable ["taskName",(_objectData select 10)];
+					{_x addCuratorEditableObjects [[_vehicle],false]} forEach allCurators;
+					_vehicle setvariable ["updated",true];
+				};
 			};
 
 			case (_class in ["ModuleObjectiveGetIn_F","ModuleObjectiveMove_F","ModuleObjectiveNeutralize_F","ModuleObjectiveProtect_F"]):
 			{
 				_attachedUnit = _objectData select 2;
-				if (typeName (_attachedUnit) == "STRING" ) then {while {isnil _attachedUnit} do {sleep 0.2}};
+				if (typeName _attachedUnit == "STRING" ) then {
+					_vehicle setvariable ["bis_fnc_curatorAttachObject_object",call compile _attachedUnit];
+					_vehicle setvariable ["AttachObject_object",call compile _attachedUnit];
+				};
 
 				_vehicle =  _group createunit [_class, _pos,[],0.5,"NONE"];
 				_vehicle setvariable ["RscAttributeOwners",call compile _side];
-				if (typeName _attachedUnit == "STRING" ) then {_vehicle setvariable ["bis_fnc_curatorAttachObject_object",call compile _attachedUnit]};
 				[_vehicle,"RscAttributeTaskDescription",_objectData select 4] call bis_fnc_setServerVariable;
 			};
 		};
 
-		{_x addCuratorEditableObjects [[_vehicle],false]} forEach allCurators;
-		_vehicle setvariable ["updated",true];
+		if (_class != "MCC_ModuleObjective_FCurator") then {
+			{_x addCuratorEditableObjects [[_vehicle],false]} forEach allCurators;
+			_vehicle setvariable ["updated",true];
+		};
 
 	} foreach _allCuratorObjectives;
 };
@@ -270,8 +333,3 @@ _name = _arrayTime select 5;
 missionnamespace setvariable ["bis_fnc_moduleMissionName_name",_name];
 publicvariable "bis_fnc_moduleMissionName_name";
 [true,"bis_fnc_moduleMissionName"] call bis_fnc_mp;
-
-
-
-
-

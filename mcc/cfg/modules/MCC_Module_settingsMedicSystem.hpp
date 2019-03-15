@@ -54,10 +54,31 @@ class MCC_Module_settingsMedicSystem : Module_F
 			};
 		};
 
+		class onlyMedicsCanHeal
+		{
+			displayName = "Medic Heal";
+			description = "Only medics can use FAK to heal others can only use bandages to stop bleeding";
+			typeName = "NUMBER";
+			class values
+			{
+				class Enabled
+				{
+					name = "Yes";
+					value = 1;
+					default = 1;
+				};
+				class Disabled
+				{
+					name = "No";
+					value = 0;
+				};
+			};
+		};
+
 		class BleedingTime
 		{
 			displayName = "Bleeding Time";
-			description = "The amount of time it takes to die from bleeding";
+			description = "How long in seconds it will take for unconscious unit to die from bleeding";
 			typeName = "NUMBER";
 			class values
 			{
@@ -82,7 +103,7 @@ class MCC_Module_settingsMedicSystem : Module_F
 
 		class DamageCoef
 		{
-			displayName = "Bulletproof vests simulation";
+			displayName = "Bulletproof Vests Effectiveness";
 			description = "Players can take more damage than usual";
 			typeName = "NUMBER";
 			class values
@@ -151,7 +172,7 @@ class MCC_Module_settingsMedicSystem : Module_F
 		class medicShowUI
 		{
 			displayName = "Medic HUD";
-			description = "Show wounded on HUD";
+			description = "Show wounded units as a cross on HUD";
 			typeName = "NUMBER";
 			class values
 			{

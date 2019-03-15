@@ -1,13 +1,17 @@
-//======================================================MCC_fnc_MWObjectiveDisable===============================================================================================
-// Create a clear area objective
+/*================================================MCC_fnc_MWObjectiveDisable===============================================================================================
+// Create a diable IED objective for Mission Wizard
 // Example:[_objPos,_isCQB,_side,_faction] call MCC_fnc_MWObjectiveDisable;
 // _objPos = position, objectice position
 //_isCQB = Boolean, true - for CQB areay false if it doesn't matters.
 //_side = enemy side
 //_faction = enemy Faction
 // Return - nothing
-//===============================================================================================================================================================================
-private ["_objPos","_isCQB","_side","_faction","_preciseMarkers","_range","_roads","_object","_objectType","_range","_name","_sidePlayer","_time"];
+//==================================================================================================================================================================*/
+#define	MCC_BIG_IEDDEVICE	"Land_Device_disassembled_F"
+#define	MCC_SMALL_IEDDEVICE	"Land_PressureWasher_01_F"
+#define	MCC_SMALL_IEDDEVICE_TABLE	"Land_WoodenTable_small_F"
+
+private ["_objPos","_isCQB","_side","_faction","_preciseMarkers","_range","_roads","_object","_objectType","_name","_sidePlayer","_time","_selectedBuilding","_unitPlaced","_buildingPos","_spawnPos","_spawndir"];
 
 _objPos = _this select 0;
 _isCQB = _this select 1;
@@ -16,32 +20,17 @@ _faction = _this select 3;
 _sidePlayer = _this select 4;
 _preciseMarkers = _this select 5;
 
-//find a location on road
-/*
-_time = time + 3;
-_range = 50;
-_roads = [];
-while {count _roads <3 && (time < _time)} do {
-	_roads = _objPos nearRoads _range;
-	_range = _range +50;
-};
-
-_objPos = getpos (_roads select 0);
-_objectType = MCC_MWIED call BIS_fnc_selectRandom;
-*/
-
 //Create the ied.
-private ["_unitPlaced","_buildingPos","_array"];
 
 _name = format ["MCCMWIEDObject_%1", ["MCCMWIEDObject_",1] call bis_fnc_counter];
 
 if (_isCQB) then {
-	_objectType = "Land_PressureWasher_01_F";
-	_array = [_objPos, 50] call MCC_fnc_MWFindbuildingPos;
-	_building = _array select 0;
-	_buildingPos = _array select 1;
+	_objectType = MCC_SMALL_IEDDEVICE;
 
-	 if (isnil "_buildingPos") exitWith {debuglog "MCC MW - MWObjectiveIED - No building pos foudn"};
+	_selectedBuilding = ([_objPos, 100] call MCC_fnc_MWFindbuildingPos) call BIS_fnc_selectRandom;
+	_building = _selectedBuilding select 0;
+	_buildingPos = _selectedBuilding select 1;
+ 	if (isnil "_buildingPos") exitWith {debuglog "MCC MW - MWObjectiveHVT - No building pos foudn"};
 
 	_unitPlaced = false;
 	_time = time;
@@ -51,7 +40,7 @@ if (_isCQB) then {
 		//No other unit in the spawn position?
 		if (count (nearestObjects [_spawnPos, ["Man"], 1])<1) then {
 			//Spawn the intel
-			_dummyObject = "Land_WoodenTable_small_F" createvehicle _spawnPos;
+			_dummyObject = MCC_SMALL_IEDDEVICE_TABLE createvehicle _spawnPos;
 			_dummyObject setPos _spawnPos;
 			_object = [_objPos,_objectType,"large",0,8,false,4,15,_sidePlayer,_name,random 360,true,_side] call MCC_fnc_trapSingle;
 			_object setPos (_dummyObject modelToWorld [0,0,0.43]);
@@ -65,19 +54,27 @@ if (_isCQB) then {
 } else {
 	//Not CQB
 	//Find an empry spot
-	_objectType = "Land_Device_disassembled_F";
+	_objectType = MCC_BIG_IEDDEVICE;
 	_range = 50;
-	_spawnPos = [_objPos,1,_range,10,0,100,0,[],[[-500,-500,0],[-500,-500,0]]] call BIS_fnc_findSafePos;
+	_spawnPos = [_objPos,1,_range,10,0,0.5,0,[],[[-500,-500,0],[-500,-500,0]]] call BIS_fnc_findSafePos;
 
 	//If we haven't find it in first time increase by 50;
-	while {str _spawnPos == "[-500,-500,0]"} do
-	{
-		_range = _range+ 50;
-		_spawnPos = [_objPos,1,_range,10,0,100,0,[],[[-500,-500,0],[-500,-500,0]]] call BIS_fnc_findSafePos;
+	while {str _spawnPos == "[-500,-500,0]"} do	{
+		_range = _range + 50;
+		_spawnPos = [_objPos,1,_range,10,0,0.5,0,[],[[-500,-500,0],[-500,-500,0]]] call BIS_fnc_findSafePos;
+		sleep 0.1;
 	};
 
+	//Clear area
+	[_spawnPos,30,true] call MCC_fnc_hideTerrainObjectsArea;
+
+	_dummyObject =[_spawnPos, random 360, "c_nestBig"] call MCC_fnc_objectMapper;
+	_spawnPos = getpos _dummyObject;
+	_spawndir = getdir _dummyObject;
+
+
 	//Create the object
-	_object = [_objPos,_objectType,"large",0,8,false,4,15,_sidePlayer,_name,random 360,true,_side] call MCC_fnc_trapSingle;
+	_object = [_spawnPos,_objectType,"large",0,8,false,4,15,_sidePlayer,_name,_spawndir,true,_side] call MCC_fnc_trapSingle;
 	_object setdir random 360;
 };
 
@@ -90,4 +87,4 @@ _groupArray = if (count MCC_MWGroupArrayMenRecon > 0) then {
 
 {_x addCuratorEditableObjects [[_object],false]} forEach allCurators;
 
-[_object,"disableIED",_preciseMarkers,_side,400,_sidePlayer] call MCC_fnc_MWCreateTask;
+[_object, getpos _object,"disableIED",_preciseMarkers,_side,400,_sidePlayer] call MCC_fnc_MWCreateTask;

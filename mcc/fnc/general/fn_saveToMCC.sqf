@@ -23,9 +23,9 @@ _logics = allMissionObjects "logic";
 //Curator objectives
 _curatorObjectives = [];
 {
-	if (typeOf _x in ["ModuleObjectiveAttackDefend_F","ModuleObjectiveSector_F","ModuleObjective_F","ModuleObjectiveGetIn_F","ModuleObjectiveMove_F","ModuleObjectiveNeutralize_F","ModuleObjectiveProtect_F"]) then
+	if (typeOf _x in ["ModuleObjectiveAttackDefend_F","ModuleObjectiveSector_F","ModuleObjective_F","ModuleObjectiveGetIn_F","ModuleObjectiveMove_F","ModuleObjectiveNeutralize_F","ModuleObjectiveProtect_F","MCC_ModuleObjective_FCurator"]) then
 	{
-		_curatorObjectives set [count _curatorObjectives, _x];
+		_curatorObjectives pushBack _x;
 	};
 } foreach _logics;
 
@@ -70,7 +70,7 @@ _logics = _logics - _curatorObjectives;
 			//Others
 			default
 			{
-				if !(typeOf _x in ["ModuleObjectiveAttackDefend_F","ModuleObjectiveSector_F","ModuleObjective_F","ModuleObjectiveGetIn_F","ModuleObjectiveMove_F","ModuleObjectiveNeutralize_F","ModuleObjectiveProtect_F"]) then
+				if !(typeOf _x in ["ModuleObjectiveAttackDefend_F","ModuleObjectiveSector_F","ModuleObjective_F","ModuleObjectiveGetIn_F","ModuleObjectiveMove_F","ModuleObjectiveNeutralize_F","ModuleObjectiveProtect_F","MCC_ModuleObjective_FCurator"]) then
 				{
 					_arrayVehicles set [count _arrayVehicles, [_x,"EMPTY"]];
 				};
@@ -79,7 +79,7 @@ _logics = _logics - _curatorObjectives;
 	}
 	else
 	{
-		if (!(group _x in _checkedGroups) && !(_x getVariable ["mccIgnore",false]) && (alive _x) && !(typeOf _x in ["ModuleObjectiveAttackDefend_F","ModuleObjectiveSector_F","ModuleObjective_F","ModuleObjectiveGetIn_F","ModuleObjectiveMove_F","ModuleObjectiveNeutralize_F","ModuleObjectiveProtect_F"])) then
+		if (!(group _x in _checkedGroups) && !(_x getVariable ["mccIgnore",false]) && (alive _x) && !(typeOf _x in ["ModuleObjectiveAttackDefend_F","ModuleObjectiveSector_F","ModuleObjective_F","ModuleObjectiveGetIn_F","ModuleObjectiveMove_F","ModuleObjectiveNeutralize_F","ModuleObjectiveProtect_F","MCC_ModuleObjective_FCurator"])) then
 		{
 			_arrayGroups set [count _arrayGroups, [group _x,toupper (format ["%1",side _x])]];
 			_checkedGroups set [count _checkedGroups, group _x];
@@ -100,19 +100,21 @@ if (count _curatorObjectives > 0) then
 	{
 		_class = typeOf _x;
 
-		if (_class in ["ModuleObjective_F","ModuleObjectiveGetIn_F","ModuleObjectiveMove_F","ModuleObjectiveNeutralize_F","ModuleObjectiveProtect_F"]) then
+		if (_class in ["ModuleObjective_F","ModuleObjectiveGetIn_F","ModuleObjectiveMove_F","ModuleObjectiveNeutralize_F","ModuleObjectiveProtect_F","MCC_ModuleObjective_FCurator"]) then
 		{
 			_attachedUnit = _x getvariable ["bis_fnc_curatorAttachObject_object",objnull];
 
-				if (!isnull _attachedUnit) then
-				{
-					_attachedUnitInit = _attachedUnit getvariable ["vehicleinit",""];
-					_newName = format ["MCC_objectUnits_%1", ["MCC_objectUnitsCounter",1] call bis_fnc_counter];
-					_init = format [";%1 = _this;", _newName];
-					_attachedUnit setVariable ["vehicleinit",_attachedUnitInit + _init];
-				}
-				else
-				{
+				if (!isnull _attachedUnit && !(_attachedUnit isEqualTo _x)) then {
+					if ((_attachedUnit getVariable ["MMCC_objectUnitName",""]) isEqualTo "") then {
+						_attachedUnitInit = _attachedUnit getvariable ["vehicleinit",""];
+						_newName = format ["MCC_objectUnits_%1", ["MCC_objectUnitsCounter",1] call bis_fnc_counter];
+						_init = format [";%1 = _this;", _newName];
+						_attachedUnit setVariable ["vehicleinit",_attachedUnitInit + _init];
+						_attachedUnit setVariable ["MMCC_objectUnitName",_newName,true];
+					} else {
+						_newName = _attachedUnit getVariable ["MMCC_objectUnitName",""];
+					};
+				} else {
 					_newName = -1;
 				};
 		};
@@ -131,7 +133,24 @@ if (count _curatorObjectives > 0) then
 
 			case (_class in ["ModuleObjective_F"]):
 			{
-				_tempArray = ["ModuleObjective_F", getpos _x, _newName, str (_x getvariable ["RscAttributeOwners",[]]) ,_x getvariable ["RscAttributeTaskState","created"], _x getvariable ["RscAttributeTaskDestination",0],[_x,"RscAttributeTaskDescription",["","", ""]] call bis_fnc_getServerVariable, _x getVariable ["customTask",""]];
+				_tempArray = [_class, getpos _x, _newName, str (_x getvariable ["RscAttributeOwners",[]]) ,_x getvariable ["RscAttributeTaskState","created"], _x getvariable ["RscAttributeTaskDestination",0],[_x,"RscAttributeTaskDescription",["","", ""]] call bis_fnc_getServerVariable, _x getVariable ["customTask",""]];
+			};
+
+			case (_class in ["MCC_ModuleObjective_FCurator"]):
+			{
+				_tempArray = [_class,
+							  getpos _x,
+							  _newName,
+							  str (_x getvariable ["RscAttributeOwners",[]]),
+							  _x getVariable ["RscAttributeTaskDescription",["","",""]],
+							  //_x getvariable ["showMarker",nil],
+							  _x getvariable ["RscAttributeTaskState","created"],
+							  _x getvariable ["proiority",0],
+							  _x getvariable ["notification",true],
+							  _x getVariable ["taskType","target"],
+							  _x getVariable ["show3d",true],
+							  _x getVariable ["taskName",""]
+							  ];
 			};
 
 			case (_class in ["ModuleObjectiveGetIn_F","ModuleObjectiveMove_F","ModuleObjectiveNeutralize_F","ModuleObjectiveProtect_F"]):
@@ -140,7 +159,7 @@ if (count _curatorObjectives > 0) then
 			};
 		};
 
-		MCC_output = MCC_output + format ["%1",_tempArray];
+		MCC_output = MCC_output + str _tempArray;
 
 		if (_foreachIndex < (count _curatorObjectives)-1) then
 		{
@@ -152,14 +171,38 @@ if (count _curatorObjectives > 0) then
 MCC_output = MCC_output + "],[";
 
 //Groups
-private ["_group","_blackListVehicles","_refinedGroup","_tempArray","_groupArrayGeneral","_groupArrayUnits"];
+private ["_group","_blackListVehicles","_refinedGroup","_tempArray","_groupArrayGeneral","_groupArrayUnits","_vars"];
 
 {
 	_group 	= _x select 0;
 	_side 	= _x select 1;
 	if (!isnil "_group" && !isnull _group) then
 	{
-		_groupArrayGeneral = [_side, [["GAIA_ZONE_INTEND",_group getVariable ["GAIA_ZONE_INTEND",[]]],["mcc_gaia_cache", _group getVariable ["mcc_gaia_cache",false]],["MCC_GAIA_RESPAWN", _group getVariable ["MCC_GAIA_RESPAWN",-1]]]];
+		//Get all available vars
+		_vars = [];
+		{
+			//You can't save null vars
+			if (typeName (_group getVariable _x) == typeName objNull ||
+			    typeName (_group getVariable _x) == typeName grpNull ||
+			    typeName (_group getVariable _x) == typeName controlNull ||
+			    typeName (_group getVariable _x) == typeName displayNull ||
+			    typeName (_group getVariable _x) == typeName taskNull ||
+			    typeName (_group getVariable _x) == typeName scriptNull ||
+			    typeName (_group getVariable _x) == typeName configNull ||
+			    typeName (_group getVariable _x) == typeName locationNull ||
+			    typeName (_group getVariable _x) == typeName teamMemberNull
+			    ) then {
+
+				if !(isNull (_group getVariable _x)) then {
+					_vars pushBack ([_x,(_group getVariable _x), true]);
+				};
+			} else {
+				_vars pushBack ([_x,(_group getVariable _x), true]);
+			};
+
+		} forEach (allVariables _group);
+
+		_groupArrayGeneral = [_side, _vars];
 		_blackListVehicles = [];
 		_refinedGroup = [];
 
@@ -184,7 +227,7 @@ private ["_group","_blackListVehicles","_refinedGroup","_tempArray","_groupArray
 			};
 		} foreach units _group;
 
-		//TempArray [class, pos, dir, rank, skill, damage, fuel, init,leader, locked,  fly];
+		//TempArray [class, pos, dir, rank, skill, damage, fuel, init,leader, locked,  fly, weaponCargo, itemCargo, magazineCargo];
 		_groupArrayUnits = [];
 		{
 			_object = _x;
@@ -197,44 +240,32 @@ private ["_group","_blackListVehicles","_refinedGroup","_tempArray","_groupArray
 
 			if (count crew _object > 0) then
 			{
-				if (leader _group in crew _object) then
-				{
-					_tempArray set [count _tempArray, true];
-				}
-				else
-				{
-					_tempArray set [count _tempArray, false];
-				};
+				_tempArray set [8,(leader _group in crew _object)];
 			}
 			else
 			{
-				if (_object == leader _group) then
-				{
-					_tempArray set [count _tempArray, true];
-				}
-				else
-				{
-					_tempArray set [count _tempArray, false];
-				};
+				_tempArray set [8,(_object == leader _group)];
 			};
 
-			if (locked _object == 2) then
+			_tempArray set [9,(locked _object == 2)];
+
+			private _special = switch (true) do
 			{
-				_tempArray set [count _tempArray, true];
-			}
-			else
-			{
-				_tempArray set [count _tempArray, false];
+				case (_object isKindOf "air" && ((getpos _object select 2)>10)): {"FLY"};
+				case (vehicle _object != _object): {"CARGO"};
+				default {"NONE"};
 			};
 
+			_tempArray set [10,_special];
 
-			if (_object isKindOf "air" && ((getpos _object select 2)>10)) then
-			{
-				_tempArray set [count _tempArray, "FLY"];
-			}
-			else
-			{
-				_tempArray set [count _tempArray, "NONE"];
+			if !(_object isKindOf "Man") then {
+				_tempArray set [11,(weaponCargo _object)];
+				_tempArray set [12,(itemCargo _object)];
+				_tempArray set [13,(magazineCargo _object)];
+			} else {
+				_tempArray set [11,[]];
+				_tempArray set [12,[]];
+				_tempArray set [13,[]];
 			};
 
 			_groupArrayUnits set [count _groupArrayUnits, _tempArray];
@@ -284,6 +315,11 @@ if ((count _arrayVehicles) > 0) then
 		{
 			_init = [_init, '"', "'"] call MCC_fnc_replaceString;
 			_tempArray = [_side, _type, _pos, getDir _object, _init];
+
+			_tempArray set [5,(weaponCargo _object)];
+			_tempArray set [6,(itemCargo _object)];
+			_tempArray set [7,(magazineCargo _object)];
+
 			MCC_output = MCC_output + format ["%1",_tempArray];
 		};
 
@@ -323,8 +359,8 @@ _tempArray = [
                 missionNamespace getvariable ["MCC_groupMarkers",false],
                 missionNamespace getvariable ["MCC_Chat",false],
                 missionNamespace getvariable ["MCC_GAIA_AMBIANT",false],
-                missionNamespace getvariable ["MCC_GAIA_AMBIANT_CHANCE",0.4],
-                missionNamespace getvariable ["GAIA_CACHE_STAGE_1",3000],
+                missionNamespace getvariable ["MCC_GAIA_AMBIANT_CHANCE",20],
+                missionNamespace getvariable ["GAIA_CACHE_STAGE_1",1000],
                 missionNamespace getvariable ["MCC_GAIA_MORTAR_TIMEOUT",300],
                 missionNamespace getvariable ["MCC_deletePlayersBody",false],
                 missionNamespace getvariable ["MCC_interaction",false],

@@ -101,21 +101,22 @@ if (_action == 2) exitWith
 	_control ctrlShow true;
 
 	//--------------------------------------Fill index--------------------------------------------------------------------------
-	_comboBox = (_mccdialog displayCtrl 20);		// Teleport
+	_comboBox = (_mccdialog displayCtrl 21);		// FOB
+	lbClear _comboBox;
+	{
+		_displayname = _x;
+		_comboBox lbAdd _displayname;
+	} foreach ["H.Q","F.O.B"];
+	_comboBox lbSetCurSel 0;
+
+	_comboBox = (_mccdialog displayCtrl 201212);		// Teleport
+
 	lbClear _comboBox;
 	{
 		_displayname = _x;
 		_comboBox lbAdd _displayname;
 	} foreach ["None","Teleport","Paradrop","HALO"];
 	_comboBox lbSetCurSel 1;
-
-	_comboBox = (_mccdialog displayCtrl 21);		// FOB
-	lbClear _comboBox;
-	{
-		_displayname = _x;
-		_comboBox lbAdd _displayname;
-	} foreach ["Primary","F.O.B"];
-	_comboBox lbSetCurSel 0;
 };
 
 //-------------------------------------------------------------------------------------DEBUG----------------------------------------------------------------------------------------------
@@ -539,9 +540,8 @@ if (_action == 11) exitWith
 	_control ctrlShow true;
 };
 
-//-------------------------------------------------------------------------------------TASKS----------------------------------------------------------------------------------------------
-if (_action == 12) exitWith
-{
+//-------------------------------------------------------------------------------------TASKS------------------------------------------------------------------------------
+if (_action == 12) exitWith {
 	_control = (_mccdialog displayCtrl 513);
 	_control ctrlShow true;
 
@@ -549,9 +549,18 @@ if (_action == 12) exitWith
 	_comboBox = (_mccdialog displayCtrl 3058);		//fill Tasks
 	lbClear _comboBox;
 	{
-		_displayname = format ["%1",_x select 0];
-		_comboBox lbAdd _displayname;
-	} foreach MCC_tasks;
+		_index = _comboBox lbAdd (_x select 0);
+		_comboBox lbsetpicture [_index, [([_x select 1] call BIS_fnc_taskType)] call BIS_fnc_taskTypeIcon];
+	} foreach (missionNameSpace getVariable ["MCC_tasks",[]]);
+	_comboBox lbSetCurSel 0;
+
+	#define MCC_TASKS_ICON 30581
+	_comboBox = (_mccdialog displayCtrl MCC_TASKS_ICON);		//fill Tasks
+	lbClear _comboBox;
+	{
+		_index = _comboBox lbAdd (configName _x );
+		_comboBox lbsetpicture [_index, (getText (_x >> "icon"))];
+	} foreach ("true" configClasses (configfile >> "CfgTaskTypes"));
 	_comboBox lbSetCurSel 0;
 };
 
@@ -755,7 +764,28 @@ if (_action == 17) exitWith
 	{
 		_displayname = _x;
 		_comboBox lbAdd _displayname;
-	} foreach ["Delete All","Delete All Units", "Delete Men", "Delete Vehicles", "Delete Tanks", "Delete Air", "Delete Ammoboxs","Delete Markers","Delete dead bodies","Destroy Lights","Lock Doors(All)","Lock Doors(Random)","Unlock Doors(All)","Atmosphere - Warzone","Atmosphere - Sandstorm","Atmosphere - Blizzard","Atmosphere - Snow","Atmosphere - Heatwave","Atmosphere - Clear","Remove N/V from units","Add Flashlights to all units"];
+	} foreach ["Delete All",
+			  "Delete All Units",
+			  "Delete Man",
+			  "Delete Vehicles",
+			  "Delete Tanks",
+			  "Delete Air",
+			  "Delete Ammoboxs",
+			  "Delete Markers",
+			  "Lights (Off)",
+			  "Lights (On)",
+			  "Lock Doors (All)",
+			  "Unlock Doors(All)",
+			  "Lock Doors (Random)",
+			  "Atmosphere - Warzone",
+			  "Atmosphere - Sandstorm",
+			  "Atmosphere - Blizzard",
+			  "Atmosphere - Snow",
+			  "Atmosphere - Heatwave",
+			  "Atmosphere - Clear",
+			  "Remove N/V from units",
+			  "Add Flashlights to all units",
+			  "Delete Bodies"];
 	_comboBox lbSetCurSel 0;
 };
 

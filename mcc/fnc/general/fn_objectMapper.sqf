@@ -9,7 +9,8 @@ Edited by armatec
 	Parameter(s):
 	_this select 0: compositions name - "fuelDepot_us"
 	_this select 1: Direction in degrees - Number
-	_this select 2: Location to start
+	_this select 2: Location to start or array of objects
+	_this select 3: variable to apply to each spawned object
 
 	Exsample:
 	[ getpos player, 0,"c_campSite"] call MCC_fnc_objectMapper;
@@ -17,24 +18,23 @@ Edited by armatec
 	<out>
 		if obj select 6 got a a value then it is the target vehicle.
 */
-private ["_script","_azi","_pos","_objs","_target"];
+private ["_script","_azi","_pos","_objs","_target","_variable"];
 
 
 _pos 	= _this select 0;
 _azi 	= _this select 1;
 _script = _this select 2;
+_variable = param [3,"",[""]];
+
 
 if (!isserver) exitWith {};
 
 _objs = [];
 
 //DOC sqf or Comp Array?
-if (typeName _script == "ARRAY") then
-{
+if (typeName _script == "ARRAY") then {
 	_objs = _script;
-}
-else
-{
+} else {
 	_objs = call (compile (preprocessFileLineNumbers format ["%1mcc\general_scripts\docobject\%2.sqf",MCC_path,_script]));
 };
 
@@ -74,10 +74,10 @@ for "_i" from 0 to ((count _objs) - 1) do {
 		_newPos = [_posX + (_newRelPos select 0), _posY + (_newRelPos select 1), _z];
 		_newObj = _type createVehicle _newPos;
 		_newObj setDir (_azi + _azimuth);
+		//_newObj setVehiclePosition [_newPos, [], 0, "CAN_COLLIDE"];
 		_newObj setPos _newPos;
 		sleep 0.01;
 		_newObj setPos _newPos;
-
 
 		_newObj setDir (_azi + _azimuth);
 		if (!isNil "_fuel") then {_newObj setFuel _fuel};
@@ -86,8 +86,12 @@ for "_i" from 0 to ((count _objs) - 1) do {
 		if (!isNil "_vehicleTarget") then {_target = _newObj};
 		MCC_lastSpawn pushBack _newObj;
 
+		//Add global var
+		if !(_variable isEqualTo "") then {_newObj setVariable [_variable,true]};
+
 		//Curator
-		{_x addCuratorEditableObjects [[_newObj],false]} forEach allCurators;
+		{_x addCuratorEditableObjects [[_newObj],true]} forEach allCurators;
 };
+
 publicVariable "MCC_lastSpawn";
 if (!isNil "_target") then {_target};

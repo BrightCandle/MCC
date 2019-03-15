@@ -1,5 +1,5 @@
 #define MCCPATH "\mcc_sandbox_mod\"
-#define MCCVersion "(r20)"
+#define MCCVersion "(r29)"
 #define MCCMODE true
 
 
@@ -29,14 +29,8 @@
 #include "\mcc_sandbox_mod\mcc\Dialogs\mcc_curatorInitDefines.hpp"
 #include "\mcc_sandbox_mod\mcc\Dialogs\mcc_curatorInit.hpp"
 
-//----Logistics-----------------
-#include "\mcc_sandbox_mod\mcc\Dialogs\mcc_logisticsLoadTruck.hpp"
-
 //----Key Settings-----------------
 #include "\mcc_sandbox_mod\mcc\Dialogs\mcc_rscKeyBinds.hpp"
-
-//----medic-----------------
-#include "\mcc_sandbox_mod\mcc\Dialogs\medic\mcc_uncMain.hpp"
 
 //--------------------------------CP------------------------------------------------
 #define CPPATH "\mcc_sandbox_mod\"
@@ -53,7 +47,6 @@
 
 //--------------------------Others----------------------------------------------------
 #include "\mcc_sandbox_mod\bon_artillery\dialog\Artillery.hpp"
-#include "\mcc_sandbox_mod\VAS\menu.hpp"
 #include "\mcc_sandbox_mod\hcam\hcam.hpp"
 #include "\mcc_sandbox_mod\spectator\spectating.hpp"
 
@@ -63,12 +56,15 @@
 #include "\mcc_sandbox_mod\mcc\bombDefuse\cfg.hpp"
 #include "\mcc_sandbox_mod\mcc\survive\cfg.hpp"
 #include "\mcc_sandbox_mod\mcc\interaction\cfg.hpp"
+#include "\mcc_sandbox_mod\mcc\LHD\cfg.hpp"
+#include "\mcc_sandbox_mod\mcc\vehicles\cfg.hpp"
+#include "\mcc_sandbox_mod\mcc\logistics\cfg.hpp"
+#include "\mcc_sandbox_mod\mcc\medic\cfg.hpp"
 
 //--------------------------Cfg----------------------------------------------------
 class CfgFunctions
 {
 	#include "\mcc_sandbox_mod\gaia\cfgFunctions.hpp"
-	#include "\mcc_sandbox_mod\VAS\cfgFunctions.hpp"
 
 	class MCC
 	{
@@ -90,6 +86,13 @@ class CfgFunctions
 		#include "\mcc_sandbox_mod\mcc\helpers\cfgFunctions.hpp"
 		#include "\mcc_sandbox_mod\mcc\helicopters\cfgFunctions.hpp"
 		#include "\mcc_sandbox_mod\mcc\ambient\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\LHD\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\compositions\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\vehicles\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\logistics\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\UI\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\medic\cfgFunctions.hpp"
+		#include "\mcc_sandbox_mod\mcc\roads\cfgFunctions.hpp"
 	};
 };
 
@@ -120,6 +123,7 @@ class CfgSounds
 {
 	#include "\mcc_sandbox_mod\mcc\cfg\CfgSounds.hpp"
 	#include "\mcc_sandbox_mod\mcc\ambient\CfgSounds.hpp"
+	#include "\mcc_sandbox_mod\mcc\radio\CfgSounds.hpp"
 };
 
 class CfgNotifications
@@ -129,7 +133,6 @@ class CfgNotifications
 
 class RscTitles
 {
-	#include "\mcc_sandbox_mod\mcc\cfg\modules\dialogs\mcc_captureProgressRsc.hpp"
 	#include "\mcc_sandbox_mod\mcc\dialogs\mcc_InteractionRsc.hpp"
 	#include "\mcc_sandbox_mod\mcc\dialogs\compass.hpp"
 	#include "\mcc_sandbox_mod\hcam\hcam.hpp"
@@ -139,7 +142,7 @@ class RscTitles
 	#include "\mcc_sandbox_mod\mcc\HUD\cfg.hpp"
 
 	//----medic-----------------
-	#include "mcc\Dialogs\medic\mcc_uncMain.hpp"
+	#include "mcc\medic\dialogs\mcc_uncMain.hpp"
 };
 
 class CfgDebriefing
@@ -150,6 +153,12 @@ class CfgDebriefing
 		subtitle = "For abusing the radio";
 		description = "You were kicked";
 	};
+};
+
+//Groups
+class CfgGroups
+{
+	#include "\mcc_sandbox_mod\mcc\compositions\cfgGroups.hpp"
 };
 
 class cfgVehicles

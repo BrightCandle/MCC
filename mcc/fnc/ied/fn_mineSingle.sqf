@@ -1,13 +1,17 @@
-//===================================================================MCC_fnc_mineSingle======================================================================================
-// Create a mine field
-//Example:[[IEDkind,IEDMarkerName,centerPos,minefieldSize],"MCC_fnc_mineSingle",true,false] call BIS_fnc_MP;
-// Params:
-// 	IEDkind: string, minefield type: "apv" - AP minefield with warining signs, "ap" - AP minefield without warining signs. "apbv" -  AP bouncing minefield with warining signs, "apb"-  AP bouncing minefield without warining signs, "atv" - AT minefield with warining signs, "at"-  AT minefield without warining signs
-//	IEDMarkerName: string, custom marker name for the minefield
-// 	centerPos: array, position center of the minefield
-//	minefieldSize: array, [x,y] size of the minefield in meters
-//==============================================================================================================================================================================
-	MCC_fnc_mineSingle = {[(_this select 0), (_this select 1), (_this select 2), (_this select 3)] execVM MCC_path + "mcc\general_scripts\traps\put_mine.sqf"};
+/*================================================================MCC_fnc_mineSingle======================================================================================
+	Create a mine field
+	Example:[[IEDkind,IEDMarkerName,centerPos,minefieldSize],"MCC_fnc_mineSingle",true,false] call BIS_fnc_MP;
+ 	Params:
+ 		IEDkind: string, minefield type: "apv" - AP minefield with warining signs, "ap" - AP minefield without warining signs. "apbv" -  AP bouncing minefield with
+ 		warining signs, "apb"-  AP bouncing minefield without warining signs, "atv" - AT minefield with warining signs, "at"-  AT minefield without warining signs
+
+		IEDMarkerName: string, custom marker name for the minefield
+
+ 		centerPos: array, position center of the minefield
+
+		minefieldSize: array, [x,y] size of the minefield in meters
+=======================================================================================================================================================================*/
+
 //Made by Shay_Gman (c) 09.10
 private ["_trapkind", "_iedMarkerName", "_fakeIed","_zoneX","_zoneY","_startingPos","_visable",
 		"_mcc_zone_pos","_mcc_zone_size","_mineClass","_minePos"];

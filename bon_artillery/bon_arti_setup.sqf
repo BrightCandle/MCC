@@ -28,7 +28,7 @@ _requestor = player;
 _dlg = findDisplay BON_ARTY_DIALOG;
 
 //is the player the commander or just using the artillery computer
-_isCommander = ((MCC_server getVariable [format ["CP_commander%1",side player],""]) == getPlayerUID player);
+_isCommander = ((MCC_server getVariable [format ["CP_commander%1",side player],""]) == getPlayerUID player) or ("MCC_itemConsole" in (assignedItems player));
 
 // read out the dialog input
 _spotter_xpos = (parseNumber ctrlText (_dlg displayCtrl BON_ARTY_XRAYEDIT)) mod 100000;
@@ -93,7 +93,7 @@ for [{_i= 1},{_i < (count lbSelection _listbox)},{_i = _i + 1}]  do
 
 if !(_acceptable) exitWith {ctrlSetText [BON_ARTY_SUMMARY,"Cannot produce same fire mission to different artillery pieces"]};
 
-_arty_cannonsummary = format["\nPosition\nx-ray %1\nyankee %2\ndirection %3\ndistance %4m\nheight dispersion %5m\n\n\nCannon set with:\n\nRounds: %6\nShells: %7\nSpread: %8\n\nFiredelay: %9 seconds",
+_arty_cannonsummary = format["Position\nx-ray %1\nyankee %2\ndirection %3\ndistance %4m\nheight dispersion %5m\n\nCannon set with:\nRounds: %6\nShells: %7\nSpread: %8\nFiredelay: %9 seconds",
                            	_spotter_xpos,	// summary[0]
 				_spotter_ypos,	// summary[1]
 				_degrees,	// summary[2]

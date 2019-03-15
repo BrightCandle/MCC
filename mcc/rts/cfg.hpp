@@ -25,3 +25,13 @@ class cfgMCCRtsGroups
 {
 	#include "cfgMCCRtsGroups.hpp"
 };
+
+class CfgMCCRtsAirdrops
+{
+	#include "CfgMCCRtsAirdrops.hpp"
+};
+
+class cfgRtsMissions
+{
+	#include "cfgRtsMissions.hpp"
+}

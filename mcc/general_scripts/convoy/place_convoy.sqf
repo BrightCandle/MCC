@@ -40,7 +40,7 @@ _pos = _pos1;
 	_vehicleClass = _x;
 	if (!isNil "_vehicleClass") then {
 		//_angle = if (count _convoyArray > _foreachindex) then {getdir (_convoyArray select (_foreachindex -1))} else {_angle};
-		_vehicle = ([_pos , _angle, _vehicleClass, _group] call BIS_fnc_spawnVehicle) select 0;
+		_vehicle = ([_pos , _angle, _vehicleClass, _group] call MCC_fnc_spawnVehicle) select 0;
 		_group setFormation "COLUMN";
 		//_vehicle setposatl (getpos _vehicle);
 		_vehicle lockdriver true;
@@ -85,7 +85,7 @@ if (_vipclass != "0") then {
 	_group = group driver _hvtCar;
 
 	for "_i" from 1 to (_cargoNum-1) do {
-		_cargo = _group createUnit [_escrot, _pos1, [], 0, "CORPORAL"];
+		_cargo = _group createUnit [_escrot, _pos1, [], 0, "CARGO"];
 		_cargo assignAsCargo _hvtCar;
 		_cargo MoveInCargo _hvtCar;
 	};

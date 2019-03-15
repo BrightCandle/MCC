@@ -1,8 +1,9 @@
 //==================================================================MCC_fnc_construct_base=============================================================================
 // Example:[_pos, _anchorDir , _anchorType, _BuildTime, _side]  call  MCC_fnc_construct_base;
 //======================================================================================================================================================================
-private ["_cfgClass","_anchorType","_anchorDir","_pos","_objs","_constType","_anchor","_object","_BuildTime","_buildingObjs","_builtArray","_side","_level","_instant","_endTime","_boxName","_boxArray","_box","_text","_res","_displayName","_markerName","_root"];
+private ["_cfgClass","_anchorType","_anchorDir","_pos","_objs","_constType","_anchor","_object","_BuildTime","_buildingObjs","_builtArray","_side","_level","_instant","_endTime","_boxName","_boxArray","_box","_text","_res","_displayName","_markerName","_root","_data"];
 #define BASE_ANCHOR "UserTexture10m_F"
+#define ANCHOR_ITEM "Land_TreeBin_F"
 
 _pos			= _this select 0;
 _anchorDir 		= _this select 1;
@@ -43,7 +44,7 @@ _buildingObjs = [
 					["Land_Pipes_large_F", [-7,0,-1],70],
 					["Land_Pallets_stack_F",[7,0,-0.4],70],
 					["Land_Bricks_V1_F", [0,7,-1],70],
-					["Land_Bricks_V3_F", [0,-7,-1],-70]
+					[ANCHOR_ITEM, [0,-7,-1],-70]
                 ];
 
 if (isnil "_constType") exitWith {};
@@ -59,6 +60,7 @@ _module setVariable ["mcc_constructionItemType",_constType,true];
 _module setVariable ["mcc_constructionItemTypeLevel",_level,true];
 _module setVariable ["mcc_side",_side,true];
 _module setVariable ["cfgClass",_cfgClass,true];
+_module setVariable ["mcc_delete",false,true];
 
 //Create marker
 _markerName = format ["ConstCounter_%1",["MCC_ConstCounter_",1] call bis_fnc_counter];
@@ -68,7 +70,7 @@ _module setVariable ["mcc_markerName",_markerName,true];
 
 //Building anim
 if !(_instant) then {
-	_anchor = "Land_Bricks_V3_F" createVehicle _pos;
+	_anchor = ANCHOR_ITEM createVehicle _pos;
 	waituntil {!isnil "_anchor"};
 	_anchor enableSimulation false;
 	_builtArray = [_anchor];
@@ -97,6 +99,7 @@ _anchor = _anchorType createVehicle _pos;
 waituntil {!isnil "_anchor"};
 _anchor setdir _anchorDir;
 _anchor setVariable ["mcc_side",_side,true];
+_anchor setVariable ["mcc_delete",false,true];
 
 //Attach module to anchor
 _module attachto [_anchor,[0,0,0]];
@@ -130,22 +133,30 @@ if (_constType != "hq") then {
 };
 
 for "_i" from 0 to ((count _objs) - 1) do {
+	_data = _objs select _i;
 	_object = nil;
-	_object = ((_objs select _i) select  0) createVehicle [0,0,0];
+	_object = (_data select  0) createVehicle [0,0,0];
 	waituntil {!isnil "_object"};
 	for "_x" from 1 to 2 do
 	{
-		_object attachTo [_anchor,((_objs select _i) select  1)];
-		_object setVectorDirAndUp  ((_objs select _i) select  2);
+		_object attachTo [_anchor,(_data select  1)];
+		_object setVectorDirAndUp  (_data select  2);
 	};
+	_object setVariable ["mcc_delete",false,true];
 	_object AddEventHandler ["HandleDamage", {}];
+
+	//Set Variable
+	if (count _data > 3) then {
+		_object setVariable [((_data select 3) select 0),((_data select 3) select 1),true];
+	};
 };
 
 //find the main box and add helper
 if (_constType == "hq") then {
+	_object setVariable ["mcc_mainBoxSide",_side,true];
 	[_side, _object] call MCC_fnc_makeObjectVirtualBox
 };
 
 if (_constType in ["workshop","barracks"]) then {
-	 [[_side, _module,_constType], "MCC_fnc_initWorkshop", false, false] spawn BIS_fnc_MP;
+	[_side, _module,_constType] remoteExec ["MCC_fnc_initWorkshop",2];
 };

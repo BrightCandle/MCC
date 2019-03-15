@@ -104,6 +104,76 @@ _evacVehicles = missionNamespace getvariable [format ["MCC_evacVehicles_%1",play
 	}];
 } forEach [1011,1021,1031];
 
+//Add default drops & CAS
+private ["_cfg","_varName","_airDrops","_cratesTypes","_costsTable","_airDropsAvaliable"];
+if (([["hq",2], playerSide] call MCC_fnc_CheckBuildings || (missionNamespace getVariable ["MCC_defaultSupplyDropsEnabled",false])) &&
+    !(missionNamespace getVariable ["MCC_RTSAddDefaultSupplyDrops",false])) then {
+
+	_cfg = if (isClass (missionconfigFile >> "CfgMCCRtsAirdrops" >> str playerSide)) then {
+		missionconfigFile >>  "CfgMCCRtsAirdrops" >> str playerSide;
+	} else {
+		configFile >>  "CfgMCCRtsAirdrops" >> str playerSide;
+	};
+
+	//AIrdrop
+	_airDrops = [];
+	for "_i" from 0 to (count (_cfg >> "airdrops") -1) step 1 do
+	{
+		if (isClass ((_cfg >> "airdrops") select _i)) then {
+			_airDrops pushBack [getText(((_cfg >> "airdrops") select _i) >> "className"),
+								getArray(((_cfg >> "airdrops") select _i) >> "resources")];
+		};
+	};
+
+	_varName = format ["MCC_ConsoleAirdropArray%1",playerSide];
+	_airDropsAvaliable = missionNamespace getVariable [_varName,[]];
+
+	{
+		_airDropsAvaliable pushBack [[[_x select 0]],[""],2];
+		missionNamespace setVariable [str ([[[_x select 0]],[""],2]), _x select 1];
+		publicVariable str ([[[_x select 0]],[""],2]);
+	} forEach _airDrops;
+
+	publicVariable _varName;
+
+	missionNamespace setVariable ["MCC_RTSAddDefaultSupplyDrops",true];
+	publicVariable "MCC_RTSAddDefaultSupplyDrops";
+};
+
+if (([["hq",3], playerSide] call MCC_fnc_CheckBuildings || (missionNamespace getVariable ["MCC_defaultCASEnabled",false])) &&
+    !(missionNamespace getVariable ["MCC_RTSAddDefaultCAS",false])) then {
+
+	_cfg = if (isClass (missionconfigFile >> "CfgMCCRtsAirdrops" >> str playerSide)) then {
+		missionconfigFile >>  "CfgMCCRtsAirdrops" >> str playerSide;
+	} else {
+		configFile >>  "CfgMCCRtsAirdrops" >> str playerSide;
+	};
+
+	//CAS
+	_airDrops = [];
+	for "_i" from 0 to (count (_cfg >> "cas") -1) step 1 do
+	{
+		if (isClass ((_cfg >> "cas") select _i)) then {
+			_airDrops pushBack [getText(((_cfg >> "cas") select _i) >> "casType"),
+								getText(((_cfg >> "cas") select _i) >> "className"),
+								getArray(((_cfg >> "cas") select _i) >> "resources")];
+		};
+	};
+
+	_varName = format ["MCC_CASConsoleArray%1",playerSide];
+	_airDropsAvaliable = missionNamespace getVariable [_varName,[]];
+
+	{
+		_airDropsAvaliable pushBack [[_x select 0],[_x select 1]];
+		missionNamespace setVariable [str ([[_x select 0],[_x select 1]]), _x select 2];
+		publicVariable str ([[_x select 0],[_x select 1]]);
+	} forEach _airDrops;
+
+	publicVariable _varName;
+
+	missionNamespace setVariable ["MCC_RTSAddDefaultCAS",true];
+	publicVariable "MCC_RTSAddDefaultCAS";
+};
 
 //--------------------------------------------------Evac-------------------------------------------------------------------------------
 if (count _evacVehicles > 0) then {
@@ -198,7 +268,7 @@ _counter = 0;
 		_displayname = format ["%1 %2, ",_displayname, getText(configFile >> "CfgVehicles" >> _x >> "displayname")];
 	} foreach ((_x select 0) select 0);
 	_displayname = _displayname;
-	_pic = if (_x select 2 != 1) then {"\a3\ui_f\data\gui\cfg\CommunicationMenu\supplydrop_ca.paa"} else {"\A3\ui_f\data\map\markers\handdrawn\pickup_CA.paa"};
+	_pic = if (!(_x select 2 isEqualTo 1) || (_x isEqualTo true)) then {"\a3\ui_f\data\gui\cfg\CommunicationMenu\supplydrop_ca.paa"} else {"\A3\ui_f\data\map\markers\handdrawn\pickup_CA.paa"};
 	_index = _comboBox lbAdd _displayname;
 	_comboBox lbSetPictureRight [_index, _pic];
 
@@ -231,22 +301,18 @@ _comboBox lbSetCurSel 0;
 
 if (!isnil "HCEast" ||  !isnil "HCWest" || !isnil "HCGuer") exitWith {}; 			//If HC is working aboart process
 
-onGroupIconClick {
-    if (!(MCC_Console1Open) && dialog) exitWith {};
+private _groupIconHandle = addMissionEventHandler ["GroupIconClick", {
+								params [
+									"_is3D", "_group", "_waypointId",
+									"_mouseButton", "_posX", "_posY",
+									"_shift", "_control", "_alt"
+								];
 
-	_is3D = _this select 0;
-    _group = _this select 1;
-    _wpID = _this select 2;
-    _button = _this select 3;
-    _posx = _this select 4;
-    _posy = _this select 5;
-    _shift = _this select 6;
-    _ctrl = _this select 7;
-    _alt = _this select 8;
+   								 if (!(MCC_Console1Open) && dialog) exitWith {};
 
-	[_group,_button,[_posx,_posy],_shift,_ctrl,_alt] execVM format ["%1mcc\fnc\console\fn_consoleClickGroupIcon.sqf",MCC_path];
-	//[_group,_button,[_posx,_posy],_shift,_ctrl,_alt] spawn MCC_fnc_consoleClickGroupIcon;
-};
+								[_group,_mouseButton,[_posX,_posY],_shift,_control,_alt] execVM format ["%1mcc\fnc\console\fn_consoleClickGroupIcon.sqf",MCC_path];
+								//[_group,_button,[_posx,_posy],_shift,_ctrl,_alt] spawn MCC_fnc_consoleClickGroupIcon;
+							}];
 
 //Add - Ctrl + number group selections handlers
 if (isnil "MCC_consoleGroupSelectionEH") then {
@@ -403,11 +469,9 @@ MCC_fnc_mapDrawWPConsole =
 
 	//Clear stuff after exiting
 	{
-		_leader = (leader _x);
-		if ((side _leader == side player) && alive _leader) then
-			{
-				clearGroupIcons _x;
-			};
+		_x removeGroupIcon (_x getVariable ["MCCgroupIconData",-1]);
+		_x removeGroupIcon ((_x getVariable ["MCCgroupIconSize",[-1]]) select 0);
+		_x removeGroupIcon (_x getVariable ["MCCgroupIconDataSelected",-1]);
 	} foreach allgroups;
 
 	setGroupIconsVisible [false,false];
@@ -415,4 +479,6 @@ MCC_fnc_mapDrawWPConsole =
 
 	//Remove EH
 	(_mccdialog displayCtrl 9120) ctrlRemoveEventHandler ["draw",_handler];
+
+	removeMissionEventHandler ["GroupIconClick",_groupIconHandle];
 };
