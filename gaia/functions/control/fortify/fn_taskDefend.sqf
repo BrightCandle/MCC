@@ -93,22 +93,8 @@ GAIA_taskDefend_FNC_releasePosition = {
 	_positions pushBack _position;
 };
 
-GAIA_taskDefend_FNC_positionsMostlyEqual = {
-	params ["_pos1","_pos2"];
-
-	private _p1x = _pos1 select 0;
-	private _p1y = _pos1 select 1;
-	private _p1z = _pos1 select 2;
-
-	private _p2x = _pos2 select 0;
-	private _p2y = _pos2 select 1;
-	private _p2z = _pos2 select 2;
-
-	(abs(_p1x - _p2x) <1.5) && (abs(_p1y - _p2y) <1.5) && (abs(_p1z - _p2z) <10);
-};
-
 GAIA_taskDefend_FNC_moveToPosition = {
-	params ["_unit","_building","_firstTime"];
+	params ["_unit","_building","_teleportMove"];
 	private _positions = _building getVariable ["CBA_taskDefend_positions",[]];
 
 	if !(_positions isEqualTo []) then {
@@ -123,18 +109,27 @@ GAIA_taskDefend_FNC_moveToPosition = {
 		_building setVariable ["CBA_taskDefend_positions",_positions];
 
 		_unit setVariable ["CBA_taskDefend_pos",_pos];
-		_unit enableai "move";
-		_unit doMove _pos;
-		
-		waituntil {(unitReady _unit)};
+
+		if (_teleportMove) then {
+			//Workaround for units appearing in the floor.
+			_unit setPos _pos;
+		} else {
+			_unit enableai "move";
+			_unit doMove _pos;
+			waituntil {(unitReady _unit)};
+		};
 		
 		_unit disableai "move";
 		doStop _unit;
-
-		if (_firstTime || ([getPos _unit,_pos] call GAIA_taskDefend_FNC_positionsMostlyEqual)  ) then {
-			_unit setPos _pos; //Workaround for units appearing in the floor.
-		};
 	};
+};
+
+GAIA_taskDefend_FNC_inCombat = {
+	params ["_unit"];
+
+	private _assignedTarget = assignedTarget _unit;
+    
+	!isNull _assignedTarget;
 };
 
 {
@@ -146,24 +141,30 @@ GAIA_taskDefend_FNC_moveToPosition = {
 			params ["_unit","_buildings"];
 
 			private _building= [_buildings] call GAIA_taskDefend_FNC_chooseBuilding;
+
+			[_unit,_building,true] call GAIA_taskDefend_FNC_moveToPosition;//teleports them into position first time.
 	
 			if (!(isNil "_building")) then {
-				private _firstTime = true;
 
 				while {alive _unit} do {
 					[_unit] call CBA_fnc_clearWaypoints;
 					
-					[_unit,_building,_firstTime] call GAIA_taskDefend_FNC_moveToPosition;
+					[_unit,_building,false] call GAIA_taskDefend_FNC_moveToPosition;
 					
-					sleep( random [10,60,120] );
-					if( (random 1)> 0.85 ) then {
+					sleep( random [5,10,30] );
+
+					private _inCombat = [_unit] call GAIA_taskDefend_FNC_inCombat;
+
+					if((!_inCombat) && ((random 1)> 0.95) ) then {
 						[_building] call GAIA_taskDefend_FNC_releaseBuilding;
 						_building= [_buildings] call GAIA_taskDefend_FNC_chooseBuilding;
 					};
-					
-					_firstTime = false;
 				};
-
+				//release position when dead
+				_pos = _unit getVariable "CBA_taskDefend_pos";
+				if !(isNil "_pos" || isNil "_building") then {
+					[_building,_pos] call GAIA_taskDefend_FNC_releasePosition;
+				};
 			};
 		};
     };
