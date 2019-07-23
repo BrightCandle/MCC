@@ -93,6 +93,12 @@ GAIA_taskDefend_FNC_releasePosition = {
 	_positions pushBack _position;
 };
 
+GAIA_taskDefend_FNC_closeToPosition = {
+	params ["_pos1","_pos2"];
+
+	//_unit getPosATL
+};
+
 GAIA_taskDefend_FNC_moveToPosition = {
 	params ["_unit","_building","_teleportMove"];
 	private _positions = _building getVariable ["CBA_taskDefend_positions",[]];

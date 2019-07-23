@@ -418,6 +418,7 @@ class CP_RscMapControl
 	text = "#(argb,8,8,3)color(1,1,1,1)";
 	type = 101;
 	w = "SafeZoneWAbs";
+	widthRailWay = 1;
 	x = "SafeZoneXAbs";
 	y = "SafeZoneY + 1.5 * 					(			(			((safezoneW / safezoneH) min 1.2) / 1.2) / 25)";
 	class ActiveMarker
