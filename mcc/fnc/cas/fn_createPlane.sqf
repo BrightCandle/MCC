@@ -43,15 +43,14 @@ if (_vehicleClass == "autonomous") then {
 
 //Give it more hight and velocity if we are spawning a jet
 if !(_plane isKindOf "Helicopter") then {
-	_plane setpos [(getPos _plane select 0),(getPos _plane select 1),(getPos _plane select 2)+100];
+	// _plane setpos [(getPos _plane select 0),(getPos _plane select 1),(getPos _plane select 2)+100];
 	private ["_vel","_dir","_speed"];
 	_vel = velocity _plane;
 	_dir = direction _plane;
-	_speed = 10;
-	_plane setVelocity [(_vel select 0)+(sin _dir*_speed),(_vel select 1)+(cos _dir*_speed),(_vel select 2)];
-
-	// set marker on map
-	//[_plane, "B_AIR", _planeType, "ColorBlack", 99] execVM MCC_path + "mcc\general_scripts\cas\cas_marker.sqf";
+	_speed = 100;
+	_plane setVelocity [(sin _dir*_speed),(cos _dir*_speed),0];
+	// _plane setVelocity [(_vel select 0)+(sin _dir*_speed),(_vel select 1)+(cos _dir*_speed),(_vel select 2)];
+	// _plane setVelocity [0,0,65];
 };
 
 _plane

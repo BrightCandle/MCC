@@ -118,6 +118,7 @@ if (_halo) then {
 					{
 						detach _x;
 						sleep 0.1;
+						clearBackpackCargo _x;
 						deleteVehicle _x;
 					};
 				} forEach attachedObjects _unit;
@@ -137,23 +138,24 @@ if (_halo) then {
 						};
 				} foreach _backPackItems;
 			};
+			
 
 			sleep 0.05;
 
 			// Add parachute backpack, this will place backpack on the ground near player
-			_unit addBackpack "B_Parachute";
+			// _unit addBackpack "B_Parachute";
 
-			hintSilent "pickup backpack or drop parachute to change gear";
+			// hintSilent "pickup backpack or drop parachute to change gear";
 
-			//Only if player grabs backpack the change gear scenario will be started
-			_timeOut = time + 600;
-			while { (alive _unit) && (backpack _unit == "B_Parachute") && (time < _timeOut) } do { sleep 0.5;};
+			// Only if player grabs backpack the change gear scenario will be started
+			// _timeOut = time + 600;
+			// while { (alive _unit) && (backpack _unit == "B_Parachute") && (time < _timeOut) } do { sleep 0.5;};
 
 			// if killed or after 10 minutes still no gear change exit HALO script
-			if ( !(alive _unit) || ( time > _timeOut )) exitwith {};
+			// if ( !(alive _unit) || ( time > _timeOut )) exitwith {};
 
 			//Remove HALO gear and add normal gear
-			cutText ["Changing Gear","BLACK OUT",0.5];
+			cutText ["Changing gear","BLACK OUT",0.5];
 
 			if (_headgear != "") then { removeHeadgear _unit; _unit addHeadgear _headgear };
 			if (_uniform != "") then { removeUniform _unit; _unit forceAddUniform  _uniform };
@@ -166,7 +168,7 @@ if (_halo) then {
 					case (isClass (configFile >> "CfgGlasses" >> _x)) : {player additem _x};
 				};
 			} foreach _uniformItems;
-			sleep 4;
+			sleep 1;
 			cutText ["","BLACK IN",2];
 		}
 		else
@@ -185,6 +187,7 @@ if (_halo) then {
 
 			_unit setCombatMode "AWARE";
 		};
+		
 } else {
 
 	//Parachute
