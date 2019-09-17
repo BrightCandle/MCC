@@ -108,6 +108,8 @@ while {!_jumpReady} do {
 	_jumpReady = _plane getvariable "MCCjumpReady";
 };
 
+_unit allowdamage false;
+
 /*
 //Make them stand on the ramp
 if (isplayer _unit) then {

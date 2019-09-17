@@ -25,7 +25,7 @@ _chockArray = [];
 if (_UMUnit==0) then {
 	{
 		_unitsArray pushBack _x;
-		if (count _unitsArray >= 12) then {
+		if (count _unitsArray >= 18) then {
 			_chockArray pushBack _unitsArray;
 			_unitsArray	= [];
 		};
@@ -34,7 +34,7 @@ if (_UMUnit==0) then {
 	{
 		{
 			_unitsArray pushBack _x;
-			if (count _unitsArray >= 12) then {
+			if (count _unitsArray >= 18) then {
 				_chockArray  pushBack _unitsArray;
 				_unitsArray	= [];
 			};
@@ -45,11 +45,11 @@ if (_UMUnit==0) then {
 _heliClass = if (_isHalo == 1) then  {"O_Heli_Transport_04_F"} else {
 				switch (true) do
 				{
-					case (side (_units select 0) == east && (isClass(configFile >> "CfgVehicles" >> "O_T_VTOL_02_infantry_F"))):{"O_T_VTOL_02_infantry_F"};
+					case (side (_units select 0) == east && (isClass(configFile >> "CfgVehicles" >> "RHS_C130J"))):{"RHS_C130J"};
 
-					case (side (_units select 0) == west && (isClass(configFile >> "CfgVehicles" >> "B_T_VTOL_01_infantry_F"))):{"B_T_VTOL_01_infantry_F"};
+					case (side (_units select 0) == west && (isClass(configFile >> "CfgVehicles" >> "RHS_C130J"))):{"RHS_C130J"};
 
-					default{"I_Heli_Transport_02_F"};
+					default{"RHS_C130J"};
 				};
 			};
 
