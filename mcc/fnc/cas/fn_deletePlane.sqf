@@ -23,7 +23,7 @@ _pilotGroup setSpeedMode "FULL";
 _pilotGroup setCombatMode "BLUE";
 _pilotGroup setBehaviour "CARELESS";
 _plane disableAI "AUTOTARGET";
-if (IsNil "_flyInHeight") then { _flyInHeight = 300; };
+// if (IsNil "_flyInHeight") then { _flyInHeight = 300; };
 _plane flyInHeight _flyInHeight;
 
 if (isnil "_away") then {_away = [100,100,100]};
@@ -33,8 +33,15 @@ _pilotGroup move _away;
 _pilot domove _away;
 
 // If plane is far away enough delete it
-waituntil {sleep 1;((_plane distance _away) < 800) || (!alive _plane);};
+// waituntil {sleep 1;((_plane distance _away) < 800) || (!alive _plane);};
+
+sleep 20;
+
+_crew = crew _plane;
+_group = group _plane;
 
 if (alive _plane) then {
-	{deleteVehicle _x} forEach crew _plane + [_plane];
+	deletevehicle _plane;
+	{deletevehicle _x} foreach _crew;
+	deletegroup _group;
 };
