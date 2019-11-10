@@ -139,6 +139,10 @@ GAIA_taskDefend_FNC_inCombat = {
 };
 
 {
+
+	_x setVariable ["dangerAIEnabled",false];
+	_x enableAttack false; 
+	
     if (!(_statics isEqualto []) ) then {
         _x assignAsGunner (_statics deleteAt 0);
         [_x] orderGetIn true;
