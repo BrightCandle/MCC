@@ -220,6 +220,7 @@ mccPresetsUnits = [
 					,['Unconscious (MCC medic system)', '[_this,_this] spawn MCC_fnc_unconscious']
 					,['Can be controled using MCC Console', '(group _this) setvariable ["MCC_canbecontrolled",true,true];']
 					,['God mod', '_this allowDamage false;']
+					,['CF Guard mode', '_this disableAI "MOVE"; _this setVariable ["dangerAIEnabled",false]; _this enableAttack false; ']
 					,['', '']
 					,['======= General =======','']
 					,['Kill Unit', '_this setdamage 1;']
