@@ -149,6 +149,15 @@ GAIA_taskDefend_FNC_inCombat = {
     } else {
 		[_x, _buildings] spawn {
 			params ["_unit","_buildings"];
+			private _isSpawnedAlready = _unit getVariable ["CBA_taskDefend_isRunning",false];
+
+			if(_isSpawnedAlready) exitWith {
+				true;
+			};
+
+			_unit setVariable ["CBA_taskDefend_isRunning",true];
+
+
 
 			private _building= [_buildings] call GAIA_taskDefend_FNC_chooseBuilding;
 
