@@ -96,7 +96,9 @@ GAIA_taskDefend_FNC_releasePosition = {
 GAIA_taskDefend_FNC_closeToPosition = {
 	params ["_pos1","_pos2"];
 
-	//_unit getPosATL
+	(abs((_pos1 select 0) - (_pos2 select 0)) <2) && 
+		   (abs((_pos1 select 1) - (_pos2 select 1)) <2) && 
+		   (abs((_pos1 select 2) - (_pos2 select 2)) <2);
 };
 
 GAIA_taskDefend_FNC_moveToPosition = {
@@ -116,13 +118,18 @@ GAIA_taskDefend_FNC_moveToPosition = {
 
 		_unit setVariable ["CBA_taskDefend_pos",_pos];
 
+		//Workaround for units failing to find a path to move and appearing in the floor.
 		if (_teleportMove) then {
-			//Workaround for units appearing in the floor.
 			_unit setPos _pos;
 		} else {
 			_unit enableai "move";
 			_unit doMove _pos;
 			waituntil {(unitReady _unit)};
+
+			isClose = [getPos _unit ,_pos] call GAIA_taskDefend_FNC_closeToPosition;
+			if isClose then {
+				_unit setPos _pos;
+			};
 		};
 		
 		_unit disableai "move";
@@ -157,8 +164,6 @@ GAIA_taskDefend_FNC_inCombat = {
 
 			_unit setVariable ["CBA_taskDefend_isRunning",true];
 
-
-
 			private _building= [_buildings] call GAIA_taskDefend_FNC_chooseBuilding;
 
 			[_unit,_building,true] call GAIA_taskDefend_FNC_moveToPosition;//teleports them into position first time.
@@ -170,11 +175,11 @@ GAIA_taskDefend_FNC_inCombat = {
 					
 					[_unit,_building,false] call GAIA_taskDefend_FNC_moveToPosition;
 					
-					sleep( random [5,10,30] );
+					sleep( random [3,6,30] );
 
 					private _inCombat = [_unit] call GAIA_taskDefend_FNC_inCombat;
 
-					if((!_inCombat) && ((random 1)> 0.95) ) then {
+					if((!_inCombat) && ((random 1)> 0.99) ) then {
 						[_building] call GAIA_taskDefend_FNC_releaseBuilding;
 						_building= [_buildings] call GAIA_taskDefend_FNC_chooseBuilding;
 					};

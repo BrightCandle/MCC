@@ -45,6 +45,7 @@ class MCCMW_briefingMap {
 		scaleMax = "(uinamespace getvariable ['MCC_MWMap_scale',0.3])*2.5";
 		scaleMin = "(uinamespace getvariable ['MCC_MWMap_scale',0.3])/2";
 		colorOutside[] = {"uinamespace getvariable ['MCC_MWMap_colorOutside_R',0]","uinamespace getvariable ['MCC_MWMap_colorOutside_G',0]","uinamespace getvariable ['MCC_MWMap_colorOutside_B',0]",1};
+		widthRailWay = 1;
 	};
 	class MCC_mapCover: MCC_RscPicture
 	{
