@@ -123,6 +123,8 @@ class MCC_compass
 			y = 0.719914 * safezoneH + safezoneY;
 			w = 0.223438 * safezoneW;
 			h = 0.285889 * safezoneH;
+
+			widthRailWay = 1;
 		};
 
 		class MCC_ConsoleCompassMapBackground : MCC_RscText
