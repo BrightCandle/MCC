@@ -132,7 +132,7 @@ GAIA_taskDefend_FNC_moveToPosition = {
 			};
 		};
 		
-		_unit disableai "move";
+		[_unit,["STAND","CROUCH"]] call GAIA_fnc_guard;
 		doStop _unit;
 	};
 };

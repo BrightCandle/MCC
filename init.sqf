@@ -220,7 +220,7 @@ mccPresetsUnits = [
 					,['Unconscious (MCC medic system)', '[_this,_this] spawn MCC_fnc_unconscious']
 					,['Can be controled using MCC Console', '(group _this) setvariable ["MCC_canbecontrolled",true,true];']
 					,['God mod', '_this allowDamage false;']
-					,['CF Guard mode', '_this execVM "'+MCC_path+'gaia\functions\control\fortify\fn_guard.sqf";']
+					,['CF Guard mode', '[_this] call GAIA_fnc_guard;']
 					,['', '']
 					,['======= General =======','']
 					,['Kill Unit', '_this setdamage 1;']

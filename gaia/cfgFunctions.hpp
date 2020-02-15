@@ -161,5 +161,6 @@ class GAIA
         #endif
 
         class taskDefend {};
+        class guard {};
     };
 };
