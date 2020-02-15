@@ -220,7 +220,7 @@ mccPresetsUnits = [
 					,['Unconscious (MCC medic system)', '[_this,_this] spawn MCC_fnc_unconscious']
 					,['Can be controled using MCC Console', '(group _this) setvariable ["MCC_canbecontrolled",true,true];']
 					,['God mod', '_this allowDamage false;']
-					,['CF Guard mode', '_this disableAI "MOVE"; _this setVariable ["dangerAIEnabled",false]; _this enableAttack false; _unit addEventHandler ["AnimStateChanged",{params ["_unit", "_anim"];if (canStand _unit && (stance _unit in ["PRONE","CROUCH"])) then {_unit setUnitPos "UP";};}];']
+					,['CF Guard mode', '_this execVM "'+MCC_path+'gaia\functions\control\fortify\fn_guard.sqf";']
 					,['', '']
 					,['======= General =======','']
 					,['Kill Unit', '_this setdamage 1;']
