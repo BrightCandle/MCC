@@ -221,6 +221,7 @@ mccPresetsUnits = [
 					,['Can be controled using MCC Console', '(group _this) setvariable ["MCC_canbecontrolled",true,true];']
 					,['God mod', '_this allowDamage false;']
 					,['CF Guard mode', '[_this] call GAIA_fnc_guard;']
+					,['CF Surrender', '[_this] call GAIA_fnc_surrender;']
 					,['', '']
 					,['======= General =======','']
 					,['Kill Unit', '_this setdamage 1;']

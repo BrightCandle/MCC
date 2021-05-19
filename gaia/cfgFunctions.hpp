@@ -162,5 +162,6 @@ class GAIA
 
         class taskDefend {};
         class guard {};
+        class surrender {};
     };
 };
