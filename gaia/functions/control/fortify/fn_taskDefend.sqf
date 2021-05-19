@@ -122,7 +122,7 @@ GAIA_taskDefend_FNC_moveToPosition = {
 		if (_teleportMove) then {
 			_unit setPos _pos;
 		} else {
-			_unit enableai "move";
+			_unit enableai "PATH";
 			_unit doMove _pos;
 			waituntil {(unitReady _unit)};
 

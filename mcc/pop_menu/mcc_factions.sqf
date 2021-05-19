@@ -31,6 +31,7 @@ for "_i" from 1 to ((count _mcc_config) - 1) do
 			//Init faction groups and units to save time
 		};
 		_mcc_faction_idx = _mcc_faction_idx + 1;
-
 	};
 };
+
+U_FACTIONS sort true;

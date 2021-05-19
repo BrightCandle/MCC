@@ -21,7 +21,7 @@ if ((count _stances) == 0) then {
 	_requestedStances = _stances;
 };
 
-_unit disableAI "MOVE";
+_unit disableAI "PATH";
 _unit setVariable ["dangerAIEnabled",false]; //Lambs.danger mod disable FSM
 _unit enableAttack false;
 
